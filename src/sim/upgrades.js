@@ -3,10 +3,10 @@
 // a reaction card (from chapter 2), an imbue (martial classes: the basic attack carries a mark the class's book
 // lacks, so every class can gather all ten), the wall, and once the class's ten marks have awakened, Chaos Seed.
 
-import { SKILLS, maxLevel, reqOf } from "../data/skills.js";
-import { ELEM, MARTIAL, schoolOf } from "../data/elements.js";
-import { CLASSES } from "../data/classes.js";
-import { T, skillT } from "../data/tuning.js";
+import { SKILLS, maxLevel, reqOf } from "../data/skills.js?v=mw6dufuq";
+import { ELEM, MARTIAL, schoolOf } from "../data/elements.js?v=mw6dufuq";
+import { CLASSES } from "../data/classes.js?v=mw6dufuq";
+import { T, skillT } from "../data/tuning.js?v=mw6dufuq";
 
 export const BASE_SLOTS = 12;
 const STATS = [

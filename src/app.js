@@ -1,22 +1,22 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js";
-import { loadTuning, mountAdmin, tuned } from "./admin.js";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js";
-import { createRenderer } from "./view.js";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext, W, H } from "./sim/world.js";
-import { ENEMIES } from "./sim/enemies.js";
-import { SKILLS, stats } from "./data/skills.js";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js";
-import { CHAPTERS } from "./data/chapters.js";
-import { CLASSES, CLASS_IDS } from "./data/classes.js";
-import { ENVS } from "./data/environments.js";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js";
-import { ENEMIES as KINDS } from "./sim/enemies.js";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js";
+import { loadAssets, browserLoad } from "./assets.js?v=mw6dufuq";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw6dufuq";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw6dufuq";
+import { createRenderer } from "./view.js?v=mw6dufuq";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext, W, H } from "./sim/world.js?v=mw6dufuq";
+import { ENEMIES } from "./sim/enemies.js?v=mw6dufuq";
+import { SKILLS, stats } from "./data/skills.js?v=mw6dufuq";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw6dufuq";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw6dufuq";
+import { CHAPTERS } from "./data/chapters.js?v=mw6dufuq";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw6dufuq";
+import { ENVS } from "./data/environments.js?v=mw6dufuq";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw6dufuq";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw6dufuq";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw6dufuq";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw6dufuq";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(W, H);
