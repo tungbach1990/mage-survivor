@@ -3,7 +3,7 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw6zzix7";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw704803";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8

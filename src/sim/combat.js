@@ -6,16 +6,16 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw6zzix7";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw6zzix7";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw6zzix7";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw6zzix7";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw6zzix7";
-import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw6zzix7";
-import { ENVS } from "../data/environments.js?v=mw6zzix7";
-import { T, reactT } from "../data/tuning.js?v=mw6zzix7";
+import { ENEMIES } from "./enemies.js?v=mw704803";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw704803";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw704803";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw704803";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw704803";
+import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw704803";
+import { ENVS } from "../data/environments.js?v=mw704803";
+import { T, reactT } from "../data/tuning.js?v=mw704803";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw6zzix7";
+import { startBlackHole } from "./chaos.js?v=mw704803";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
@@ -66,11 +66,11 @@ export function applyAura(w, e, elem, opts = {}) {
       }
       break;
     // ---- the martial marks
-    case "bleed": applyDot(e, "bleed", opts.bleed ?? AURA.bleed.dps * p, opts.stacks ?? 1, AURA.bleed.maxStacks); break;
+    case "bleed": applyDot(e, "bleed", (opts.bleed ?? AURA.bleed.dps * p) * (env(w).mul?.bleed ?? 1), opts.stacks ?? 1, AURA.bleed.maxStacks); break;
     case "daze": st.dazeHits = (st.dazeHits ?? 0) + 1; if (st.dazeHits >= AURA.daze.hits) { st.dazeHits = 0; stun(w, e, AURA.daze.stun) } break;
-    case "pin": if ((e.pinAt ?? -99) + AURA.pin.every <= w.t) { e.pinAt = w.t; applyRoot(e, def, AURA.pin.root) } break;
+    case "pin": if ((e.pinAt ?? -99) + AURA.pin.every <= w.t) { e.pinAt = w.t; applyRoot(e, def, AURA.pin.root * (env(w).pinMul ?? 1)) } break;
     case "expose": st.exposed = Math.max(st.exposed ?? 0, 1); break;
-    case "venom": applyDot(e, "venom", opts.venom ?? AURA.venom.dps * p, opts.stacks ?? 1, AURA.venom.maxStacks); break;
+    case "venom": applyDot(e, "venom", (opts.venom ?? AURA.venom.dps * p) * (env(w).mul?.venom ?? 1), opts.stacks ?? 1, env(w).venomCap ?? AURA.venom.maxStacks); break;
     // sunder, cripple, blind, disarm, bounty: they work while the mark lasts (damage(), world.js, onDeath)
   }
   return fresh;
@@ -125,7 +125,7 @@ export function damage(w, e, amount, elem, opts = {}) {
   if (e.resist?.[elem] !== undefined) amount *= e.resist[elem];
   if (e.elite === "armored" && !opts.reaction && elem !== "tier") amount *= 0.5;
   e.lastHit = w.t;
-  if (real && phys && st.exposed > 0) { st.exposed--; amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }   // exposed: this blow is a sure crit
+  if (real && phys && st.exposed > 0) { st.exposed--; amount *= (env(w).exposeCrit ?? 1.5) + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }   // exposed: this blow is a sure crit
   else if (real && w.mods?.crit && w.rng.chance(w.mods.crit)) { amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }
   // a shield (an elite's, a boss's): reactions (or tiers) break it outright; any other blow wears it down a
   // little, a physical one more (it's force against a barrier), more still on a sundered monster. Nothing
@@ -179,7 +179,7 @@ export function damage(w, e, amount, elem, opts = {}) {
 function onDeath(w, e) {
   const def = ENEMIES[e.type];
   // a bounty on its head (or caught alive): twice the gold and the xp
-  const bounty = e.auras.has("bounty") || e.status.capture ? AURA.bounty : 1;
+  const bounty = e.auras.has("bounty") || e.status.capture ? env(w).bounty ?? AURA.bounty : 1;
   w.gold += def.gold * bounty * (w.pm?.gold ?? 1); w.kills++;
   w.xp = (w.xp ?? 0) + (def.xp ?? 1) * (e.elite ? 3 : 1) * (w.mods?.xp ?? 1) * bounty;
   if (e.judgedHit && e.status.judged === false && e.auras.has("light")) w.wall.hp = Math.min(w.wall.max, w.wall.hp + 1);
