@@ -58,7 +58,7 @@ export const LOOKS = {
   cointoss:     { shot: { mod: fireball, opts: (a, id) => ({ angle: a, radius: 1.6, speed: 140, palette: ramp9("bounty"), light: 0.45, seed: id % 9 }) } },
   // the sword waves: a crescent slash flying level (turning it would break up its pixels)
   basic_swordman: { shot: { mod: swordWave, opts: (a, id, b) => ({ size: 13, palette: b?.pal ?? R("sunder"), light: 0.4, seed: id }) } },
-  swordwave:    { shot: { mod: swordWave, opts: (a, id) => ({ size: 16, palette: R("sunder"), light: 0.45, seed: id }) } },
+  swordwave:    { shot: { mod: swordWave, opts: (a, id, b, ev) => ({ size: ev?.half ?? 16, palette: R("sunder"), light: 0.45, seed: id }) } },
   venomcloud:   { zone: { mod: poisonCloud, opts: (r) => ({ spread: r / 40, palette: R("venom") }), cache: 3 } },
   magnus:       { zone: { mod: runeCircle, opts: () => ({ palette: R("light") }), cache: 3 } },
   purify:       { zone: { mod: smite, opts: () => ({}), life: 1.6, cache: 2 } },

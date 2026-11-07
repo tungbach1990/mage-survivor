@@ -141,7 +141,7 @@ export function createRenderer(A) {
       case "shot": {
         const look = LOOKS[ev.skill]?.shot, ang = Math.atan2(ev.vy, ev.vx);
         if (!look || ev.plain) break;   // plain shots are drawn straight from the world (drawPlain)
-        const e = add(look.mod, { x: ev.x, y: ev.y + (look.dy ?? 0), ...look.opts(ang, ev.id, ev.basic ? { g: grade(ev.lvl), pal: basicPalette(ev), mark: ev.mark } : null) }, { kind: "shot", must: true, dy: look.dy, cache: look.cache });
+        const e = add(look.mod, { x: ev.x, y: ev.y + (look.dy ?? 0), ...look.opts(ang, ev.id, ev.basic ? { g: grade(ev.lvl), pal: basicPalette(ev), mark: ev.mark } : null, ev) }, { kind: "shot", must: true, dy: look.dy, cache: look.cache });
         if (e) byShot.set(ev.id, e);
         break;
       }
@@ -233,7 +233,7 @@ export function createRenderer(A) {
         if (ev.basic) {
           // a basic swing: a plain steel arc at first; sparks, light and its colour as it levels
           const g = grade(ev.lvl);
-          add(mod, { x: ev.x + 4, y: ev.y + 4, palette: basicPalette(ev), sparks: g >= 2, light: ev.mark ? 0.3 : [0.05, 0.15, 0.3, 0.5][g], seed: rng.int(0, 99) }, { life: 0.55 + 0.05 * g, fade: 0.25 });
+          add(mod, { x: ev.x + 4, y: ev.y + 4, palette: basicPalette(ev), sparks: g >= 2 ? basicPalette(ev) : PLAIN.grey, light: ev.mark ? 0.3 : [0.05, 0.15, 0.3, 0.5][g], seed: rng.int(0, 99) }, { life: 0.55 + 0.05 * g, fade: 0.25 });
           if (g >= 3) shake = Math.max(shake, 1);
           break;
         }

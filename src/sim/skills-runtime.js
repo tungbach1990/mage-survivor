@@ -6,7 +6,7 @@ import { SKILLS, WEATHER, stats } from "../data/skills.js";
 import { T, skillT } from "../data/tuning.js";
 import { damage, applyAura, steamAt, obsidianAt, stun } from "./combat.js";
 import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js";
-import { W, H, GEM, WALL_X, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -54,13 +54,13 @@ function aimAt(e, speed) {
   return [cx - v * (d / speed), cy];
 }
 function shoot(w, id, st, tx, ty, extra = {}) {
-  const d = Math.hypot(tx - GEM[0], ty - GEM[1]) || 1;
-  const s = { id: w.nextId++, skill: id, elem: SKILLS[id].elem, kind: SKILLS[id].kind, x: GEM[0], y: GEM[1], vx: ((tx - GEM[0]) / d) * st.speed, vy: ((ty - GEM[1]) / d) * st.speed, left: d, st, hit: new Set(), pierced: 0, ...extra };
+  const [fx, fy] = extra.from ?? GEM, d = Math.hypot(tx - fx, ty - fy) || 1;
+  const s = { id: w.nextId++, skill: id, elem: SKILLS[id].elem, kind: SKILLS[id].kind, x: fx, y: fy, vx: ((tx - fx) / d) * st.speed, vy: ((ty - fy) / d) * st.speed, left: d, st, hit: new Set(), pierced: 0, ...extra };
   w.shots.push(s);
   // how it should look: its level, and a mark it carries beyond its own (an imbue: card or gear)
   s.lvl = w.skills[id]?.level ?? 1; s.mark = st.also?.find((m) => !(SKILLS[id].also ?? []).includes(m)) ?? null;
   s.plain = !!st.plain;
-  w.events.push({ type: "shot", id: s.id, skill: id, elem: s.elem, kind: s.kind, x: s.x, y: s.y, vx: s.vx, vy: s.vy, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[id].basic, plain: s.plain });
+  w.events.push({ type: "shot", id: s.id, skill: id, elem: s.elem, kind: s.kind, x: s.x, y: s.y, vx: s.vx, vy: s.vy, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[id].basic, plain: s.plain, half: st.half });
   return s;
 }
 
@@ -70,6 +70,14 @@ export function cast(w, id) {
   switch (sk.kind) {
     case "bolt": {
       const e = pickTarget(w); if (!e) return false;
+      if (st.half) {
+        // a tall wave sent level along the wall: centred on the crowd, kept inside the lanes (at its widest it
+        // covers the whole height of the wall)
+        const c = densest(w, 26) ?? { y: e.y }, lo = LANE[0] - 12 + st.half, hi = LANE[1] - st.half + 2;
+        const y = lo > hi ? (LANE[0] - 12 + LANE[1] + 2) / 2 : Math.max(lo, Math.min(hi, c.y - 6));
+        shoot(w, id, st, W + 40, y, { from: [WALL_X + 4, y] });
+        return true;
+      }
       const n = st.count ?? 1;
       for (let i = 0; i < n; i++) {
         const [x, y] = aimAt(e, st.speed);
@@ -210,7 +218,13 @@ export function updateShots(w, dt) {
       if (s.life <= 0 || s.x > W + 20) s.dead = true;
       continue;
     }
-    const touch = alive(w).filter((e) => !s.hit.has(e.id) && Math.hypot(center(e)[0] - s.x, center(e)[1] - s.y) <= ENEMIES[e.type].r + 3);
+    const touch = alive(w).filter((e) => {
+      if (s.hit.has(e.id)) return false;
+      const [cx, cy] = center(e), r = ENEMIES[e.type].r;
+      // a wave: everything its tall front sweeps over
+      if (s.st.half) return Math.abs(cx - s.x) <= r + 4 && Math.abs(cy - s.y) <= s.st.half + r * 0.5;
+      return Math.hypot(cx - s.x, cy - s.y) <= r + 3;
+    });
     if (s.kind === "ball") {
       if (touch.length || s.left <= 0) { burst(w, s); s.dead = true }
     } else {

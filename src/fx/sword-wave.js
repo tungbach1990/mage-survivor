@@ -7,8 +7,8 @@ export const meta = {
   name: "Sword wave",
   desc: "A crescent slash of steel flung forward: white leading edge, tapering tips, a fading smear behind.",
   tags: ["projectile", "slash", "sword", "melee", "directional", "loop"],
-  size: [80, 52],
-  origin: [56, 26],
+  size: [150, 130],
+  origin: [100, 65],
   duration: 0.4,
   loop: true,
   fps: 30,
@@ -31,7 +31,7 @@ function moon(x, y, R, thick) {
 
 export function draw(p, t, o) {
   const C = fit(o.palette, 7), R = o.size, S = o.seed, fr = Math.floor(t * 30 + 1e-6);
-  const thick = 6.5 * (1 + 0.1 * Math.sin(fr * 1.9));
+  const thick = (4 + R * 0.16) * (1 + 0.1 * Math.sin(fr * 1.9));
 
   // the trail: the stroke smeared back along its path, fading and thinning
   for (let x = Math.floor(-R - 26); x <= 3; x++) for (let y = -R; y <= R; y++) {

@@ -32,7 +32,7 @@ export const CLASS_SKILLS = {
   provoke: S("swordman", "Provoke", "disarm", "zone", "Khiêu khích chỗ đông quái: Tước vũ khí + Đánh dấu.", { cd: L(8, 6), dmg: L(6, 14), radius: L(28, 36) }, { at: "crowd", also: ["expose"], icon: "icon_provoke" }),
   whirlwind: S("swordman", "Whirlwind", "bleed", "melee", "Xoay kiếm: Chảy máu mọi con gần tường.", { cd: L(3.6, 2.6), dmg: L(26, 44), reach: 40, width: 80, targets: 99 }, { icon: "icon_whirlwind" }),
   shieldcharge: S("swordman", "Shield Charge", "pin", "dash", "Húc khiên dọc một hàng: Ghim + Phá giáp.", { cd: L(8, 5.5), dmg: L(30, 64), length: 150, width: 20, push: 10 }, { also: ["sunder"], icon: "icon_shieldcharge" }),
-  swordwave: S("swordman", "Sword Wave", "sunder", "bolt", "Sóng kiếm bay xa, xuyên 5 con: Phá giáp.", { cd: L(2.2, 1.6), dmg: L(32, 50), speed: 220, pierce: 5 }, { icon: "icon_swordwave" }),
+  swordwave: S("swordman", "Sword Wave", "sunder", "bolt", "Sóng kiếm dựng đứng quét ngang sân, chém mọi con nó đi qua: Phá giáp. Cao dần theo cấp, cấp 5 phủ kín chiều dọc tường thành.", { cd: L(2.2, 1.6), dmg: L(32, 50), speed: 200, pierce: 99, half: L(32, 56) }, { icon: "icon_swordwave" }),
   endure: S("swordman", "Endure", "sunder", "passive", "Bị động: tường nhận ít sát thương hơn (−12% → −20%).", { cd: 0, wallTaken: L(0.88, 0.8) }, { passive: "mod", icon: "icon_endure" }),
 
   // ---------------- Archer: from the wall, far ----------------
