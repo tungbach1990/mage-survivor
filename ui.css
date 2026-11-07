@@ -212,3 +212,12 @@ h1 { font-size: 28px; }
 .bar.wall .label { flex: none; }
 #wall-text { flex: none; min-width: 52px; text-align: right; font: 700 12px monospace; }
 #xp { top: calc(var(--top) - 16px); }
+
+/* the damage report on the run's summary */
+#summary { justify-content: flex-start; overflow-y: auto; }
+.dmg-box { width: 100%; max-width: 460px; text-align: left; background: #1a1228e6; border: 1px solid #4a3a5e; border-radius: 8px; padding: 8px 10px; margin-top: 4px; }
+.dmg-box h3 { margin: 0 0 6px; font-size: 14px; color: #ffe286; } .dmg-box h3 small { color: #bfb0d4; font-weight: 400; }
+.dmg-row { display: grid; grid-template-columns: minmax(0, 38%) 1fr auto; gap: 6px; align-items: center; font-size: 12px; margin: 3px 0; }
+.dmg-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dmg-bar { height: 9px; background: #2a1e34; border-radius: 3px; overflow: hidden; } .dmg-bar i { display: block; height: 100%; }
+.dmg-num { font: 700 11px monospace; color: #d8cce8; white-space: nowrap; }

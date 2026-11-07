@@ -3,12 +3,12 @@
 // monsters that reach one stop to beat on it instead of the wall (world.js). A fusion alternates its two
 // elements hit by hit, so its own blows set off their reaction.
 
-import { ENEMIES } from "./enemies.js?v=mw6h4vpd";
-import { SKILLS } from "../data/skills.js?v=mw6h4vpd";
-import { CHAPTERS } from "../data/chapters.js?v=mw6h4vpd";
-import { damage, stun, steamAt } from "./combat.js?v=mw6h4vpd";
-import { applySlow } from "./status.js?v=mw6h4vpd";
-import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mw6h4vpd";
+import { ENEMIES } from "./enemies.js?v=mw6zzix7";
+import { SKILLS } from "../data/skills.js?v=mw6zzix7";
+import { CHAPTERS } from "../data/chapters.js?v=mw6zzix7";
+import { damage, stun, steamAt } from "./combat.js?v=mw6zzix7";
+import { applySlow } from "./status.js?v=mw6zzix7";
+import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mw6zzix7";
 
 const BLOCK = 8;   // how far in front of a golem a monster stops
 
@@ -76,6 +76,7 @@ export function summon(w, id, st) {
 }
 
 function strike(w, m, e) {
+  w.src = m.skill;
   const st = m.st, elem = m.elems[m.hits++ % m.elems.length];
   const r = damage(w, e, st.dmg, elem, { burn: st.burn, poison: st.poison, stacks: st.stacks, stun: st.stun, freezeAt3: st.freezeAt3, push: st.push, summon: true });
   if (st.drain) w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.dmg * st.drain);

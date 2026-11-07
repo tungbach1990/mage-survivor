@@ -1,22 +1,22 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw6h4vpd";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw6h4vpd";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw6h4vpd";
-import { createRenderer , PW, PH } from "./view.js?v=mw6h4vpd";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw6h4vpd";
-import { ENEMIES } from "./sim/enemies.js?v=mw6h4vpd";
-import { SKILLS, stats } from "./data/skills.js?v=mw6h4vpd";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw6h4vpd";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw6h4vpd";
-import { CHAPTERS } from "./data/chapters.js?v=mw6h4vpd";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw6h4vpd";
-import { ENVS } from "./data/environments.js?v=mw6h4vpd";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw6h4vpd";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw6h4vpd";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw6h4vpd";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw6h4vpd";
+import { loadAssets, browserLoad } from "./assets.js?v=mw6zzix7";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw6zzix7";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw6zzix7";
+import { createRenderer , PW, PH } from "./view.js?v=mw6zzix7";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw6zzix7";
+import { ENEMIES } from "./sim/enemies.js?v=mw6zzix7";
+import { SKILLS, stats } from "./data/skills.js?v=mw6zzix7";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw6zzix7";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw6zzix7";
+import { CHAPTERS } from "./data/chapters.js?v=mw6zzix7";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw6zzix7";
+import { ENVS } from "./data/environments.js?v=mw6zzix7";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw6zzix7";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw6zzix7";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw6zzix7";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw6zzix7";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -279,7 +279,8 @@ function finishRun(won) {
     ${out.discovered.length ? `<p>Khám phá mới: ${out.discovered.map((k) => `<b>${REACTION_BY_ID[k]?.label ?? k}</b>`).join(", ")}</p>` : ""}
     ${items ? `<p>Đồ rơi: ${items}</p>` : ""}
     ${out.achievements.length ? `<p>Thành tích: ${out.achievements.map((a) => `★ ${a.name} (+${a.reward}💎)`).join(", ")}</p>` : ""}
-    ${out.quests.length ? `<p>Nhiệm vụ xong: ${out.quests.map(questText).join(", ")} — nhận thưởng ở Thành tích</p>` : ""}`;
+    ${out.quests.length ? `<p>Nhiệm vụ xong: ${out.quests.map(questText).join(", ")} — nhận thưởng ở Thành tích</p>` : ""}
+    ${dmgTable(sum.dmgSrc)}`;
   $("summary").hidden = false;
   $("hud").hidden = true;
   startDemo();
@@ -401,6 +402,28 @@ function hud() {
   if (wx) { set(b, "class", `badge ${wx}`); set(b, "text", WEATHER_TEXT[wx]) }
   set($("fps"), "hidden", !showFps);
 }
+// the damage report: who did the work this run (skills, combos and tiers, the black hole, damage over time)
+const fmt = (n) => (n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "k" : String(Math.round(n)));
+function dmgName(k) {
+  if (k === "@chaos") return ["✺ Hố Đen (CHAOS)", "#ff8ac8"];
+  if (k === "@dot") return ["🩸 Chảy máu / Nọc / Độc", "#c44a4a"];
+  if (k === "@other") return ["Khác (gai tường, nổ, ...)", "#8a809a"];
+  if (k.startsWith("#")) { const r = REACTION_BY_ID[k.slice(1)]; return [`⚗ ${r?.label ?? k.slice(1)}`, "#ffe286"] }
+  const sk = SKILLS[k];
+  return [sk?.name ?? k, sk && ELEM[sk.elem] ? `rgb(${ELEM[sk.elem].color})` : "#d8cce8"];
+}
+function dmgTable(src) {
+  const rows = Object.entries(src ?? {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  if (!rows.length) return "";
+  const total = rows.reduce((a, [, v]) => a + v, 0), top = rows.slice(0, 8), rest = rows.slice(8).reduce((a, [, v]) => a + v, 0);
+  if (rest > 0) top.push(["@rest", rest]);
+  const lines = top.map(([k, v]) => {
+    const [name, col] = k === "@rest" ? [`… ${rows.length - 8} nguồn khác`, "#6a6080"] : dmgName(k), pct = (v / total) * 100;
+    return `<div class="dmg-row"><span class="dmg-name">${name}</span><span class="dmg-bar"><i style="width:${pct.toFixed(1)}%;background:${col}"></i></span><span class="dmg-num">${fmt(v)} · ${pct < 1 ? "<1" : Math.round(pct)}%</span></div>`;
+  }).join("");
+  return `<div class="dmg-box"><h3>Thống kê sát thương <small>tổng ${fmt(total)}</small></h3>${lines}</div>`;
+}
+
 function banner(text) {
   const b = $("banner");
   b.hidden = false; b.textContent = text;

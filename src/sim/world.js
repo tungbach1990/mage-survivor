@@ -5,23 +5,23 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw6h4vpd";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw6h4vpd";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw6h4vpd";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw6h4vpd";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw6h4vpd";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw6h4vpd";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw6h4vpd";
-import { T, typeT } from "../data/tuning.js?v=mw6h4vpd";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw6h4vpd";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw6h4vpd";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw6h4vpd";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw6h4vpd";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw6h4vpd";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury } from "./combat.js?v=mw6h4vpd";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw6h4vpd";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw6h4vpd";
-import { updateBlackHoles } from "./chaos.js?v=mw6h4vpd";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw6zzix7";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw6zzix7";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw6zzix7";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw6zzix7";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw6zzix7";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw6zzix7";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw6zzix7";
+import { T, typeT } from "../data/tuning.js?v=mw6zzix7";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw6zzix7";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw6zzix7";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw6zzix7";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw6zzix7";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw6zzix7";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury } from "./combat.js?v=mw6zzix7";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw6zzix7";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw6zzix7";
+import { updateBlackHoles } from "./chaos.js?v=mw6zzix7";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
@@ -128,7 +128,7 @@ function startWeather(w, id) {
   const wx = w.weather;
   if (wx.kind || wx.gap > 0 || !inView(w).length) return false;
   const st = skillStats(w, id);
-  Object.assign(wx, { kind: SKILLS[id].weather, t: st.dur, st, tick: 0.3 });
+  Object.assign(wx, { kind: SKILLS[id].weather, id, t: st.dur, st, tick: 0.3 });
   if (wx.kind === "lava") for (const e of w.enemies) { e.status.wet = 0; e.auras.delete("water") }
   w.events.push({ type: "weatherStart", kind: wx.kind, dur: st.dur });
   return true;
@@ -178,10 +178,12 @@ function updateWeather(w, dt) {
   if (wx.gap > 0) wx.gap = Math.max(0, wx.gap - dt);
   if (wx.kind) {
     wx.t -= dt; wx.tick -= dt;
+    w.src = wx.id ?? null;
     while (wx.tick <= 0 && wx.t > 0) { wx.tick += wx.st.every; weatherTick(w) }
     if (wx.t <= 0) endWeather(w);
   }
-  for (const d of w.drops) { d.hitT -= dt; if (d.hitT <= 0 && !d.done) { d.done = true; landDrop(w, d) } }
+  for (const d of w.drops) { d.hitT -= dt; if (d.hitT <= 0 && !d.done) { d.done = true; w.src = d.skill ?? wx.id ?? null; landDrop(w, d) } }
+  w.src = null;
   w.drops = w.drops.filter((d) => !d.done);
 }
 
@@ -510,6 +512,7 @@ export function summary(w) {
   return {
     cls: w.cls, chapter: w.chapter, endless: w.endless, won: w.phase === "won", waves: w.run.waves, bosses: w.run.bosses, elites: w.run.elites,
     kills: w.kills, level: w.level, counts: { ...w.counts }, discovered: [...new Set(w.run.discovered)],
+    dmgSrc: { ...(w.dmgSrc ?? {}) },
     awakened: [...w.awakened], chaos: w.counts.chaos ?? 0, skills: Object.keys(w.skills), wallLeft: w.wall.hp / w.wall.max,
   };
 }

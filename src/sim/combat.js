@@ -6,16 +6,16 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw6h4vpd";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw6h4vpd";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw6h4vpd";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw6h4vpd";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw6h4vpd";
-import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw6h4vpd";
-import { ENVS } from "../data/environments.js?v=mw6h4vpd";
-import { T, reactT } from "../data/tuning.js?v=mw6h4vpd";
+import { ENEMIES } from "./enemies.js?v=mw6zzix7";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw6zzix7";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw6zzix7";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw6zzix7";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw6zzix7";
+import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw6zzix7";
+import { ENVS } from "../data/environments.js?v=mw6zzix7";
+import { T, reactT } from "../data/tuning.js?v=mw6zzix7";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw6h4vpd";
+import { startBlackHole } from "./chaos.js?v=mw6zzix7";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
@@ -146,7 +146,10 @@ export function damage(w, e, amount, elem, opts = {}) {
 
   // where the damage came from (for balancing): direct hits, pair combos, tiers, black holes, damage over time
   const cat = elem === "chaos" ? "chaos" : w.curTier ? `t${w.curTier}` : elem === "tier" ? "t5later" : opts.reaction ? (opts.quiet ? "dot" : "reaction") : "direct";
-  (w.dmgBy ??= {})[cat] = (w.dmgBy[cat] ?? 0) + Math.max(0, Math.min(amount, e.hp));
+  const dealt = Math.max(0, Math.min(amount, e.hp));
+  (w.dmgBy ??= {})[cat] = (w.dmgBy[cat] ?? 0) + dealt;
+  const src = cat === "chaos" ? "@chaos" : cat === "dot" ? "@dot" : w.curReact && cat !== "direct" ? `#${w.curReact}` : cat === "t5later" ? "#penta" : w.src ?? "@other";
+  if (dealt > 0) (w.dmgSrc ??= {})[src] = (w.dmgSrc[src] ?? 0) + dealt;
   e.hp -= amount;
   e.flash = 0.12;
   w.dealt += amount;
@@ -207,7 +210,9 @@ function react(w, e, pair, H, _) {
   H *= (reactT(pair.id).dmg ?? 1) * (T.combo?.pair ?? 1);
   count(w, pair.id, pair.elems);
   w.events.push({ type: "reaction", kind: pair.id, x, y, h: ENEMIES[e.type].cy, elems: pair.elems });
+  const was = w.curReact; w.curReact = pair.id;
   pair.fx({ A: api(w), e, x, y, H, w });
+  w.curReact = was;
 }
 function tiers(w, e, H) {
   const n = e.auras.size;
@@ -222,10 +227,10 @@ function tiers(w, e, H) {
     count(w, r.id, elems);
     w.events.push({ type: "reaction", kind: r.id, x: e.x, y: e.y, h: ENEMIES[e.type].cy, elems, tier: n });
     const ctx = { A: api(w), e, x: e.x, y: e.y, H, w };
-    w.curTier = n;
+    w.curTier = n; w.curReact = r.id;
     if (named) { for (const o of around(w, e.x, e.y, 18)) damage(w, o, H, "tier", { reaction: true }); named.fx(ctx) }
     else tier.fx(ctx);
-    w.curTier = 0;
+    w.curTier = 0; w.curReact = null;
   } else if (n >= 7 && n < (w.chaosAt ?? 10) && !e.tiers.has(7)) {
     e.tiers.add(7);
     count(w, UNSTABLE.id, []);

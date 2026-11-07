@@ -1,12 +1,12 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw6h4vpd";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw6h4vpd";
-import { T, skillT } from "../data/tuning.js?v=mw6h4vpd";
-import { damage, applyAura, steamAt, obsidianAt, stun } from "./combat.js?v=mw6h4vpd";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw6h4vpd";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw6h4vpd";
+import { ENEMIES } from "./enemies.js?v=mw6zzix7";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw6zzix7";
+import { T, skillT } from "../data/tuning.js?v=mw6zzix7";
+import { damage, applyAura, steamAt, obsidianAt, stun } from "./combat.js?v=mw6zzix7";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw6zzix7";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw6zzix7";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -66,6 +66,7 @@ function shoot(w, id, st, tx, ty, extra = {}) {
 
 // ---------- casting ----------
 export function cast(w, id) {
+  w.src = id;
   const sk = SKILLS[id], st = skillStats(w, id);
   switch (sk.kind) {
     case "bolt": {
@@ -163,6 +164,7 @@ export function cast(w, id) {
 }
 
 function zoneHit(w, z) {
+  w.src = z.skill;
   const { st, elem } = z;
   for (const e of around(w, z.x, z.y, st.radius)) {
     damage(w, e, st.dmg, elem, carry(st));
@@ -177,6 +179,7 @@ function zoneHit(w, z) {
 }
 export function updateZones(w, dt) {
   for (const z of w.zones) {
+    w.src = z.skill;
     z.t += dt; z.tickT -= dt;
     if (z.tickT <= 0) { z.tickT += z.st.tick ?? 0.5; zoneHit(w, z) }
   }
@@ -195,6 +198,7 @@ function burst(w, s) {
 }
 export function updateShots(w, dt) {
   for (const s of w.shots) {
+    w.src = s.skill;
     if (s.dead) continue;
     if (s.delay > 0) { s.delay -= dt; continue }
     if (s.target) {   // homing: steer toward the target while it lives
@@ -249,6 +253,7 @@ export function updateShots(w, dt) {
 // ---------- passives ----------
 /** Frost Nova: when monsters hit the wall, ice bursts round them. Returns true when it went off. */
 export function nova(w) {
+  w.src = "nova";
   const st = skillStats(w, "nova");
   const at = alive(w).filter((e) => e.state === "attack");
   if (!at.length) return false;
