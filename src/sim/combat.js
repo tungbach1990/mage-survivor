@@ -145,7 +145,7 @@ export function damage(w, e, amount, elem, opts = {}) {
   }
 
   // where the damage came from (for balancing): direct hits, pair combos, tiers, black holes, damage over time
-  const cat = elem === "chaos" ? "chaos" : elem === "tier" ? "tier" : opts.reaction ? (opts.quiet ? "dot" : "reaction") : "direct";
+  const cat = elem === "chaos" ? "chaos" : w.curTier ? `t${w.curTier}` : elem === "tier" ? "t5later" : opts.reaction ? (opts.quiet ? "dot" : "reaction") : "direct";
   (w.dmgBy ??= {})[cat] = (w.dmgBy[cat] ?? 0) + Math.max(0, Math.min(amount, e.hp));
   e.hp -= amount;
   e.flash = 0.12;
@@ -218,12 +218,14 @@ function tiers(w, e, H) {
     e.tiers.add(n);
     const named = n === 3 ? triadOf([...e.auras.keys()]) : null, r = named ?? tier, elems = [...e.auras.keys()];
     if (reactT(r.id).off) return;
-    H *= (reactT(r.id).dmg ?? 1) * (T.combo?.tier ?? 1);
+    H *= (reactT(r.id).dmg ?? 1) * (T.combo?.tier ?? 1) * (T.combo?.[`t${n}`] ?? 1);
     count(w, r.id, elems);
     w.events.push({ type: "reaction", kind: r.id, x: e.x, y: e.y - ENEMIES[e.type].cy, elems, tier: n });
     const ctx = { A: api(w), e, x: e.x, y: e.y, H, w };
+    w.curTier = n;
     if (named) { for (const o of around(w, e.x, e.y, 18)) damage(w, o, H, "tier", { reaction: true }); named.fx(ctx) }
     else tier.fx(ctx);
+    w.curTier = 0;
   } else if (n >= 7 && n < (w.chaosAt ?? 10) && !e.tiers.has(7)) {
     e.tiers.add(7);
     count(w, UNSTABLE.id, []);

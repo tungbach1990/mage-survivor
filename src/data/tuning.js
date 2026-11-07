@@ -10,7 +10,9 @@ export const DEFAULT_TUNING = () => ({
   boss: { hp: 1, dmg: 1, ccMul: 0.4, poise: 1.6, unstop: 6, slowFloor: 0.7, enrage: 0.25, charge: 1 },
   elite: { ccMul: 0.7, poise: 3, unstop: 3, slowFloor: 0.5 },
   summon: { hp: 1, dmg: 1 },
-  combo: { pair: 0.6, tier: 0.55 },   // every pair combo and every tier (TRIAD..HEXA), on top of each one's own
+  // every pair combo, every tier (on top of each one's own), and by how many marks set it off: three marks are
+  // a small burst, six a storm
+  combo: { pair: 0.45, tier: 1, t3: 0.35, t4: 0.8, t5: 1.4, t6: 2 },
   types: {},       // monster type -> { hp, dmg, speed, resist: { element: multiplier } }
   skills: {},      // skill id -> { dmg, cd, off }
   reactions: {},   // reaction id -> { dmg, off }   (pairs, tiers, triads, chaos)

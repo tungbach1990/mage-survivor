@@ -102,13 +102,13 @@ const spreadAuras = (c, n, r) => {
   for (const o of c.A.area(c.x, c.y, r, c.e)) for (let i = 0; i < n; i++) c.A.aura(o, pool[(i + o.id) % pool.length]);
 };
 export const TIERS = {
-  3: { id: "triad", label: "TRIAD", vi: "3 nguyên tố: nổ 150% và lan 1 aura", cd: 0.8, fx: (c) => { for (const o of c.A.area(c.x, c.y, 18)) c.A.dmg(o, c.H * 1.5, "tier"); spreadAuras(c, 1, 18); c.A.fx("tier3", c.x, c.y, "tier", 18) } },
-  4: { id: "quadra", label: "QUADRA", vi: "4 nguyên tố: nổ 250%, tê liệt, lan 2 aura", cd: 2, fx: (c) => { for (const o of c.A.area(c.x, c.y, 24)) { c.A.dmg(o, c.H * 2.5, "tier"); c.A.stun(o, 0.5) } spreadAuras(c, 2, 24); c.A.fx("tier4", c.x, c.y, "tier", 24) } },
-  5: { id: "penta", label: "PENTA", vi: "5 nguyên tố: ngũ giác rune hút rồi nổ 400%, lan 3 aura", cd: 4, fx: (c) => {
+  3: { id: "triad", label: "TRIAD", vi: "3 dấu: nổ nhẹ 50% và lan 1 dấu", cd: 0.8, fx: (c) => { for (const o of c.A.area(c.x, c.y, 18)) c.A.dmg(o, c.H * 1.5, "tier"); spreadAuras(c, 1, 18); c.A.fx("tier3", c.x, c.y, "tier", 18) } },
+  4: { id: "quadra", label: "QUADRA", vi: "4 dấu: nổ 200%, tê liệt, lan 2 dấu", cd: 2, fx: (c) => { for (const o of c.A.area(c.x, c.y, 24)) { c.A.dmg(o, c.H * 2.5, "tier"); c.A.stun(o, 0.5) } spreadAuras(c, 2, 24); c.A.fx("tier4", c.x, c.y, "tier", 24) } },
+  5: { id: "penta", label: "PENTA", vi: "5 dấu: ngũ giác rune hút rồi nổ 560%, lan 3 dấu", cd: 4, fx: (c) => {
     c.A.well(c.x, c.y, 34, 16, 1.5); c.A.fx("tier5", c.x, c.y, "tier", 30);
     c.A.later(1.5, () => { for (const o of c.A.area(c.x, c.y, 30)) c.A.dmg(o, c.H * 4, "tier"); spreadAuras(c, 3, 30); c.A.fx("blast", c.x, c.y, "arcane", 30) });
   } },
-  6: { id: "hexa", label: "HEXA", vi: "6 nguyên tố: lục giác sao, 6 tia nguyên tố quét sân", cd: 6, fx: (c) => {
+  6: { id: "hexa", label: "HEXA", vi: "6 dấu: lục giác sao, 6 tia 400% quét sân", cd: 6, fx: (c) => {
     const elems = [...c.e.auras.keys()].slice(-6);
     elems.forEach((el, i) => {
       const a = (i / 6) * Math.PI * 2 + 0.3, dx = Math.cos(a), dy = Math.sin(a) * 0.5;
@@ -147,6 +147,11 @@ export const UNSTABLE = { id: "unstable", label: "UNSTABLE", vi: "7-9 nguyên t�
 export const CHAOS = { id: "chaos", label: "CHAOS", vi: "Đủ 10 nguyên tố: Hố Đen vũ trụ hút mọi thứ rồi nổ" };
 
 /** Every entry of the Codex, in order: 45 pairs, 4 tiers, 10 triads, unstable, chaos (61). */
+// the percentages in the descriptions follow the combo factors (a named three: as a TRIAD; a pair: as pairs)
+const scaleVi = (vi, k) => vi.replace(/(\d+)%/g, (_, n) => `${Math.round((+n * k) / 5) * 5}%`);
+for (const t of Object.values(TRIADS)) t.vi = scaleVi(t.vi, 0.35);
+for (const p of Object.values(PAIRS)) p.vi = scaleVi(p.vi, 0.45);
+
 export const CODEX = [
   ...Object.values(PAIRS).map((p) => ({ id: p.id, label: p.label, vi: p.vi, kind: "pair", elems: p.elems, school: p.school })),
   ...Object.entries(TIERS).map(([n, t]) => ({ id: t.id, label: t.label, vi: t.vi, kind: "tier", n: +n })),
