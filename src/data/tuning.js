@@ -10,6 +10,7 @@ export const DEFAULT_TUNING = () => ({
   boss: { hp: 1, dmg: 1, ccMul: 0.4, poise: 1.6, unstop: 6, slowFloor: 0.7, enrage: 0.25, charge: 1 },
   elite: { ccMul: 0.7, poise: 3, unstop: 3, slowFloor: 0.5 },
   summon: { hp: 1, dmg: 1 },
+  combo: { pair: 0.6, tier: 0.55 },   // every pair combo and every tier (TRIAD..HEXA), on top of each one's own
   types: {},       // monster type -> { hp, dmg, speed, resist: { element: multiplier } }
   skills: {},      // skill id -> { dmg, cd, off }
   reactions: {},   // reaction id -> { dmg, off }   (pairs, tiers, triads, chaos)
@@ -24,7 +25,7 @@ export function setTuning(obj = {}) {
   const d = DEFAULT_TUNING();
   for (const k of Object.keys(T)) delete T[k];
   Object.assign(T, d, obj, {
-    monster: { ...d.monster, ...obj.monster }, boss: { ...d.boss, ...obj.boss }, elite: { ...d.elite, ...obj.elite }, summon: { ...d.summon, ...obj.summon },
+    monster: { ...d.monster, ...obj.monster }, boss: { ...d.boss, ...obj.boss }, elite: { ...d.elite, ...obj.elite }, summon: { ...d.summon, ...obj.summon }, combo: { ...d.combo, ...obj.combo },
     types: { ...(obj.types ?? {}) }, classes: { ...(obj.classes ?? {}) }, skills: { ...(obj.skills ?? {}) }, reactions: { ...(obj.reactions ?? {}) }, elements: { ...(obj.elements ?? {}) },
   });
   return T;

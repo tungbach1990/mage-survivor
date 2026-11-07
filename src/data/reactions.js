@@ -102,13 +102,13 @@ const spreadAuras = (c, n, r) => {
   for (const o of c.A.area(c.x, c.y, r, c.e)) for (let i = 0; i < n; i++) c.A.aura(o, pool[(i + o.id) % pool.length]);
 };
 export const TIERS = {
-  3: { id: "triad", label: "TRIAD", vi: "3 nguyên tố: nổ 150% và lan 1 aura", cd: 0.3, fx: (c) => { for (const o of c.A.area(c.x, c.y, 18)) c.A.dmg(o, c.H * 1.5, "tier"); spreadAuras(c, 1, 18); c.A.fx("tier3", c.x, c.y, "tier", 18) } },
-  4: { id: "quadra", label: "QUADRA", vi: "4 nguyên tố: nổ 250%, tê liệt, lan 2 aura", cd: 1, fx: (c) => { for (const o of c.A.area(c.x, c.y, 24)) { c.A.dmg(o, c.H * 2.5, "tier"); c.A.stun(o, 0.5) } spreadAuras(c, 2, 24); c.A.fx("tier4", c.x, c.y, "tier", 24) } },
-  5: { id: "penta", label: "PENTA", vi: "5 nguyên tố: ngũ giác rune hút rồi nổ 400%, lan 3 aura", cd: 2, fx: (c) => {
+  3: { id: "triad", label: "TRIAD", vi: "3 nguyên tố: nổ 150% và lan 1 aura", cd: 0.8, fx: (c) => { for (const o of c.A.area(c.x, c.y, 18)) c.A.dmg(o, c.H * 1.5, "tier"); spreadAuras(c, 1, 18); c.A.fx("tier3", c.x, c.y, "tier", 18) } },
+  4: { id: "quadra", label: "QUADRA", vi: "4 nguyên tố: nổ 250%, tê liệt, lan 2 aura", cd: 2, fx: (c) => { for (const o of c.A.area(c.x, c.y, 24)) { c.A.dmg(o, c.H * 2.5, "tier"); c.A.stun(o, 0.5) } spreadAuras(c, 2, 24); c.A.fx("tier4", c.x, c.y, "tier", 24) } },
+  5: { id: "penta", label: "PENTA", vi: "5 nguyên tố: ngũ giác rune hút rồi nổ 400%, lan 3 aura", cd: 4, fx: (c) => {
     c.A.well(c.x, c.y, 34, 16, 1.5); c.A.fx("tier5", c.x, c.y, "tier", 30);
     c.A.later(1.5, () => { for (const o of c.A.area(c.x, c.y, 30)) c.A.dmg(o, c.H * 4, "tier"); spreadAuras(c, 3, 30); c.A.fx("blast", c.x, c.y, "arcane", 30) });
   } },
-  6: { id: "hexa", label: "HEXA", vi: "6 nguyên tố: lục giác sao, 6 tia nguyên tố quét sân", cd: 4, fx: (c) => {
+  6: { id: "hexa", label: "HEXA", vi: "6 nguyên tố: lục giác sao, 6 tia nguyên tố quét sân", cd: 6, fx: (c) => {
     const elems = [...c.e.auras.keys()].slice(-6);
     elems.forEach((el, i) => {
       const a = (i / 6) * Math.PI * 2 + 0.3, dx = Math.cos(a), dy = Math.sin(a) * 0.5;
