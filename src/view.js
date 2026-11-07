@@ -3,36 +3,36 @@
 // (labels, tier sigils, beams, wells), the black hole bending the picture round it, and every pixelfx effect.
 // The browser puts the bytes on a canvas; Node writes them to PNGs.
 
-import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw704803";
-import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw704803";
-import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw704803";
-import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw704803";
-import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw704803";
-import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw704803";
-import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw704803";
-import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw704803";
-import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw704803";
-import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw704803";
-import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw704803";
-import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw704803";
-import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw704803";
-import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw704803";
-import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw704803";
-import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw704803";
-import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw704803";
-import * as rainCloud from "./fx/rain-cloud.js?v=mw704803";
-import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw704803";
-import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw704803";
-import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw704803";
-import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw704803";
-import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw704803";
-import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw704803";
+import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw707hfu";
+import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw707hfu";
+import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw707hfu";
+import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw707hfu";
+import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw707hfu";
+import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw707hfu";
+import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw707hfu";
+import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw707hfu";
+import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw707hfu";
+import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw707hfu";
+import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw707hfu";
+import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw707hfu";
+import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw707hfu";
+import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw707hfu";
+import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw707hfu";
+import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw707hfu";
+import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw707hfu";
+import * as rainCloud from "./fx/rain-cloud.js?v=mw707hfu";
+import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw707hfu";
+import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw707hfu";
+import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw707hfu";
+import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw707hfu";
+import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw707hfu";
+import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw707hfu";
 // the archer's falcon: pixelfx's bird in a falcon's browns, a cream breast
 const FALCON = { palette: ["#1a0e08", "#3a2414", "#5c3a1e", "#84562c", "#ae7a44", "#d8ac72", "#fff0d0"], breast: ["#5a3a1e", "#b48a5a", "#e8d0a4", "#fff4dc"] };
-import { LOOKS, blastOf } from "./render/looks.js?v=mw704803";
-import { FRAMES } from "./assets.js?v=mw704803";
-import { ENEMIES } from "./sim/enemies.js?v=mw704803";
-import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw704803";
+import { LOOKS, blastOf } from "./render/looks.js?v=mw707hfu";
+import { FRAMES } from "./assets.js?v=mw707hfu";
+import { ENEMIES } from "./sim/enemies.js?v=mw707hfu";
+import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw707hfu";
 
 // ---- the screen stands up: 180 x 320. A field point (x: distance from the wall's side, y: across the lanes)
 // lands at (SX, SY): its lanes (y 76..172) across the screen, its depth up it (the wall at y 250, the spawn at
@@ -48,10 +48,10 @@ export const toScreen = (x, y, h = 0) => [SX(y), SY(x) - h];
 const rot = (vx, vy) => [vy * KX, -vx];
 const HERO = toScreen(MAGE_FEET[0], MAGE_FEET[1]);
 const WALL_Y = SY(WALL_X);   // the wall's outer face
-import { ELEM, ELEMENTS } from "./data/elements.js?v=mw704803";
-import { REACTION_BY_ID } from "./data/reactions.js?v=mw704803";
-import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw704803";
-import { BLACK_HOLE } from "./sim/chaos.js?v=mw704803";
+import { ELEM, ELEMENTS } from "./data/elements.js?v=mw707hfu";
+import { REACTION_BY_ID } from "./data/reactions.js?v=mw707hfu";
+import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw707hfu";
+import { BLACK_HOLE } from "./sim/chaos.js?v=mw707hfu";
 
 const MAX_LABELS = 6;
 const CLOUDS = {
@@ -768,7 +768,6 @@ export function createRenderer(A) {
     if (st.burn.stacks) { const k = 0.18 + 0.1 * Math.sin(clock * 20); return (c) => mixTo(c, st.burn.black > 0 ? [80, 30, 120] : [255, 120, 40], k) }
     if (st.poison.stacks) return (c) => mixTo(c, [140, 220, 60], 0.08 * st.poison.stacks);
     if (e.enraged && Math.floor(clock * 6) % 2) return (c) => mixTo(c, [255, 60, 40], 0.35);
-    if (e.element) return (c) => mixTo(c, COL[e.element], 0.42);
     if (ENEMIES[e.type].tint) { const t = ENEMIES[e.type].tint; return (c) => mixTo(c, t, 0.45) }
     if (e.swap) return (c) => mixTo(c, COL[e.swap], 0.22);
     return null;
@@ -779,6 +778,72 @@ export function createRenderer(A) {
     if (e.status.freeze > 0 || e.status.stun > 0) return e.state === "attack" ? 4 : Math.floor(e.walkT * 8) % 4;
     if (e.state === "attack") { const ph = e.atkT / def.rate; return ph < 0.15 ? 5 : ph > 0.55 ? 4 : 0 }
     return Math.floor(e.walkT * 8) % 4;
+  }
+  // ---- elemental monsters: the body painted in its element's ramp (two: top in one, bottom in the other),
+  // a ring of it on the ground, and the element's own motes about it
+  const kinPainted = {};
+  function kinBody(type, a, b) {
+    const key = type + ":" + a + ":" + (b ?? "");
+    if (kinPainted[key]) return kinPainted[key];
+    const s0 = A.monsters[type], src = s0.pic, px = new Uint32Array(src.px), split = Math.round(src.h * 0.55);
+    for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+      const i = y * src.w + x, c = px[i];
+      if (c >>> 24 < 128) continue;
+      const lum = (c & 255) * 0.3 + ((c >>> 8) & 255) * 0.59 + ((c >>> 16) & 255) * 0.11;
+      const idx = lum < 34 ? 0 : lum < 64 ? 1 : lum < 96 ? 2 : lum < 130 ? 3 : lum < 165 ? 4 : lum < 200 ? 5 : 6;
+      const el = b && y >= split ? b : a, r = RAMP[el] ?? RAMP.arcane, t = r[Math.min(r.length - 1, idx + 1)];
+      px[i] = mixTo(c, [t & 255, (t >>> 8) & 255, (t >>> 16) & 255], idx === 0 ? 0.35 : 0.78);
+    }
+    return (kinPainted[key] = { ...s0, pic: { ...src, px } });
+  }
+  const MOTE = {   // how each element's motes move: rise, fall, orbit, twinkle, arc
+    fire: "rise", poison: "rise", dark: "rise", water: "fall", earth: "orbit", wind: "orbit", arcane: "orbit",
+    ice: "twinkle", light: "twinkle", volt: "arc",
+  };
+  // each element's emblem, 5 x 5: flame, snowflake, bolt, drop, mountain, swirl, skull, sun, moon, rune
+  const GLYPH = {
+    fire:   [".#...", ".##..", "####.", "#####", ".###."],
+    ice:    ["#.#.#", ".###.", "#####", ".###.", "#.#.#"],
+    volt:   ["..##.", ".##..", "#####", "..##.", ".##.."],
+    water:  ["..#..", ".###.", "#####", "#####", ".###."],
+    earth:  ["..#..", ".###.", ".#.#.", "#####", "#####"],
+    wind:   [".###.", "#...#", "..###", "#....", ".####"],
+    poison: [".###.", "#.#.#", "#####", ".###.", ".#.#."],
+    light:  ["#.#.#", ".###.", "#####", ".###.", "#.#.#"],
+    dark:   [".###.", "##...", "#....", "##...", ".###."],
+    arcane: ["..#..", ".#.#.", "#.#.#", ".#.#.", "..#.."],
+  };
+  function emblem(el, x, y) {
+    const g = GLYPH[el]; if (!g) return;
+    const col = COL[el];
+    for (let j = 0; j < 5; j++) for (let i = 0; i < 5; i++) if (g[j][i] === "#") for (const [ox, oy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ni = i + ox, nj = j + oy; if (ni < 0 || nj < 0 || ni > 4 || nj > 4 || g[nj][ni] !== "#") put(x + ni, y + nj, [14, 10, 20], 0.9) }
+    for (let j = 0; j < 5; j++) for (let i = 0; i < 5; i++) if (g[j][i] === "#") put(x + i, y + j, j < 2 ? [Math.min(255, col[0] + 70), Math.min(255, col[1] + 70), Math.min(255, col[2] + 70)] : col, 1);
+  }
+  function kinFx(e, def, m, lift) {
+    const els = [e.element, e.element2].filter(Boolean), H0 = Math.max(10, m.ay), half = def.half, fy = e.y - lift;
+    // the ring on the ground, pulsing (two elements: alternating)
+    for (let a = 0; a < 32; a++) {
+      const ang = a * 0.196, el = els.length > 1 && a % 2 ? els[1] : els[0];
+      const k = 0.75 + 0.25 * Math.sin(clock * 5 + a * 0.8);
+      put(e.x + Math.cos(ang) * (half + 3), e.y + 1 + Math.sin(ang) * 2.4, COL[el], k);
+      put(e.x + Math.cos(ang) * (half + 2), e.y + 1 + Math.sin(ang) * 1.6, COL[el], k * 0.45);
+    }
+    // the emblem(s), just over its head on the left
+    const top = Math.round(fy - m.ay) - 3;
+    els.forEach((el, j) => emblem(el, Math.round(e.x - half) - 7 + j * 7, top - 3));
+    els.forEach((el, j) => {
+      const col = COL[el], hot = [Math.min(255, col[0] + 90), Math.min(255, col[1] + 90), Math.min(255, col[2] + 90)];
+      for (let k = 0; k < 3; k++) {
+        const u = (clock * 0.8 + k / 3 + e.id * 0.17 + j * 0.37) % 1, side = Math.sin((k + 1) * 2.3 + e.id * 1.7 + j);
+        switch (MOTE[el]) {
+          case "rise": { const x = e.x + side * half * 0.8, y = fy - H0 * 0.25 - u * H0 * 0.9; put(x, y, u < 0.3 ? hot : col, 1 - u); if (el === "dark") put(x + 1, y + 1, [40, 10, 60], 0.6 * (1 - u)); break }
+          case "fall": { const x = e.x + side * half * 0.7, y = fy - H0 * 0.9 + u * H0 * 0.85; put(x, y, hot, 1 - u * 0.6); put(x, y - 1, col, 0.6 * (1 - u)); break }
+          case "orbit": { const a = clock * (el === "wind" ? 5 : 2.6) + k * 2.09 + j, rr = half + 2; put(e.x + Math.cos(a) * rr, fy - H0 * 0.45 + Math.sin(a) * rr * 0.45, Math.sin(a) > 0 ? hot : col, 0.9); if (el === "wind") put(e.x + Math.cos(a - 0.25) * rr, fy - H0 * 0.45 + Math.sin(a - 0.25) * rr * 0.45, col, 0.5); break }
+          case "twinkle": { const tick = Math.floor(clock * 5 + k * 1.7 + e.id), hx = hash2(e.id, k + j * 7, tick), hy = hash2(k, e.id + j, tick + 3), x = e.x + (hx - 0.5) * half * 2.2, y = fy - hy * H0; const on = 1 - ((clock * 5 + k * 1.7 + e.id) % 1); put(x, y, hot, on); put(x - 1, y, col, on * 0.6); put(x + 1, y, col, on * 0.6); put(x, y - 1, col, on * 0.6); put(x, y + 1, col, on * 0.6); break }
+          case "arc": { if ((clock * 7 + k * 2.3 + e.id) % 1 > 0.45) break; const tick = Math.floor(clock * 7 + k), x0 = e.x + (hash2(e.id, k, tick) - 0.5) * half * 2, y0 = fy - hash2(k, e.id, tick + 1) * H0; line(x0, y0, x0 + 2, y0 + 2, hot, 1); line(x0 + 2, y0 + 2, x0 + 1, y0 + 4, col, 1); break }
+        }
+      }
+    });
   }
   function drawPips(e, m, lift = 0) {
     const n = e.auras.size; if (!n) return;
@@ -865,11 +930,12 @@ export function createRenderer(A) {
     const list = w.enemies.filter((e) => e.hp > 0).sort((a, b) => b.x - a.x);
     for (const e0 of list) {
       const [ex, ey] = toScreen(e0.x, e0.y), e = Object.create(e0, { x: { value: ex }, y: { value: ey } });
-      const m = A.monsters[e.type], def = ENEMIES[e.type], lift = def.fly ?? 0, f = enemyFrame(e), fx = Math.round(e.x) - m.ax, fy = Math.round(e.y - lift) - m.ay;
+      const m = e.element ? kinBody(e.type, e.element, e.element2) : A.monsters[e.type], def = ENEMIES[e.type], lift = def.fly ?? 0, f = enemyFrame(e), fx = Math.round(e.x) - m.ax, fy = Math.round(e.y - lift) - m.ay;
       darken(e.x, e.y, lift ? def.half - 2 : def.half, Math.max(2, def.half / 4), lift ? 0.85 : 0.7);
       if (e.tenacity?.unstop > 0) outline(m, f, fx, fy, [255, 210, 90], 0.6 + 0.3 * Math.sin(clock * 10));
       if (e.elite) outline(m, f, fx, fy, ELITES[e.elite].color, 0.55 + 0.35 * Math.sin(clock * 6 + e.id));
-      else if (e.element) outline(m, f, fx, fy, COL[e.element2 ?? e.element], e.element2 ? 0.75 : 0.45);
+      else if (e.element) outline(m, f, fx, fy, COL[e.element2 ?? e.element], 0.7);
+      if (e.element) kinFx(e, def, m, lift);
       if (e.auras.size >= 7) outline(m, f, fx, fy, hsv((clock * 3 + e.id * 0.2) % 1), 0.9);
       blit(m, f, fx, fy, enemyTint(e));
       if (e.shield > 0) { const r = Math.max(def.half, def.cy) + 4, cx = e.x, cy = e.y - def.cy; for (let a = 0; a < 40; a++) put(cx + Math.cos(a * 0.157) * r, cy + Math.sin(a * 0.157) * r * 0.9, e.shieldBy === "tier" ? [255, 220, 120] : [140, 200, 255], 0.55 + 0.25 * Math.sin(clock * 5 + a)) }
