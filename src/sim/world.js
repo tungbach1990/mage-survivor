@@ -119,7 +119,7 @@ export function makeElite(w, e, kind) {
   e.tenacity = { mul: T.elite.ccMul, max: T.elite.poise, time: T.elite.unstop, slowFloor: T.elite.slowFloor, poise: 0, unstop: 0 };
   if (kind === "swift") e.speedMul = 1.5;
   if (kind === "warded") e.resist[w.rng.pick(ELEMENTS)] = 0.1;
-  if (kind === "shielded") e.shield = e.max * 0.4;
+  if (kind === "shielded") e.shield = e.max * 0.6;
   w.run.elites++;
 }
 
@@ -316,7 +316,7 @@ function updateBoss(w, e, dt) {
   if (e.boss !== "chapter") return;
   if (e.bossPhase === 1 && e.hp < e.max * 0.5) {
     e.bossPhase = 2;
-    e.shield = e.max * 0.3;
+    e.shield = e.max * 0.45;
     e.shieldBy = chapterOf(w).boss.shieldBy;
     e.summonT = 3; e.slamT = 6;
     w.events.push({ type: "bossPhase", id: e.id, x: e.x, y: e.y, shieldBy: e.shieldBy });

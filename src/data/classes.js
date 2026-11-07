@@ -21,7 +21,7 @@ export const CLASS_SKILLS = {
   basic_thief: S("thief", "Phi dao", "venom", "bolt", "Đánh thường: ném 2 dao găm tẩm nọc. Cấp 4: 3 dao. Cấp 8: dao tự đuổi theo.",
     { cd: L8(0.62, 0.32), dmg: L8(7, 22), speed: 300, count: (l) => (l >= 4 ? 3 : 2), homing: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_thief" }),
   basic_acolyte: S("acolyte", "Holy Light", "light", "bolt", "Đánh thường: tia thánh quang. Cấp 4: 2 tia. Cấp 8: mỗi tia hồi 1 máu tường.",
-    { cd: L8(0.75, 0.4), dmg: L8(16, 36), speed: 260, count: (l) => (l >= 4 ? 2 : 1), mend: (l) => (l >= 8 ? 1 : 0) }, { basic: true, max: 8, icon: "icon_b_acolyte" }),
+    { cd: L8(0.72, 0.4), dmg: L8(20, 36), speed: 260, count: (l) => (l >= 4 ? 2 : 1), mend: (l) => (l >= 8 ? 1 : 0) }, { basic: true, max: 8, icon: "icon_b_acolyte" }),
   basic_merchant: S("merchant", "Cart Hit", "daze", "melee", "Đánh thường: húc xe đẩy vào quái sát tường. Cấp 4: trúng 3 con. Cấp 8: mỗi cú rơi 1 vàng.",
     { cd: L8(0.85, 0.45), dmg: L8(15, 44), reach: 32, width: 28, targets: (l) => (l >= 4 ? 3 : 2), coin: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_merchant" }),
 
@@ -60,7 +60,7 @@ export const CLASS_SKILLS = {
   blessing: S("acolyte", "Blessing", "light", "passive", "Bị động: +8% → +25% sát thương.", { cd: 0, dmg: L(1.08, 1.25) }, { passive: "mod", icon: "icon_blessing" }),
   angelus: S("acolyte", "Angelus", "sunder", "passive", "Bị động: tường nhận ít sát thương hơn (−7% → −14%).", { cd: 0, wallTaken: L(0.93, 0.86) }, { passive: "mod", icon: "icon_angelus" }),
   magnus: S("acolyte", "Magnus Exorcismus", "expose", "zone", "Thập tự thánh 3 giây ở chỗ đông: Đánh dấu.", { cd: L(8, 6), dmg: L(10, 15), radius: L(26, 32), life: 3, tick: 0.5 }, { at: "crowd", icon: "icon_magnus" }),
-  macestrike: S("acolyte", "Mace Strike", "daze", "melee", "Đập chùy vào con sát tường: Choáng + Phá giáp.", { cd: L(2, 1.4), dmg: L(32, 52), reach: 34, width: 24, targets: 2 }, { also: ["sunder"], icon: "icon_macestrike" }),
+  macestrike: S("acolyte", "Mace Strike", "daze", "melee", "Đập chùy vào con sát tường: Choáng + Phá giáp.", { cd: L(1.8, 1.4), dmg: L(38, 54), reach: 34, width: 24, targets: 2 }, { also: ["sunder"], icon: "icon_macestrike" }),
   judgment: S("acolyte", "Judgment", "expose", "bolt", "Phán quyết: Đánh dấu + Ánh sáng.", { cd: L(2.6, 1.8), dmg: L(30, 48), speed: 380 }, { also: ["light"], icon: "icon_judgment" }),
   purify: S("acolyte", "Purify", "sunder", "zone", "Thanh tẩy con mạnh nhất: Phá giáp + Truy nã.", { cd: L(5, 3.5), dmg: L(24, 34), radius: 16 }, { at: "strongest", also: ["bounty"], icon: "icon_purify" }),
   aquabenedicta: S("acolyte", "Aqua Benedicta", "water", "zone", "Nước thánh: làm Ướt, để lại vũng nước.", { cd: L(4, 3), dmg: L(10, 22), radius: 16, puddle: 0.9 }, { at: "target", icon: "icon_aquabenedicta" }),
@@ -80,11 +80,11 @@ export const SHARED = { holylance: ["mage", "acolyte"], smite: ["mage", "acolyte
 
 export const CLASSES = {
   mage:     { power: 1.55, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
-  swordman: { chaosPow: 0.6, power: 1.8, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
+  swordman: { chaosPow: 0.6, power: 1.6, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
   archer:   { power: 1.9, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
-  thief:    { power: 2.05, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
-  acolyte:  { chaosAt: 12, chaosCd: 1.8, chaosPow: 0.45, power: 1.8, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
-  merchant: { power: 1.7, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
+  thief:    { power: 2.35, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
+  acolyte:  { chaosAt: 12, chaosCd: 1.8, chaosPow: 0.3, power: 1.7, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
+  merchant: { power: 1.95, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
 };
 export const CLASS_IDS = Object.keys(CLASSES);
 /** The marks a class gathers toward awakening and CHAOS (Chaos Seed sows these). */

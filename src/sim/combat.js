@@ -23,6 +23,8 @@ export const isPhys = (elem) => elem === "phys" || schoolOf(elem) === "martial";
 /** The marks this run's class works with (Chaos Seed sows them, the black hole leaves them). */
 export const schoolMarks = (w) => w.schoolMarks ?? ELEMENTS;
 export const OVERTIME = 120;
+/** How much of a blow that isn't a reaction wears a shield down. */
+export const SHIELD_WEAR = { phys: 0.5, sundered: 0.75, magic: 0.55 };
 /** A wave dragging on past OVERTIME: the monsters grow fiercer, more and more (no endless stalemates). */
 export const fury = (w) => (w.waveT > OVERTIME ? 1 + (w.waveT - OVERTIME) / 40 : 1);
 /** Regeneration pauses for 2.5 s after a hit, and stops in overtime. */
@@ -125,11 +127,21 @@ export function damage(w, e, amount, elem, opts = {}) {
   e.lastHit = w.t;
   if (real && phys && st.exposed > 0) { st.exposed--; amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }   // exposed: this blow is a sure crit
   else if (real && w.mods?.crit && w.rng.chance(w.mods.crit)) { amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }
-  // a shield (an elite's, a boss's) takes reactions only
+  // a shield (an elite's, a boss's): reactions (or tiers) break it outright; any other blow wears it down a
+  // little, a physical one more (it's force against a barrier), more still on a sundered monster; a tenth of
+  // such a blow gets through to the body
   if (e.shield > 0) {
     const breaks = e.shieldBy === "tier" ? elem === "tier" || elem === "chaos" : opts.reaction || elem === "tier" || elem === "chaos";
-    if (breaks) { const s = Math.min(e.shield, amount); e.shield -= s; amount -= s; if (e.shield <= 0) w.events.push({ type: "shieldBreak", id: e.id, x: e.x, y: e.y }) }
-    else { w.events.push({ type: "shieldHit", id: e.id, x: e.x, y: e.y }); amount *= 0.1 }
+    let s;
+    if (breaks) { s = Math.min(e.shield, amount); amount -= s }
+    else {
+      const wear = phys ? (e.auras.has("sunder") ? SHIELD_WEAR.sundered : SHIELD_WEAR.phys) : SHIELD_WEAR.magic;
+      s = Math.min(e.shield, amount * wear);
+      amount *= 0.1;
+      w.events.push({ type: "shieldHit", id: e.id, x: e.x, y: e.y });
+    }
+    e.shield -= s;
+    if (e.shield <= 0) w.events.push({ type: "shieldBreak", id: e.id, x: e.x, y: e.y });
   }
 
   e.hp -= amount;
