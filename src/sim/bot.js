@@ -1,12 +1,12 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw6g8pkt";
-import { speedFactor } from "./status.js?v=mw6g8pkt";
-import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw6g8pkt";
-import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw6g8pkt";
-import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw6g8pkt";
-import { CLASS_IDS } from "../data/classes.js?v=mw6g8pkt";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw6gduky";
+import { speedFactor } from "./status.js?v=mw6gduky";
+import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw6gduky";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw6gduky";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw6gduky";
+import { CLASS_IDS } from "../data/classes.js?v=mw6gduky";
 
 const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
 
