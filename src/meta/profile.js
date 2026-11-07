@@ -3,13 +3,13 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw6gkyrt";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw6gkyrt";
-import { SKILLS } from "../data/skills.js?v=mw6gkyrt";
-import { CODEX } from "../data/reactions.js?v=mw6gkyrt";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw6gkyrt";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw6gkyrt";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw6gkyrt";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw6h4vpd";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw6h4vpd";
+import { SKILLS } from "../data/skills.js?v=mw6h4vpd";
+import { CODEX } from "../data/reactions.js?v=mw6h4vpd";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw6h4vpd";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw6h4vpd";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw6h4vpd";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
