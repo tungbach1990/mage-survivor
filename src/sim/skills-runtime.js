@@ -52,7 +52,9 @@ function shoot(w, id, st, tx, ty, extra = {}) {
   const d = Math.hypot(tx - GEM[0], ty - GEM[1]) || 1;
   const s = { id: w.nextId++, skill: id, elem: SKILLS[id].elem, kind: SKILLS[id].kind, x: GEM[0], y: GEM[1], vx: ((tx - GEM[0]) / d) * st.speed, vy: ((ty - GEM[1]) / d) * st.speed, left: d, st, hit: new Set(), pierced: 0, ...extra };
   w.shots.push(s);
-  w.events.push({ type: "shot", id: s.id, skill: id, elem: s.elem, kind: s.kind, x: s.x, y: s.y, vx: s.vx, vy: s.vy });
+  // how it should look: its level, and a mark it carries beyond its own (an imbue: card or gear)
+  s.lvl = w.skills[id]?.level ?? 1; s.mark = st.also?.find((m) => !(SKILLS[id].also ?? []).includes(m)) ?? null;
+  w.events.push({ type: "shot", id: s.id, skill: id, elem: s.elem, kind: s.kind, x: s.x, y: s.y, vx: s.vx, vy: s.vy, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[id].basic });
   return s;
 }
 
@@ -129,7 +131,7 @@ export function cast(w, id) {
         if (st.push && e.hp > 0 && movable(e)) e.x += st.push * (ENEMIES[e.type].boss ? 0.2 : 1);
         perks(w, st);
       }
-      w.events.push({ type: "melee", skill: id, elem: sk.elem, x: WALL_X + 6, y: y0, reach: st.reach, width: st.width, n: hit.length, repeat: st.repeat ?? 1 });
+      w.events.push({ type: "melee", skill: id, elem: sk.elem, x: WALL_X + 6, y: y0, reach: st.reach, width: st.width, n: hit.length, repeat: st.repeat ?? 1, lvl: w.skills[id]?.level ?? 1, basic: !!sk.basic, mark: st.also?.find((m) => !(sk.also ?? []).includes(m)) ?? null });
       if (st.wave) { const e = pickTarget(w); if (e) shoot(w, id, { ...st, speed: 220, pierce: 5, dmg: st.dmg * 0.8 }, ...aimAt(e, 220)) }
       return true;
     }
@@ -213,7 +215,7 @@ export function updateShots(w, dt) {
         damage(w, e, s.st.dmg, s.elem, carry(s.st));
         perks(w, s.st);
         if (s.st.push && s.elem !== "wind" && e.hp > 0 && movable(e)) e.x += s.st.push * (ENEMIES[e.type].boss ? 0.2 : 1);
-        w.events.push({ type: "impact", skill: s.skill, elem: s.elem, x: s.x, y: s.y });
+        w.events.push({ type: "impact", skill: s.skill, elem: s.elem, x: s.x, y: s.y, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[s.skill]?.basic });
         if (++s.pierced >= (s.st.pierce ?? 1)) { s.dead = true; break }
       }
       if (s.target && !s.dead && s.left < -60) s.dead = true;

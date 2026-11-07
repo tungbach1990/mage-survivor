@@ -47,6 +47,19 @@ const CLOUDS = {
   thunder: ["#2a2638", "#383248", "#48405c", "#5a5070", "#6c6286", "#80769c", "#968cb2"],
 };
 const NUM = Object.fromEntries(Object.entries(ELEM).map(([k, v]) => [k, v.ramp]));
+// ---- a basic attack's look grows with it: plain at first, its own colour and light later, flashy at level 8;
+// a mark it is imbued with (a card, a weapon) colours it at once.
+//   grade 0: levels 1-2   1: 3-4   2: 5-7   3: 8
+export const grade = (lvl) => (lvl >= 8 ? 3 : lvl >= 5 ? 2 : lvl >= 3 ? 1 : 0);
+const PLAIN = {   // the unadorned look of each class's basic attack
+  mage: ["#120a1a", "#2a2036", "#4a3e5e", "#6e6488", "#9a90b0", "#c4bcd6", "#e6e0f0", "#ffffff"],
+  steel: ["#121214", "#2a2a30", "#4a4a54", "#6e7080", "#9a9cac", "#c4c6d2", "#e4e6ee", "#ffffff"],
+  wood: ["#140c06", "#2e1c0e", "#4e3218", "#6e4a26", "#94683a", "#b88c5a", "#dcc0a0", "#fff4e4"],
+  holy: ["#1a160c", "#3a321c", "#5e5434", "#8a7e58", "#b4aa84", "#d8d0b0", "#f0ecdc", "#ffffff"],
+};
+const PLAIN_OF = { basic_mage: "mage", basic_swordman: "steel", basic_archer: "wood", basic_thief: "steel", basic_acolyte: "holy", basic_merchant: "wood" };
+/** The palette a basic attack is drawn in: an imbued mark's; its own element's from grade 2; else plain. */
+export const basicPalette = (ev) => (ev.mark ? NUM[ev.mark] : grade(ev.lvl ?? 1) >= 2 ? NUM[ev.elem] : PLAIN[PLAIN_OF[ev.skill]] ?? NUM[ev.elem]);
 NUM.burn = NUM.fire; NUM.steam = ["#1a1e26", "#3a404c", "#6a7280", "#9aa2b0", "#c8ced8", "#e4e8ee", "#f6f8fa", "#ffffff"];
 const COL = Object.fromEntries(Object.entries(ELEM).map(([k, v]) => [k, v.color]));
 COL.tier = [255, 240, 200]; COL.steam = [230, 236, 245];
@@ -107,7 +120,7 @@ export function createRenderer(A) {
     fxs.push(e);
     return e;
   }
-  const spark = (x, y, elem, life = 0.5) => add(hitSpark, { x, y, height: 0, palette: NUM[elem] ?? NUM.arcane, light: 0.5, seed: rng.int(0, 99) }, { life });
+  const spark = (x, y, elem, life = 0.5, light = 0.5, palette = null) => add(hitSpark, { x, y, height: 0, palette: palette ?? NUM[elem] ?? NUM.arcane, light, seed: rng.int(0, 99) }, { life });
   const blast = (x, y, elem, r = 18) => { const b = blastOf(ELEM[elem] ? elem : "arcane"); add(b.mod, { x, y, ...b.opts, light: 0.55, seed: rng.int(0, 99) }, { life: b.life * Math.min(1.3, 0.6 + r / 40), fade: b.fade }) };
   const label = (id, x, y, n) => {
     const r = REACTION_BY_ID[id];
@@ -125,12 +138,19 @@ export function createRenderer(A) {
       case "shot": {
         const look = LOOKS[ev.skill]?.shot, ang = Math.atan2(ev.vy, ev.vx);
         if (!look) break;
-        const e = add(look.mod, { x: ev.x, y: ev.y + (look.dy ?? 0), ...look.opts(ang, ev.id) }, { kind: "shot", must: true, dy: look.dy, cache: look.cache });
+        const e = add(look.mod, { x: ev.x, y: ev.y + (look.dy ?? 0), ...look.opts(ang, ev.id, ev.basic ? { g: grade(ev.lvl), pal: basicPalette(ev), mark: ev.mark } : null) }, { kind: "shot", must: true, dy: look.dy, cache: look.cache });
         if (e) byShot.set(ev.id, e);
         break;
       }
       case "shotEnd": { const e = byShot.get(ev.id); if (e) { e.fx.stop(); e.life = e.age + 0.3; byShot.delete(ev.id) } break }
-      case "impact": spark(ev.x, ev.y, ev.elem); break;
+      case "impact": {
+        if (!ev.basic) { spark(ev.x, ev.y, ev.elem); break }
+        // a basic hit: a small dull spark at first, brighter and in colour as it grows
+        const g = grade(ev.lvl), pal = basicPalette(ev);
+        spark(ev.x, ev.y, ev.elem, 0.3 + 0.08 * g, ev.mark ? 0.35 : [0.12, 0.22, 0.4, 0.55][g], pal);
+        if (g >= 3) rings.push({ x: ev.x, y: ev.y + 4, r: 8, t: 0, life: 0.3, col: COL[ev.mark ?? ev.elem] });
+        break;
+      }
       case "explode": blast(ev.x, ev.y, ev.elem, ev.r); shake = Math.max(shake, 1.5); break;
       case "zone": {
         const z = LOOKS[ev.skill]?.zone;
@@ -204,6 +224,13 @@ export function createRenderer(A) {
       case "melee": {
         // a swing at the gate: a slash (a spin for the wide ones, a flurry of daggers), in the mark's colour
         const mod = ev.repeat > 1 ? daggerFlurry : ev.width >= 60 ? spinSlash : swordSlash;
+        if (ev.basic) {
+          // a basic swing: a plain steel arc at first; sparks, light and its colour as it levels
+          const g = grade(ev.lvl);
+          add(mod, { x: ev.x + 4, y: ev.y + 4, palette: basicPalette(ev), sparks: g >= 2, light: ev.mark ? 0.3 : [0.05, 0.15, 0.3, 0.5][g], seed: rng.int(0, 99) }, { life: 0.55 + 0.05 * g, fade: 0.25 });
+          if (g >= 3) shake = Math.max(shake, 1);
+          break;
+        }
         add(mod, { x: ev.x + (mod === spinSlash ? 18 : 4), y: ev.y + 4, palette: NUM[ev.elem] ?? NUM.sunder, light: 0.45, seed: rng.int(0, 99) }, { life: 0.7, fade: 0.25 });
         shake = Math.max(shake, ev.width >= 60 ? 2 : 1);
         break;
