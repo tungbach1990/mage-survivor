@@ -18,6 +18,7 @@ import * as smite from "../../lib/pixelfx/fx/holy/smite.js";
 import * as grasping from "../../lib/pixelfx/fx/shadow/grasping-hands.js";
 import * as runeCircle from "../../lib/pixelfx/fx/arcane/rune-circle.js";
 import { ELEM } from "../data/elements.js";
+import * as swordWave from "../fx/sword-wave.js";
 
 const R = (el) => ELEM[el].ramp;
 const ramp9 = (el) => [...R(el), "#ffffff"];   // the fireball wants nine steps
@@ -52,8 +53,9 @@ export const LOOKS = {
   judgment:     { shot: { mod: tracer, opts: (a, id) => ({ angle: a, length: 28, speed: 380, palette: R("expose"), light: 0.55, seed: id }) } },
   mammonite:    { shot: { mod: fireball, opts: (a, id) => ({ angle: a, radius: 3, speed: 120, palette: ramp9("bounty"), light: 0.5, seed: id % 9 }) } },
   cointoss:     { shot: { mod: fireball, opts: (a, id) => ({ angle: a, radius: 1.6, speed: 140, palette: ramp9("bounty"), light: 0.45, seed: id % 9 }) } },
-  basic_swordman: { shot: { mod: energyDisc, opts: (a, id) => ({ angle: a, palette: R("sunder"), size: 0.8, light: 0.4, seed: id }) } },
-  swordwave:    { shot: { mod: energyDisc, opts: (a, id) => ({ angle: a, palette: R("sunder"), size: 0.9, light: 0.45, seed: id }) } },
+  // the sword waves: a crescent slash flying level (turning it would break up its pixels)
+  basic_swordman: { shot: { mod: swordWave, opts: (a, id) => ({ size: 13, palette: R("sunder"), light: 0.4, seed: id }) } },
+  swordwave:    { shot: { mod: swordWave, opts: (a, id) => ({ size: 16, palette: R("sunder"), light: 0.45, seed: id }) } },
   venomcloud:   { zone: { mod: poisonCloud, opts: (r) => ({ spread: r / 40, palette: R("venom") }), cache: 3 } },
   magnus:       { zone: { mod: runeCircle, opts: () => ({ palette: R("light") }), cache: 3 } },
   purify:       { zone: { mod: smite, opts: () => ({}), life: 1.6, cache: 2 } },
