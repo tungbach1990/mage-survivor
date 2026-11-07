@@ -14,7 +14,7 @@ import { ENVS, ENV_POOL } from "../data/environments.js";
 import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js";
 import { T, typeT } from "../data/tuning.js";
 import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js";
-import { WAVES, HP_GROWTH, spawnList, endlessList } from "./waves.js";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js";
 import { drawCards, applyCard, refreshPassives } from "./upgrades.js";
 import { CLASSES, marksOf } from "../data/classes.js";
 import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js";
@@ -83,7 +83,7 @@ export function spawn(w, type, x, y, opts = {}) {
   Object.assign(resist, tt.resist ?? {});
   const e = {
     id: w.nextId++, type, x, y, hp, max: hp, state: "walk", atkT: 0, walkT: w.rng.next(), status: freshStatus(), flash: 0,
-    small: opts.scale === "small", auras: new Map(), tiers: new Set(), resist, speedMul: T.monster.speed * (tt.speed ?? 1), dmgMul: ch.dmg * T.monster.dmg * (tt.dmg ?? 1) * (def.boss ? T.boss.dmg * (ch.boss?.dmgMul ?? 1) : 1),
+    small: opts.scale === "small", auras: new Map(), tiers: new Set(), resist, speedMul: T.monster.speed * (tt.speed ?? 1), dmgMul: ch.dmg * (w.endless ? 1 : Math.pow(DMG_GROWTH, w.wave)) * T.monster.dmg * (tt.dmg ?? 1) * (def.boss ? T.boss.dmg * (ch.boss?.dmgMul ?? 1) : 1),
     immune: def.fly ? new Set(["root", "mud"]) : null, phys: tt.phys ?? def.phys ?? 1,
     tenacity: def.boss ? { mul: T.boss.ccMul, max: T.boss.poise, time: T.boss.unstop, slowFloor: T.boss.slowFloor, poise: 0, unstop: 0 } : null,
     lavaT: 0, groundT: 0, boss: opts.boss ?? null, bossPhase: 1, shield: 0, elite: null, swap: ch.swap ?? null,

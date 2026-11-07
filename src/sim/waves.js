@@ -16,7 +16,9 @@ export const WAVES = [
   [[0, "slime", 10, 0.6], [2, "wolf", 10, 0.7], [5, "orc", 6, 2], [8, "skeleton", 8, 1], [14, "golem", 1, 0, { hp: 1.3, boss: "chapter" }]],
 ];
 
-export const HP_GROWTH = 1.15;
+// each wave tougher than the last: its monsters' health and their blows (wave 10: x6.9 health, x1.56 blows)
+export const HP_GROWTH = 1.24;
+export const DMG_GROWTH = 1.05;
 
 /** The spawn list of wave i (0-based) of a chapter: [{ t, type, opts }] in time order. */
 export function spawnList(i) {
