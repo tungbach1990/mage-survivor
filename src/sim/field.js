@@ -1,15 +1,16 @@
 // The field: its geometry, who is where, and what lies on the ground. Shared by world.js, combat.js and the
 // reactions, so none of them has to import the others.
 
-import { ENEMIES, LANE } from "./enemies.js?v=mw6dufuq";
+import { ENEMIES, LANE } from "./enemies.js?v=mw6firc3";
 
 export const W = 320, H = 180;
 export const WALL_X = 80;                 // the wall's outer face
-export const GEM = [47, 95];              // where spells leave the staff
+export const GEM = [47, 118];             // where spells leave the staff (the middle of the lanes)
 export const MAGE_FEET = [29, 118];
 export { LANE };
 
-export const center = (e) => [e.x, e.y - ENEMIES[e.type].cy];
+// on the ground: where it stands (how tall it is, the view lifts its effects by; events carry it as `h`)
+export const center = (e) => [e.x, e.y];
 export const alive = (w) => w.enemies.filter((e) => e.hp > 0);
 /** What the spells can see: in fog, only what has come close. */
 export const inView = (w) => { const far = Math.min(W - 14, w.sight ?? W); return alive(w).filter((e) => e.x <= far) };

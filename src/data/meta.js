@@ -1,8 +1,8 @@
 // What carries over between runs: per class the talent tree, the marks unlocked and the gear worn; shared, the
 // crystals, the bag, the account level, achievements and daily quests.
 
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mw6dufuq";
-import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mw6dufuq";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mw6firc3";
+import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mw6firc3";
 const MARTIAL_IDS = new Set([...MARTIAL_PAIRS.map((p) => p[2]), ...MARTIAL_TRIADS.map((t) => t[1])]);
 
 // ---------- talents: one tree per class, 4 branches of 4; cost = base * growth^level ----------

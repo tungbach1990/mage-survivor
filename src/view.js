@@ -3,43 +3,56 @@
 // (labels, tier sigils, beams, wells), the black hole bending the picture round it, and every pixelfx effect.
 // The browser puts the bytes on a canvas; Node writes them to PNGs.
 
-import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw6dufuq";
-import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw6dufuq";
-import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw6dufuq";
-import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw6dufuq";
-import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw6dufuq";
-import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw6dufuq";
-import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw6dufuq";
-import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw6dufuq";
-import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw6dufuq";
-import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw6dufuq";
-import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw6dufuq";
-import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw6dufuq";
-import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw6dufuq";
-import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw6dufuq";
-import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw6dufuq";
-import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw6dufuq";
-import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw6dufuq";
-import * as rainCloud from "./fx/rain-cloud.js?v=mw6dufuq";
-import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw6dufuq";
-import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw6dufuq";
-import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw6dufuq";
-import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw6dufuq";
-import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw6dufuq";
-import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw6dufuq";
+import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw6firc3";
+import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw6firc3";
+import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw6firc3";
+import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw6firc3";
+import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw6firc3";
+import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw6firc3";
+import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw6firc3";
+import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw6firc3";
+import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw6firc3";
+import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw6firc3";
+import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw6firc3";
+import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw6firc3";
+import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw6firc3";
+import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw6firc3";
+import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw6firc3";
+import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw6firc3";
+import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw6firc3";
+import * as rainCloud from "./fx/rain-cloud.js?v=mw6firc3";
+import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw6firc3";
+import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw6firc3";
+import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw6firc3";
+import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw6firc3";
+import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw6firc3";
+import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw6firc3";
 // the archer's falcon: pixelfx's bird in a falcon's browns, a cream breast
 const FALCON = { palette: ["#1a0e08", "#3a2414", "#5c3a1e", "#84562c", "#ae7a44", "#d8ac72", "#fff0d0"], breast: ["#5a3a1e", "#b48a5a", "#e8d0a4", "#fff4dc"] };
-import { LOOKS, blastOf } from "./render/looks.js?v=mw6dufuq";
-import { FRAMES } from "./assets.js?v=mw6dufuq";
-import { ENEMIES } from "./sim/enemies.js?v=mw6dufuq";
-import { W, H, MAGE_FEET } from "./sim/field.js?v=mw6dufuq";
-import { ELEM, ELEMENTS } from "./data/elements.js?v=mw6dufuq";
-import { REACTION_BY_ID } from "./data/reactions.js?v=mw6dufuq";
-import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw6dufuq";
-import { BLACK_HOLE } from "./sim/chaos.js?v=mw6dufuq";
+import { LOOKS, blastOf } from "./render/looks.js?v=mw6firc3";
+import { FRAMES } from "./assets.js?v=mw6firc3";
+import { ENEMIES } from "./sim/enemies.js?v=mw6firc3";
+import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw6firc3";
 
-const MAGE_AT = [6, 62];
-const WALL_AT = 58;
+// ---- the screen stands up: 180 x 320. A field point (x: distance from the wall's side, y: across the lanes)
+// lands at (SX, SY): its lanes (y 76..172) across the screen, its depth up it (the wall at y 250, the spawn at
+// the top). Heights (h) lift a point straight up the screen.
+export const PW = 180, PH = 320;
+const W = PW, H = PH;
+const KX = 1.58, X0 = 14, LANE0 = 76, BASE = 250;
+const SX = (y) => X0 + (y - LANE0) * KX;
+const SY = (x) => BASE - (x - WALL_X);
+/** A field point (and how high above the ground) on the screen. */
+export const toScreen = (x, y, h = 0) => [SX(y), SY(x) - h];
+/** A field direction on the screen. */
+const rot = (vx, vy) => [vy * KX, -vx];
+const HERO = toScreen(MAGE_FEET[0], MAGE_FEET[1]);
+const WALL_Y = SY(WALL_X);   // the wall's outer face
+import { ELEM, ELEMENTS } from "./data/elements.js?v=mw6firc3";
+import { REACTION_BY_ID } from "./data/reactions.js?v=mw6firc3";
+import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw6firc3";
+import { BLACK_HOLE } from "./sim/chaos.js?v=mw6firc3";
+
 const MAX_LABELS = 6;
 const CLOUDS = {
   rain: ["#4a5064", "#5c6278", "#70778e", "#868da4", "#9ea5ba", "#b6bccf", "#ced3e2"],
@@ -108,6 +121,7 @@ export function createRenderer(A) {
   const WATER = [74, 106, 154], WATER_RIM = [154, 196, 240];
 
   function add(mod, o, extra = {}) {
+    if (!Number.isFinite(o.x) || !Number.isFinite(o.y)) return null;
     if (fxs.length >= Q.fx && !extra.must) {
       const i = fxs.findIndex((f) => f.kind === "deco");
       if (i < 0) return null;
@@ -136,7 +150,26 @@ export function createRenderer(A) {
   const note = (text, x, y, color, big = false) => { if (labels.length < MAX_LABELS) labels.push({ text, color, x: Math.round(x), y: Math.round(y), t: 0, big }) };
 
   // ---------- events -> effects ----------
+  // an event's field positions, moved to the screen (points on monsters lifted by their height)
+  const MAPPED = new Set(["weatherStart", "mend", "gold"]);
+  function screenEvent(e) {
+    if (MAPPED.has(e.type)) return e;
+    const ev = { ...e }, h = e.h ?? 0, lift = (p, k = 8) => toScreen(p[0], p[1], k);
+    if (e.x != null && e.y != null) [ev.x, ev.y] = toScreen(e.x, e.y, h);
+    if (e.x2 != null) [ev.x2, ev.y2] = toScreen(e.x2, e.y2 ?? e.y, e.type === "missile" ? 10 : h);
+    if (e.vx != null) [ev.vx, ev.vy] = rot(e.vx, e.vy);
+    if (e.r != null) ev.r = e.r * 1.25;
+    if (e.rx != null) ev.rx = e.rx * 1.25;
+    if (e.type === "chain") ev.pts = e.pts.map((p, i) => lift(p, i ? 8 : 0));
+    else if (e.type === "puddleShock") { ev.pts = e.pts.map((p) => lift(p, 0)); ev.from = lift(e.from, 0) }
+    else if (e.type === "heal") ev.pts = e.pts.map((p) => lift(p, 6));
+    else if (e.type === "zap") { ev.from = lift(e.from, 0); ev.to = e.to.map((p) => lift(p, 8)) }
+    if (e.arrows) ev.arrows = e.arrows.map((a) => { const [x, y] = toScreen(a.x, a.y); return { ...a, x, y } });
+    if (e.type === "dash") { ev.y += 8; ev.y2 += 8 }
+    return ev;
+  }
   function onEvent(ev) {
+    ev = screenEvent(ev);
     switch (ev.type) {
       case "shot": {
         const look = LOOKS[ev.skill]?.shot, ang = Math.atan2(ev.vy, ev.vx);
@@ -189,12 +222,12 @@ export function createRenderer(A) {
       case "death": add(poof, { x: ev.x, y: ev.y, light: 0.4, seed: rng.int(0, 99) }, { life: 1.2, fade: 0.4 }); if (ev.boss) shake = Math.max(shake, 4); break;
       case "wallHit": add(bluntHit, { x: ev.x + 2, y: ev.y + 4, height: 4, seed: rng.int(0, 99) }, { life: 0.6, fade: 0.2 }); shake = Math.max(shake, 1); break;
       case "weatherStart":
-        for (const [i, x] of [125, 215, 305].entries())
-          add(rainCloud, { x: x + rng.range(-8, 8), y: 124 + (i % 2) * 8, cloud: CLOUDS[ev.kind], seed: 8 + i * 5 + rng.int(0, 9) }, { life: ev.dur + 0.9, fade: 0.9, must: true, vel: [-4, 0], kind: "weather", cache: 6 });
+        for (const [i, y] of [110, 170, 230].entries())
+          add(rainCloud, { x: 50 + (i % 2) * 80 + rng.range(-8, 8), y, cloud: CLOUDS[ev.kind], seed: 8 + i * 5 + rng.int(0, 9) }, { life: ev.dur + 0.9, fade: 0.9, must: true, vel: [0, 3], kind: "weather", cache: 6 });
         break;
       case "dropHit":
         if (ev.kind === "lava") { spark(ev.x, ev.y, "fire", 0.45); shake = Math.max(shake, 0.8) }
-        else { bolts.push({ pts: [[[ev.x + rng.range(-14, 14), -6], [ev.x, ev.y]]], t: 0, life: 0.2, thick: true, big: true }); add(zapHit, { x: ev.x, y: ev.y, light: 0.6, seed: rng.int(0, 99) }, { life: 0.6, fade: 0.2 }); flash = 0.18; flashCol = [236, 226, 255]; shake = Math.max(shake, 2) }
+        else { bolts.push({ pts: [[[ev.x + rng.range(-14, 14), ev.y - 110], [ev.x, ev.y]]], t: 0, life: 0.2, thick: true, big: true }); add(zapHit, { x: ev.x, y: ev.y, light: 0.6, seed: rng.int(0, 99) }, { life: 0.6, fade: 0.2 }); flash = 0.18; flashCol = [236, 226, 255]; shake = Math.max(shake, 2) }
         break;
       case "puddleShock":
         if (ev.pts.length) bolts.push({ pts: ev.pts.map((p) => [ev.from, p]), t: 0, life: 0.22, thick: true });
@@ -209,7 +242,7 @@ export function createRenderer(A) {
         if (ev.fx === "blast") blast(ev.x, ev.y, ev.elem, ev.r);
         else if (ev.fx === "burst" || ev.fx === "shards" || ev.fx === "star") spark(ev.x, ev.y, ev.elem, 0.6);
         else if (ev.fx === "ring" || ev.fx === "well") rings.push({ x: ev.x, y: ev.y + 6, r: ev.r, t: 0, life: ev.fx === "well" ? ev.t : 0.5, col: COL[ev.elem], well: ev.fx === "well" });
-        else if (ev.fx === "skybolt") { bolts.push({ pts: [[[ev.x + rng.range(-10, 10), -6], [ev.x, ev.y + 6]]], t: 0, life: 0.22, thick: true, big: true, col: ev.elem }); spark(ev.x, ev.y + 6, ev.elem) }
+        else if (ev.fx === "skybolt") { bolts.push({ pts: [[[ev.x + rng.range(-10, 10), ev.y - 110], [ev.x, ev.y + 6]]], t: 0, life: 0.22, thick: true, big: true, col: ev.elem }); spark(ev.x, ev.y + 6, ev.elem) }
         else if (ev.fx === "eclipse") { add(eclipse, { x: ev.x, y: ev.y, light: 0.5, seed: rng.int(0, 99) }, { life: 1.2, fade: 0.5, cache: 2 }); flash = 0.2; flashCol = [40, 20, 60] }
         else if (ev.fx === "beam" || ev.fx === "ray") beams.push({ x: ev.x, y: ev.y, x2: ev.x2, y2: ev.y2, t: 0, life: ev.fx === "ray" ? 0.4 : 0.25, col: COL[ev.elem] ?? [255, 255, 255], w: ev.fx === "ray" ? 3 : 1 });
         else if (ev.fx === "seed") rings.push({ x: ev.x, y: ev.y, r: 6, t: 0, life: 0.3, col: [255, 255, 255] });
@@ -233,25 +266,25 @@ export function createRenderer(A) {
         if (ev.basic) {
           // a basic swing: a plain steel arc at first; sparks, light and its colour as it levels
           const g = grade(ev.lvl);
-          add(mod, { x: ev.x + 4, y: ev.y + 4, palette: basicPalette(ev), sparks: g >= 2 ? basicPalette(ev) : PLAIN.grey, light: ev.mark ? 0.3 : [0.05, 0.15, 0.3, 0.5][g], seed: rng.int(0, 99) }, { life: 0.55 + 0.05 * g, fade: 0.25 });
+          add(mod, { x: ev.x, y: ev.y - 4, angle: -Math.PI / 2, palette: basicPalette(ev), sparks: g >= 2 ? basicPalette(ev) : PLAIN.grey, light: ev.mark ? 0.3 : [0.05, 0.15, 0.3, 0.5][g], seed: rng.int(0, 99) }, { life: 0.55 + 0.05 * g, fade: 0.25 });
           if (g >= 3) shake = Math.max(shake, 1);
           break;
         }
-        add(mod, { x: ev.x + (mod === spinSlash ? 18 : 4), y: ev.y + 4, palette: NUM[ev.elem] ?? NUM.sunder, light: 0.45, seed: rng.int(0, 99) }, { life: 0.7, fade: 0.25 });
+        add(mod, { x: ev.x, y: ev.y - (mod === spinSlash ? 18 : 4), angle: -Math.PI / 2, palette: NUM[ev.elem] ?? NUM.sunder, light: 0.45, seed: rng.int(0, 99) }, { life: 0.7, fade: 0.25 });
         shake = Math.max(shake, ev.width >= 60 ? 2 : 1);
         break;
       }
-      case "dash": beams.push({ x: ev.x, y: ev.y - 8, x2: ev.x2, y2: ev.y - 8, t: 0, life: 0.3, col: ev.plain ? [190, 190, 196] : COL[ev.elem] ?? [220, 220, 230], w: 3 }); spark(ev.x2, ev.y - 8, ev.elem, 0.4); shake = Math.max(shake, 2); break;
-      case "mend": add(healFx, { x: 30, y: 118, light: 0.5, seed: rng.int(0, 99) }, { life: 1.2, fade: 0.4, must: true }); break;
+      case "dash": beams.push({ x: ev.x, y: ev.y - 8, x2: ev.x2, y2: ev.y2 - 8, t: 0, life: 0.3, col: ev.plain ? [190, 190, 196] : COL[ev.elem] ?? [220, 220, 230], w: 3 }); spark(ev.x2, ev.y2 - 8, ev.elem, 0.4); shake = Math.max(shake, 2); break;
+      case "mend": add(healFx, { x: HERO[0], y: HERO[1], light: 0.5, seed: rng.int(0, 99) }, { life: 1.2, fade: 0.4, must: true }); break;
       case "miss": spark(ev.x, ev.y, "blind", 0.3); break;
-      case "gold": spark(30, 100, "bounty", 0.4); break;
+      case "gold": spark(HERO[0], HERO[1] - 40, "bounty", 0.4); break;
       case "missile": beams.push({ x: ev.x, y: ev.y, x2: ev.x2, y2: ev.y2, t: 0, life: 0.18, col: ev.kind === "shaman" ? [90, 230, 255] : [240, 230, 200], w: 1 }); spark(ev.x2 + 2, ev.y2, ev.kind === "shaman" ? "ice" : "earth", 0.35); break;
       case "heal": rings.push({ x: ev.x, y: ev.y + 4, r: ev.r, t: 0, life: 0.5, col: [120, 255, 140] }); for (const p of ev.pts.slice(0, 5)) beams.push({ x: ev.x, y: ev.y, x2: p[0], y2: p[1], t: 0, life: 0.3, col: [140, 255, 150], w: 1 }); break;
       case "charge": spark(ev.x + 6, ev.y - 2, "earth", 0.4); shake = Math.max(shake, 1); break;
       case "enrage": flash = 0.2; flashCol = [255, 60, 40]; shake = Math.max(shake, 3); note("ENRAGE", ev.x, ev.y - 30, [255, 90, 70], true); break;
       case "unstoppable": note("UNSTOPPABLE", ev.x, ev.y - 10, [255, 210, 90]); rings.push({ x: ev.x, y: ev.y + 8, r: 18, t: 0, life: 0.5, col: [255, 210, 90] }); break;
       case "volley": for (const [i, a] of ev.arrows.entries()) volleys.push({ go: i * 0.022, x0: ev.x + rng.range(-1, 1), y0: ev.y - 4, up: rng.range(-0.6, 0.6), x: a.x, y: a.y - 8, at: a.t, t: 0, landed: false }); break;
-      case "claw": add(clawSwipe, { x: ev.x - 10, y: ev.y + 6, palette: NUM.bleed, light: 0.4, seed: rng.int(0, 99) }, { life: 0.5, fade: 0.2 }); spark(ev.x, ev.y, "bleed", 0.35); break;
+      case "claw": add(clawSwipe, { x: ev.x, y: ev.y + 6, angle: -Math.PI / 2, palette: NUM.bleed, light: 0.4, seed: rng.int(0, 99) }, { life: 0.5, fade: 0.2 }); spark(ev.x, ev.y, "bleed", 0.35); break;
       case "minionDie": add(poof, { x: ev.x, y: ev.y, light: 0.4, seed: rng.int(0, 99) }, { life: 1, fade: 0.4 }); break;
     }
   }
@@ -269,7 +302,8 @@ export function createRenderer(A) {
     for (const [key, { e, kind }] of want) {
       if (overlays.has(key)) continue;
       const actor = A.monsters[e.type].actor, mod = { burn: burning, frozen, stun: electrified, slow: slowed, poison: poisoned, curse: cursed }[kind];
-      const o = add(mod, { x: e.x, y: e.y, actor, light: 0.45, seed: e.id }, { kind: "overlay", must: true, follow: e.id });
+      const [ox, oy] = toScreen(e.x, e.y, ENEMIES[e.type].fly ?? 0);
+      const o = add(mod, { x: ox, y: oy, actor, light: 0.45, seed: e.id }, { kind: "overlay", must: true, follow: e.id });
       if (o) overlays.set(key, o);
     }
   }
@@ -282,9 +316,9 @@ export function createRenderer(A) {
     syncOverlays(w);
     const byId = new Map(w.enemies.map((e) => [e.id, e]));
     const shots = new Map(w.shots.map((s) => [s.id, s]));
-    for (const [id, e] of byShot) { const s = shots.get(id); if (s) { e.fx.options.x = s.x; e.fx.options.y = s.y + (e.dy ?? 0); if (s.target) e.fx.options.angle = Math.atan2(s.vy, s.vx) } }
+    for (const [id, e] of byShot) { const s = shots.get(id); if (s) { const [x, y] = toScreen(s.x, s.y); e.fx.options.x = x; e.fx.options.y = y + (e.dy ?? 0); if (s.target) { const [vx, vy] = rot(s.vx, s.vy); e.fx.options.angle = Math.atan2(vy, vx) } } }
     for (const f of fxs) {
-      if (f.follow) { const e = byId.get(f.follow); if (e) { f.fx.options.x = Math.round(e.x); f.fx.options.y = Math.round(e.y - (ENEMIES[e.type].fly ?? 0)) } }
+      if (f.follow) { const e = byId.get(f.follow); if (e) { const [x, y] = toScreen(e.x, e.y, ENEMIES[e.type].fly ?? 0); f.fx.options.x = Math.round(x); f.fx.options.y = Math.round(y) } }
       if (f.vel) { f.fx.options.x += f.vel[0] * dt; f.fx.options.y += f.vel[1] * dt }
       if (!frozenTime) { f.fx.update(dt); f.age += dt; if (f.cache && ++f.cache.tick % f.cache.every === 0) { f.cache.dirty.back = true; f.cache.dirty.front = true } }
     }
@@ -440,7 +474,8 @@ export function createRenderer(A) {
 
   // ---------- the ground ----------
   function drawGround(w) {
-    for (const g of w.grounds) {
+    for (const g0 of w.grounds) {
+      const [gx, gy] = toScreen(g0.x, g0.y), g = { ...g0, x: gx, y: gy, rx: g0.ry * KX, ry: g0.rx };
       const k = Math.min(1, g.life / 1.5) * Math.min(1, (g.max - g.life) / 0.3 + 0.2);
       const x0 = Math.max(0, Math.floor(g.x - g.rx)), x1 = Math.min(W - 1, Math.ceil(g.x + g.rx)), y0 = Math.max(0, Math.floor(g.y - g.ry)), y1 = Math.min(H - 1, Math.ceil(g.y + g.ry));
       if (g.kind === "steam" || g.kind === "miasma") { drawHaze(g, k, g.kind === "steam" ? [236, 240, 246] : [150, 220, 70]); continue }
@@ -501,7 +536,8 @@ export function createRenderer(A) {
     for (const [x, y] of [[0, -11], [0, -7], [-1, -9], [1, -9], [0, -3]]) put(g.x + x, g.y + y, [255, 120, 230], (0.5 + 0.5 * on) * k);
   }
   function drawDrops(w) {
-    for (const d of w.drops) {
+    for (const d0 of w.drops) {
+      const [dx0, dy0] = toScreen(d0.x, d0.y), d = { ...d0, x: dx0, y: dy0 };
       const u = 1 - d.hitT / d.st.fall;
       if (d.kind === "lava") {
         const rr = 3 + (1 - u) * 3;
@@ -555,7 +591,7 @@ export function createRenderer(A) {
     else if (env === "sandstorm") for (let n = 0; n < motes; n++) { const p = MOTES[n]; const x = ((p.x - clock * 120 * p.v) % W + W) % W, y = p.y + Math.sin(clock * 3 + p.p) * 3; for (let j = 0; j < 4; j++) put(x + j, y, [230, 196, 130], (0.7 - j * 0.15) * k) }
     else if (env === "miasma") for (const p of MOTES.slice(0, 40)) { const y = ((p.y - clock * 6 * p.v) % H + H) % H, x = p.x + Math.sin(clock + p.p) * 8, on = 0.4 + 0.4 * Math.sin(clock * 2 + p.p); put(x, y, [170, 240, 80], on * k); put(x + 1, y, [120, 200, 60], on * 0.5 * k) }
     else if (env === "night") {
-      for (let y = -7; y <= 7; y++) for (let x = -7; x <= 7; x++) { const d = Math.hypot(x, y); if (d <= 7) put(290 + x, 22 + y, d > 5.5 ? [255, 120, 110] : [210, 50, 50], k) }
+      for (let y = -7; y <= 7; y++) for (let x = -7; x <= 7; x++) { const d = Math.hypot(x, y); if (d <= 7) put(150 + x, 20 + y, d > 5.5 ? [255, 120, 110] : [210, 50, 50], k) }
       for (const s of STARS.slice(0, 30)) if (s.y < 70) put(s.x, s.y * 0.6, [255, 230, 230], k * (0.4 + 0.4 * Math.sin(clock * 3 + s.p)));
     } else if (env === "aurora") {
       // the curtain, in integer blends: a column at a time
@@ -570,10 +606,11 @@ export function createRenderer(A) {
       }
       for (const s of STARS) if (s.y < 90) put(s.x, s.y * 0.5, [240, 250, 255], k * (0.5 + 0.5 * Math.sin(clock * 4 + s.p)));
     } else if (env === "sun") {
-      for (let b = 0; b < 4; b++) { const x0 = 120 + b * 52 + Math.sin(clock * 0.4 + b) * 6; for (let y = 0; y < H; y += 1) { const x = x0 + y * 0.45; for (let j = 0; j < 6; j++) put(x + j, y, [255, 240, 180], 0.08 * k * (1 - y / H)) } }
+      for (let b = 0; b < 4; b++) { const x0 = 10 + b * 44 + Math.sin(clock * 0.4 + b) * 6; for (let y = 0; y < H; y += 1) { const x = x0 + y * 0.45; for (let j = 0; j < 6; j++) put(x + j, y, [255, 240, 180], 0.08 * k * (1 - y / H)) } }
     } else if (env === "fog" && w.sight) {
-      // thick past what the spells can see
-      for (let x = Math.max(0, w.sight - 40); x < W; x++) { const a = Math.min(0.75, ((x - (w.sight - 40)) / 60) * 0.75) * k, q = Math.round(a * 256), p = 256 - q; for (let y = 0; y < H; y++) { const i = y * W + x, c = pic[i], n = 200 + ((Math.sin(x * 0.05 + y * 0.08 + clock * 0.6) * 18) | 0); pic[i] = (0xff000000 | ((((c >>> 16) & 255) * p + (n + 8) * q) >> 8) << 16 | ((((c >>> 8) & 255) * p + n * q) >> 8) << 8 | (((c & 255) * p + n * q) >> 8)) >>> 0 } }
+      // thick past what the spells can see: up the screen from the sight line
+      const edge = SY(w.sight - 40);
+      for (let y = 0; y < Math.min(H, edge); y++) { const a = Math.min(0.75, ((edge - y) / 60) * 0.75) * k, q = Math.round(a * 256), p = 256 - q; for (let x = 0; x < W; x++) { const i = y * W + x, c = pic[i], n = 200 + ((Math.sin(x * 0.05 + y * 0.08 + clock * 0.6) * 18) | 0); pic[i] = (0xff000000 | ((((c >>> 16) & 255) * p + (n + 8) * q) >> 8) << 16 | ((((c >>> 8) & 255) * p + n * q) >> 8) << 8 | (((c & 255) * p + n * q) >> 8)) >>> 0 } }
     }
   }
 
@@ -650,11 +687,13 @@ export function createRenderer(A) {
       if (m.body !== "falcon") continue;
       live.add(m.id);
       let f = falcons.get(m.id);
-      if (!f || !fxs.includes(f)) { f = add(birdFx, { x: m.x, y: m.y, light: 0.3, seed: m.id, ...FALCON }, { kind: "falcon", must: true, cache: 1 }); falcons.set(m.id, f) }
+      // high over the hero's head at its perch, coming down to the monsters it dives on
+      const [fx, fy] = toScreen(m.x, m.y, 36 * Math.max(0, Math.min(1, (WALL_X + 6 - m.x) / 28)) + 8);
+      if (!f || !fxs.includes(f)) { f = add(birdFx, { x: fx, y: fy, light: 0.3, seed: m.id, ...FALCON }, { kind: "falcon", must: true, cache: 1 }); falcons.set(m.id, f) }
       const o = f.fx.options, back = m.state === "return";
-      o.x = Math.round(m.x); o.y = Math.round(m.y);
+      o.x = Math.round(fx); o.y = Math.round(fy);
       o.flip = back;
-      o.angle = m.state === "dive" ? 0.5 : 0;
+      o.angle = m.state === "dive" ? -0.9 : back ? -0.5 : 0;
     }
     for (const [id, f] of falcons) if (!live.has(id)) { const i = fxs.indexOf(f); if (i >= 0) fxs.splice(i, 1); falcons.delete(id) }
   }
@@ -672,16 +711,17 @@ export function createRenderer(A) {
   // the plain look: grey and white only, no light
   function drawPlain(w) {
     const G = [200, 200, 204], D = [120, 120, 126];
-    for (const s of w.shots) {
-      if (!s.plain || s.dead || (s.delay ?? 0) > 0) continue;
-      const v = Math.hypot(s.vx, s.vy) || 1, ux = s.vx / v, uy = s.vy / v, sk = s.skill;
+    for (const s0 of w.shots) {
+      if (!s0.plain || s0.dead || (s0.delay ?? 0) > 0) continue;
+      const [sx0, sy0] = toScreen(s0.x, s0.y), [svx, svy] = rot(s0.vx, s0.vy), s = { x: sx0, y: sy0 };
+      const v = Math.hypot(svx, svy) || 1, ux = svx / v, uy = svy / v, sk = s0.skill;
       if (sk === "basic_archer") { line(s.x - ux * 8, s.y - uy * 8, s.x - ux, s.y - uy, D, 1); put(s.x, s.y, G, 1) }
       else if (sk === "basic_thief") { line(s.x - ux * 4, s.y - uy * 4, s.x, s.y, G, 1) }
       else { put(s.x, s.y, G, 1); put(s.x + 1, s.y, G, 1); put(s.x, s.y + 1, G, 1); put(s.x + 1, s.y + 1, G, 1); line(s.x - ux * 6, s.y - uy * 6, s.x - ux, s.y - uy, D, 0.5) }
     }
     for (const s of swings) {
       const k = 1 - s.t / 0.18, r = 14 + 6 * (s.t / 0.18);
-      for (let a = -1.1; a <= 1.1; a += 0.06) put(s.x + 4 + Math.cos(a) * r, s.y - 6 + Math.sin(a) * r * 0.9, G, 0.8 * k);
+      for (let a = -1.1; a <= 1.1; a += 0.06) put(s.x + Math.sin(a) * r * 1.2, s.y - 6 - Math.cos(a) * r * 0.7, G, 0.8 * k);
     }
     for (const f of flicks) { const k = 1 - f.t / 0.12; put(f.x, f.y, G, k); put(f.x - 1, f.y - 1, D, k * 0.7); put(f.x + 1, f.y + 1, D, k * 0.7) }
   }
@@ -706,13 +746,14 @@ export function createRenderer(A) {
   }
   function drawMinion(m) {
     if (m.body === "falcon") return;
+    const [mx, my] = toScreen(m.x, m.y);
     const s = bodyIn(m.body, m.elems), f = m.atk > 0 ? 2 : Math.floor(clock * 3 + m.id) % 2, bob = m.body === "spirit" ? Math.round(Math.sin(clock * 4 + m.id) * 1.5) - 6 : 0;
     if (m.life < 1.5 && Math.floor(clock * 10) % 2) return;   // about to go: blinking
-    darken(m.x, m.y, Math.round(s.fw / 3), 2, 0.7);
-    const x = Math.round(m.x) - s.ax, y = Math.round(m.y) - s.ay + bob;
+    darken(mx, my, Math.round(s.fw / 3), 2, 0.7);
+    const x = Math.round(mx) - s.ax, y = Math.round(my) - s.ay + bob;
     outline(s, f, x, y, COL[m.elems[m.elems.length - 1]], 0.35 + 0.2 * Math.sin(clock * 5 + m.id));
     blit(s, f, x, y, m.flash > 0 ? (c) => mixTo(c, [255, 255, 255], 0.7) : null);
-    if (m.hp < m.max) { const bw = 14, bx = Math.round(m.x - bw / 2), by = y - 3, fill = Math.round(bw * Math.max(0, m.hp / m.max)); for (let i = 0; i < bw; i++) put(bx + i, by, i < fill ? [90, 220, 120] : [30, 40, 34], 1) }
+    if (m.hp < m.max) { const bw = 14, bx = Math.round(mx - bw / 2), by = y - 3, fill = Math.round(bw * Math.max(0, m.hp / m.max)); for (let i = 0; i < bw; i++) put(bx + i, by, i < fill ? [90, 220, 120] : [30, 40, 34], 1) }
   }
 
   // ---------- monsters ----------
@@ -752,7 +793,8 @@ export function createRenderer(A) {
 
   // the black hole: the picture swirled and pulled toward it, its accretion ring turning
   function lens(w) {
-    for (const bh of w.blackholes) {
+    for (const bh0 of w.blackholes) {
+      const [bhx, bhy] = toScreen(bh0.x, bh0.y), bh = { ...bh0, x: bhx, y: bhy };
       const R = BLACK_HOLE.reach, strength = bh.phase === "rift" ? bh.t / BLACK_HOLE.rift : bh.phase === "pull" || bh.phase === "collapse" ? 1 : 0;
       if (strength <= 0) continue;
       tmp.set(pic);
@@ -771,7 +813,7 @@ export function createRenderer(A) {
           if (pd >= R) continue;
           let c;
           if (pd < core) c = pd > rim ? RIM : CORE;
-          else { const sx = x + ox, sy = y + oy; c = mixTo(sx >= 0 && sy >= 0 && sx < W && sy < H ? tmp[sy * W + sx] : 0xff000000, VOID, k) }
+          else { const sx = Math.max(0, Math.min(W - 1, x + ox)), sy = Math.max(0, Math.min(H - 1, y + oy)); c = mixTo(tmp[sy * W + sx], VOID, k) }
           pic[y * W + x] = c;
         }
       }
@@ -812,15 +854,17 @@ export function createRenderer(A) {
     drawFx(fxs.filter((f) => f.under), "back");
     drawFx(fxs.filter((f) => !f.under && f.kind === "overlay"), "back");
 
-    darken(MAGE_FEET[0], MAGE_FEET[1], 9, 2, 0.72);
+    // the wall across the field, then the hero on the floor behind it
+    const wr = w.wall.hp / w.wall.max, wall = A.wallsH[wr > 0.66 ? 0 : wr > 0.33 ? 1 : 2];
+    for (let y = 0; y < wall.h; y++) for (let x = 0; x < wall.w; x++) { const c = wall.px[y * wall.w + x], Y = WALL_Y + y; if (c >>> 24 > 127 && Y < H) pic[Y * W + x] = c | 0xff000000 }
+    darken(HERO[0], HERO[1], 9, 2, 0.72);
     const pose = { idle: Math.floor(clock / 0.35) % 2 ? "idle1" : "idle0", cast: "cast", focus: "focus", throw: "throw", hurt: "hurt" }[w.mage.pose] ?? "idle0";
-    blit(A.heroes?.[w.cls] ?? A.mage, FRAMES.mage.indexOf(pose), MAGE_AT[0], MAGE_AT[1]);
-    const wr = w.wall.hp / w.wall.max, wall = A.walls[wr > 0.66 ? 0 : wr > 0.33 ? 1 : 2];
-    for (let y = 0; y < H; y++) for (let x = 0; x < wall.w; x++) { const c = wall.px[y * wall.w + x]; if (c >>> 24 > 127) pic[y * W + WALL_AT + x] = c | 0xff000000 }
+    blit(A.heroes?.[w.cls] ?? A.mage, FRAMES.mage.indexOf(pose), Math.round(HERO[0]) - 23, Math.round(HERO[1]) - 56);
 
-    for (const m of [...w.minions].sort((a, b) => a.y - b.y)) drawMinion(m);
-    const list = w.enemies.filter((e) => e.hp > 0).sort((a, b) => a.y - b.y);
-    for (const e of list) {
+    for (const m of [...w.minions].sort((a, b) => b.x - a.x)) drawMinion(m);
+    const list = w.enemies.filter((e) => e.hp > 0).sort((a, b) => b.x - a.x);
+    for (const e0 of list) {
+      const [ex, ey] = toScreen(e0.x, e0.y), e = Object.create(e0, { x: { value: ex }, y: { value: ey } });
       const m = A.monsters[e.type], def = ENEMIES[e.type], lift = def.fly ?? 0, f = enemyFrame(e), fx = Math.round(e.x) - m.ax, fy = Math.round(e.y - lift) - m.ay;
       darken(e.x, e.y, lift ? def.half - 2 : def.half, Math.max(2, def.half / 4), lift ? 0.85 : 0.7);
       if (e.tenacity?.unstop > 0) outline(m, f, fx, fy, [255, 210, 90], 0.6 + 0.3 * Math.sin(clock * 10));

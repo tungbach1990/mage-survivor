@@ -6,12 +6,13 @@ export const FRAMES = {
   mage: ["idle0", "idle1", "focus", "cast", "throw", "hurt"],
   monster: ["walk0", "walk1", "walk2", "walk3", "atk0", "atk1", "hurt"],
 };
-import { ENEMIES } from "./sim/enemies.js?v=mw6dufuq";
+import { ENEMIES } from "./sim/enemies.js?v=mw6firc3";
 export const MONSTERS = ["slime", "goblin", "wolf", "skeleton", "orc", "golem", "bat", "shaman"];
 export const ICONS = ["fireball", "firebolt", "iceball", "icebolt", "lightball", "lightbolt", "nova", "meteor"];
 
 const FILES = {
-  arena: "scenes/arena.png",
+  arena: "scenes/arena_v.png",
+  wallh_0: "sprites/wallh_0.png", wallh_1: "sprites/wallh_1.png", wallh_2: "sprites/wallh_2.png",
   wall_0: "sprites/wall_0.png", wall_1: "sprites/wall_1.png", wall_2: "sprites/wall_2.png",
   mage: "anims/mage.png",
   ...Object.fromEntries(["swordman", "archer", "thief", "acolyte", "merchant"].map((c) => [c, `anims/${c}.png`])),
@@ -24,7 +25,7 @@ export async function loadAssets(load, base = "assets/") {
   const pics = {};
   await Promise.all(Object.entries(FILES).map(async ([k, f]) => (pics[k] = await load(base + f))));
   const strip = (pic, n) => ({ pic, n, fw: pic.w / n, fh: pic.h });
-  const A = { arena: pics.arena, walls: [pics.wall_0, pics.wall_1, pics.wall_2], mage: strip(pics.mage, FRAMES.mage.length), monsters: {} };
+  const A = { arena: pics.arena, walls: [pics.wall_0, pics.wall_1, pics.wall_2], wallsH: [pics.wallh_0, pics.wallh_1, pics.wallh_2], mage: strip(pics.mage, FRAMES.mage.length), monsters: {} };
   for (const m of MONSTERS) {
     const s = strip(pics[m], FRAMES.monster.length);
     A.monsters[m] = { ...s, ...anchorOf(s), actor: actorOf(s) };

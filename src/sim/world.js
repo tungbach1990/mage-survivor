@@ -5,23 +5,23 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw6dufuq";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw6dufuq";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw6dufuq";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw6dufuq";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw6dufuq";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw6dufuq";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw6dufuq";
-import { T, typeT } from "../data/tuning.js?v=mw6dufuq";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw6dufuq";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw6dufuq";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw6dufuq";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw6dufuq";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw6dufuq";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury } from "./combat.js?v=mw6dufuq";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw6dufuq";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw6dufuq";
-import { updateBlackHoles } from "./chaos.js?v=mw6dufuq";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw6firc3";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw6firc3";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw6firc3";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw6firc3";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw6firc3";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw6firc3";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw6firc3";
+import { T, typeT } from "../data/tuning.js?v=mw6firc3";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw6firc3";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw6firc3";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw6firc3";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw6firc3";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw6firc3";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury } from "./combat.js?v=mw6firc3";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw6firc3";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw6firc3";
+import { updateBlackHoles } from "./chaos.js?v=mw6firc3";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
@@ -398,7 +398,7 @@ export function step(w, dt) {
     tickAuras(w, e, dt);
     if (e.status.brittle > 0) e.status.brittle -= dt;
     const due = tickStatus(e, dt);
-    if (e.justUnstoppable) { e.justUnstoppable = false; w.events.push({ type: "unstoppable", id: e.id, x: e.x, y: e.y - def.cy }) }
+    if (e.justUnstoppable) { e.justUnstoppable = false; w.events.push({ type: "unstoppable", id: e.id, x: e.x, y: e.y, h: def.cy }) }
     if (due.burn > 0) damage(w, e, due.burn, "burn", { quiet: true, reaction: true });
     if (due.poison > 0 && e.hp > 0) damage(w, e, due.poison * w.mods.dotDmg, "poison", { quiet: true, reaction: true });
     if (due.phys > 0 && e.hp > 0) damage(w, e, due.phys * w.mods.dotDmg, "phys", { quiet: true, reaction: true });   // bleeding, venom
@@ -412,7 +412,7 @@ export function step(w, dt) {
         e.healT = def.healer.every;
         const near = around(w, e.x, e.y, def.healer.radius).filter((o) => o.hp < o.max && !ENEMIES[o.type].boss && !(w.waveT > 120));
         for (const o of near) o.hp = Math.min(o.max, o.hp + o.max * def.healer.frac);
-        if (near.length) w.events.push({ type: "heal", x: e.x, y: e.y - def.cy, r: def.healer.radius, pts: near.map((o) => [o.x, o.y - ENEMIES[o.type].cy]) });
+        if (near.length) w.events.push({ type: "heal", x: e.x, y: e.y, h: def.cy, r: def.healer.radius, pts: near.map((o) => [o.x, o.y]) });
       }
     }
     if (isHeld(e)) continue;
@@ -440,7 +440,7 @@ export function step(w, dt) {
       if (e.atkT >= def.rate) {
         e.atkT -= def.rate;
         // blinded, it may miss; disarmed or sickened, it hits softer
-        if ((e.auras.has("blind") && w.rng.chance(AURA.blind)) || (w.mods.dodge && w.rng.chance(w.mods.dodge))) { w.events.push({ type: "miss", x: e.x - def.half, y: e.y - def.cy }); continue }
+        if ((e.auras.has("blind") && w.rng.chance(AURA.blind)) || (w.mods.dodge && w.rng.chance(w.mods.dodge))) { w.events.push({ type: "miss", x: e.x - def.half, y: e.y, h: def.cy }); continue }
         const hit = def.dmg * e.dmgMul * fury(w) * (e.auras.has("dark") && !e.immune?.has("curse") ? AURA.curse.wall : 1) * (e.auras.has("disarm") ? AURA.disarm : 1) * (e.status.weak > 0 ? 0.5 : 1) * (b ? 1 : w.pm.wallTaken);
         if (def.bomber) {   // it goes off on whatever it reached, and is gone
           if (b) hitMinion(w, b, e, hit * 2); else w.wall.hp = Math.max(0, w.wall.hp - hit);
@@ -449,10 +449,10 @@ export function step(w, dt) {
           continue;
         }
         if (b) { hitMinion(w, b, e, hit * (def.boss ? 4 : 1.5)); continue }   // a boss smashes through
-        if (def.ranged) w.events.push({ type: "missile", x: e.x - def.half, y: e.y - def.cy, x2: WALL_X, y2: e.y - def.cy + 4, kind: e.type });
+        if (def.ranged) w.events.push({ type: "missile", x: e.x - def.half, y: e.y, h: def.cy, x2: WALL_X, y2: e.y, kind: e.type });
         w.wall.hp = Math.max(0, w.wall.hp - hit);
         if (w.mods.thorns) damage(w, e, w.mods.thorns, "earth", { reaction: true, quiet: true });
-        w.events.push({ type: "wallHit", x: WALL_X, y: e.y - def.cy, dmg: hit });
+        w.events.push({ type: "wallHit", x: WALL_X, y: e.y, dmg: hit });
         if (w.mage.pose === "idle") { w.mage.pose = "hurt"; w.mage.t = 0.18 }
       }
     }

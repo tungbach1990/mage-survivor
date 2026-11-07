@@ -6,16 +6,16 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw6dufuq";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw6dufuq";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw6dufuq";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw6dufuq";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw6dufuq";
-import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw6dufuq";
-import { ENVS } from "../data/environments.js?v=mw6dufuq";
-import { T, reactT } from "../data/tuning.js?v=mw6dufuq";
+import { ENEMIES } from "./enemies.js?v=mw6firc3";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw6firc3";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw6firc3";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw6firc3";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw6firc3";
+import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw6firc3";
+import { ENVS } from "../data/environments.js?v=mw6firc3";
+import { T, reactT } from "../data/tuning.js?v=mw6firc3";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw6dufuq";
+import { startBlackHole } from "./chaos.js?v=mw6firc3";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
@@ -62,7 +62,7 @@ export function applyAura(w, e, elem, opts = {}) {
         st.charge = 0;
         const amt = (opts.hit ?? 10) * AURA.arcane.ratio;
         for (const o of around(w, e.x, e.y, AURA.arcane.radius)) damage(w, o, amt, "arcane", { reaction: true });
-        w.events.push({ type: "fx", fx: "ring", x: e.x, y: e.y - ENEMIES[e.type].cy, elem: "arcane", r: AURA.arcane.radius });
+        w.events.push({ type: "fx", fx: "ring", x: e.x, y: e.y, h: ENEMIES[e.type].cy, elem: "arcane", r: AURA.arcane.radius });
       }
       break;
     // ---- the martial marks
@@ -151,7 +151,7 @@ export function damage(w, e, amount, elem, opts = {}) {
   e.flash = 0.12;
   w.dealt += amount;
   const [cx, cy] = center(e);
-  if (!opts.quiet && amount >= 1) w.events.push({ type: "dmg", x: cx, y: cy - def.cy, amount: Math.round(amount), elem: IS_ELEM.has(elem) ? elem : elem === "tier" ? "arcane" : elem === "phys" ? "sunder" : elem, crit: !!opts.crit, plain: !!opts.plain });
+  if (!opts.quiet && amount >= 1) w.events.push({ type: "dmg", x: cx, y: cy, h: def.cy, amount: Math.round(amount), elem: IS_ELEM.has(elem) ? elem : elem === "tier" ? "arcane" : elem === "phys" ? "sunder" : elem, crit: !!opts.crit, plain: !!opts.plain });
 
   // the element's aura and effect (also on the killing blow, so a death can still spread it)
   if (real && !opts.noAura && !opts.lockMark) applyAura(w, e, elem, { ...opts, hit: amount });
@@ -206,7 +206,7 @@ function react(w, e, pair, H, _) {
   const [x, y] = [e.x, e.y];
   H *= (reactT(pair.id).dmg ?? 1) * (T.combo?.pair ?? 1);
   count(w, pair.id, pair.elems);
-  w.events.push({ type: "reaction", kind: pair.id, x, y: y - ENEMIES[e.type].cy, elems: pair.elems });
+  w.events.push({ type: "reaction", kind: pair.id, x, y, h: ENEMIES[e.type].cy, elems: pair.elems });
   pair.fx({ A: api(w), e, x, y, H, w });
 }
 function tiers(w, e, H) {
@@ -220,7 +220,7 @@ function tiers(w, e, H) {
     if (reactT(r.id).off) return;
     H *= (reactT(r.id).dmg ?? 1) * (T.combo?.tier ?? 1) * (T.combo?.[`t${n}`] ?? 1);
     count(w, r.id, elems);
-    w.events.push({ type: "reaction", kind: r.id, x: e.x, y: e.y - ENEMIES[e.type].cy, elems, tier: n });
+    w.events.push({ type: "reaction", kind: r.id, x: e.x, y: e.y, h: ENEMIES[e.type].cy, elems, tier: n });
     const ctx = { A: api(w), e, x: e.x, y: e.y, H, w };
     w.curTier = n;
     if (named) { for (const o of around(w, e.x, e.y, 18)) damage(w, o, H, "tier", { reaction: true }); named.fx(ctx) }
@@ -229,7 +229,7 @@ function tiers(w, e, H) {
   } else if (n >= 7 && n < (w.chaosAt ?? 10) && !e.tiers.has(7)) {
     e.tiers.add(7);
     count(w, UNSTABLE.id, []);
-    w.events.push({ type: "reaction", kind: UNSTABLE.id, x: e.x, y: e.y - ENEMIES[e.type].cy, elems: [...e.auras.keys()] });
+    w.events.push({ type: "reaction", kind: UNSTABLE.id, x: e.x, y: e.y, h: ENEMIES[e.type].cy, elems: [...e.auras.keys()] });
   } else if (n >= (w.chaosAt ?? 10) && !e.tiers.has(10) && !((e.noChaosUntil ?? 0) > w.t)) {
     if (reactT("chaos").off) return;
     // the first black hole of a wave comes easily, each one after it takes longer (reset each wave)
@@ -239,7 +239,7 @@ function tiers(w, e, H) {
     w.chaosThisWave = (w.chaosThisWave ?? 0) + 1;
     e.tiers.add(10);
     count(w, CHAOS.id, schoolMarks(w));
-    w.events.push({ type: "reaction", kind: CHAOS.id, x: e.x, y: e.y - ENEMIES[e.type].cy, elems: ELEMENTS });
+    w.events.push({ type: "reaction", kind: CHAOS.id, x: e.x, y: e.y, h: ENEMIES[e.type].cy, elems: ELEMENTS });
     startBlackHole(w, e.x, e.y);
   }
 }

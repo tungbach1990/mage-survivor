@@ -3,12 +3,12 @@
 // monsters that reach one stop to beat on it instead of the wall (world.js). A fusion alternates its two
 // elements hit by hit, so its own blows set off their reaction.
 
-import { ENEMIES } from "./enemies.js?v=mw6dufuq";
-import { SKILLS } from "../data/skills.js?v=mw6dufuq";
-import { CHAPTERS } from "../data/chapters.js?v=mw6dufuq";
-import { damage, stun, steamAt } from "./combat.js?v=mw6dufuq";
-import { applySlow } from "./status.js?v=mw6dufuq";
-import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mw6dufuq";
+import { ENEMIES } from "./enemies.js?v=mw6firc3";
+import { SKILLS } from "../data/skills.js?v=mw6firc3";
+import { CHAPTERS } from "../data/chapters.js?v=mw6firc3";
+import { damage, stun, steamAt } from "./combat.js?v=mw6firc3";
+import { applySlow } from "./status.js?v=mw6firc3";
+import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mw6firc3";
 
 const BLOCK = 8;   // how far in front of a golem a monster stops
 
@@ -16,7 +16,7 @@ export const minionsOf = (w, id) => w.minions.filter((m) => m.skill === id && m.
 /** A summon's marks: those the class has open; none open, it just hits ("phys": no mark). */
 const elemsOf = (w, sk) => { const e = sk.elems.filter((m) => !w.unlocked || w.unlocked.has(m)); return e.length ? e : ["phys"] };
 /** Where a falcon hovers: over the hero's head (the second one a little behind). */
-export const perch = (slot) => [30 - slot * 14, 70 - slot * 4];
+export const perch = (slot) => [58 - slot * 4, 118 + (slot ? 16 : 0)];
 
 /**
  * A falcon's hunt: from its perch it picks the foremost monster in reach, stoops on it, rakes it with its
@@ -114,7 +114,7 @@ function bite(w, m, dt) {
   m.walking = false;
   if (m.atkT > 0) return false;
   strike(w, m, e);
-  w.events.push({ type: "impact", elem: m.elems[0], x: e.x - def.half, y: e.y - def.cy });
+  w.events.push({ type: "impact", elem: m.elems[0], x: e.x - def.half, y: e.y, h: def.cy });
   return true;
 }
 
@@ -123,7 +123,7 @@ function punch(w, m) {
   const e = alive(w).filter((o) => o.x > m.x && o.x - ENEMIES[o.type].half - m.x <= BLOCK + 6 && Math.abs(o.y - m.y) < 16).sort((a, b) => a.x - b.x)[0];
   if (!e) return false;
   strike(w, m, e);
-  w.events.push({ type: "impact", elem: m.elems[m.hits % m.elems.length], x: e.x - ENEMIES[e.type].half, y: e.y - ENEMIES[e.type].cy });
+  w.events.push({ type: "impact", elem: m.elems[m.hits % m.elems.length], x: e.x - ENEMIES[e.type].half, y: e.y, h: ENEMIES[e.type].cy });
   if (st.chains) { let last = e; const hit = new Set([e]); for (let i = 0; i < st.chains; i++) { const n = nearest(w, last.x, last.y, 1, hit)[0]; if (!n || Math.hypot(n.x - last.x, n.y - last.y) > 50) break; w.events.push({ type: "chain", pts: [center(last), center(n)], ids: [n.id], elem: "volt" }); hit.add(n); damage(w, n, st.dmg * 0.6, "volt", { stun: st.stun, summon: true }); last = n } }
   if (st.push && movable(e)) e.x += st.push;
   return true;

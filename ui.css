@@ -142,3 +142,44 @@ html, body { overscroll-behavior: none; touch-action: manipulation; -webkit-tap-
 .tile.sig { border-color: #8a6a3a; }
 .tile.mark { width: 150px; }
 @media (max-width: 760px), (max-height: 480px) { .tile.mark { width: 110px; } }
+
+/* ===== PORTRAIT FIRST: a phone-shaped stage; the field (9:16) in the middle, the HUD above and below it ===== */
+body { place-items: center; padding: 0; }
+#stage {
+  width: min(100vw, calc(100dvh * 9 / 19)); height: min(100dvh, calc(100vw * 19 / 9));
+  aspect-ratio: auto; container-type: size; background: #120e18;
+  --field: calc(100cqw * 16 / 9); --top: max(46px, calc((100cqh - var(--field)) * 0.36)); --bottom: calc(100cqh - var(--field) - var(--top));
+}
+#screen { position: absolute; left: 0; top: var(--top); width: 100%; height: var(--field); }
+#rotate { display: none !important; }
+body { padding-top: 0 !important; }
+/* the top band: the wall's health, the wave, level, pause */
+#hud-top { top: 4px; left: 6px; right: 6px; height: calc(var(--top) - 18px); flex-wrap: wrap; gap: 4px 8px; align-content: center; font-size: 12px; }
+.bar.wall { width: 100%; order: 1; } .bar.wall .track { height: 12px; }
+#wave { order: 2; margin-left: 0; font-size: 14px; } .badge { order: 3; font-size: 11px; } #fps { order: 4; font-size: 10px; }
+#pause-btn { order: 5; margin-left: auto; pointer-events: auto; padding: 2px 10px; font-size: 16px; }
+#xp { top: calc(var(--top) - 14px); left: 6px; right: 6px; width: auto; font-size: 11px; }
+#boss { top: calc(var(--top) + 6px); left: 8%; right: 8%; font-size: 12px; }
+#toasts { top: calc(var(--top) + 46px); right: 6px; }
+.toast { font-size: 11px; max-width: 70cqw; }
+#banner { top: calc(var(--top) + var(--field) * 0.3); font-size: 28px; }
+/* the bottom band: skills in a grid, the marks' sigils in a row */
+#hud-bottom { bottom: 0; left: 0; right: 0; height: max(56px, var(--bottom)); padding: 4px 6px; flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; background: #120e18; }
+#skills { max-width: none; display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.slot { width: auto; aspect-ratio: 1; height: auto; max-height: 44px; }
+.slot img { width: 70%; height: 70%; }
+#sigils { margin: 0; display: flex; justify-content: center; gap: 3px; }
+.sigil { width: 18px; height: 18px; font-size: 10px; }
+/* overlays: cards stacked, full width */
+#cards { justify-content: center; padding: 10px; }
+#card-list { flex-direction: column; align-items: stretch; width: 100%; gap: 8px; }
+.card { width: auto !important; min-height: 0; flex-direction: row; align-items: center; text-align: left; gap: 10px; padding: 10px; }
+.card img { width: 36px; height: 36px; flex: none; }
+.overlay, .page { padding: 12px; }
+.menu-grid { grid-template-columns: 1fr 1fr; width: min(94vw, 420px); }
+.cols { grid-template-columns: 1fr; }
+h1 { font-size: 28px; }
+.card { display: grid !important; grid-template-columns: 40px 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 10px; row-gap: 2px; }
+.card .key { display: none; }
+.card > img, .card > div { grid-row: span 2; justify-self: center; }
+.card h3 { margin: 0; font-size: 14px; } .card p { font-size: 12px; }
