@@ -2,7 +2,7 @@
 // often they come as elites, how the arena is tinted, and what its boss is.
 
 export const CHAPTERS = [
-  { n: 1, name: "Đồng cỏ",      hp: 1,   dmg: 1,   elite: 0.03, tint: null,               resist: {},                     elemPool: ["volt", "water", "earth"], elemChance: 0.08, roster: ["bat", "bomber"], boss: { name: "GOLEM ĐÁ", shieldBy: "reaction", hpMul: 0.5 } },
+  { n: 1, name: "Đồng cỏ",      hp: 1,   dmg: 1,   elite: 0.03, tint: null,               resist: {},                     elemPool: ["volt", "water", "earth"], elemChance: 0.08, roster: ["bat", "bomber"], boss: { name: "GOLEM ĐÁ", shieldBy: "reaction", hpMul: 0.3, dmgMul: 0.6 } },
   { n: 2, name: "Rừng độc",     hp: 2.2, dmg: 1.2, elite: 0.07, tint: [0.86, 1.0, 0.8],   resist: { poison: 0.4 },        swap: "poison", hazard: "miasma", elemPool: ["poison", "water", "wind", "earth", "water+poison"], elemChance: 0.22, roster: ["bat", "archer", "shaman"], boss: { name: "GOLEM RÊU", shieldBy: "reaction", hpMul: 0.8 } },
   { n: 3, name: "Núi lửa",      hp: 17, dmg: 1.8, elite: 0.12, tint: [1.08, 0.86, 0.74], resist: { fire: 0.4 },          swap: "fire", hazard: "lava", elemPool: ["fire", "earth", "volt", "wind", "fire+earth", "fire+volt"], elemChance: 0.3, roster: ["brute", "bomber", "archer"], boss: { name: "GOLEM NHAM THẠCH", shieldBy: "tier", hpMul: 0.9 } },
   { n: 4, name: "Băng nguyên",  hp: 34, dmg: 2.3, elite: 0.18, tint: [0.84, 0.94, 1.12], resist: { ice: 0.4 },           swap: "ice", cdMul: 1.1, elemPool: ["ice", "water", "wind", "light", "ice+water", "volt+wind", "dark+ice"], elemChance: 0.35, roster: ["bat", "shaman", "brute"], boss: { name: "GOLEM BĂNG", shieldBy: "tier" } },

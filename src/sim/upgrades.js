@@ -56,7 +56,8 @@ export function cardPool(w) {
     // past six marks, the missing ones come first
     const marks = marksOfSkill(sk), fresh = marks.some((m) => !have.has(m));
     const wanted = have.size >= 6 && fresh ? 6 : fresh ? 3 : 2;
-    cards.push({ kind: "learn", id, elem: sk.elem, title: `Học ${sk.name}`, text: sk.desc, weight: wanted });
+    const locked = !w.unlocked.has(sk.elem) ? ` (Chưa mở dấu ${ELEM[sk.elem]?.name}: chỉ gây sát thương, không để dấu.)` : "";
+    cards.push({ kind: "learn", id, elem: sk.elem, title: `Học ${sk.name}`, text: sk.desc + locked, weight: wanted });
   }
   for (const m of imbuesFor(cls(w))) if (!w.imbue.has(m) && w.unlocked.has(m)) cards.push({ kind: "imbue", elem: m, title: `Tẩm ${ELEM[m].name}`, text: `Đòn đánh thường để lại thêm dấu ${ELEM[m].name}.`, weight: 3 });
   for (const s of STATS) cards.push({ kind: "stat", id: s.id, title: s.title, text: s.text, weight: 1 });

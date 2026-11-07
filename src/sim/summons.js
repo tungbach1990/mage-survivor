@@ -13,6 +13,8 @@ import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, add
 const BLOCK = 8;   // how far in front of a golem a monster stops
 
 export const minionsOf = (w, id) => w.minions.filter((m) => m.skill === id && m.hp > 0);
+/** A summon's marks: those the class has open; none open, it just hits ("phys": no mark). */
+const elemsOf = (w, sk) => { const e = sk.elems.filter((m) => !w.unlocked || w.unlocked.has(m)); return e.length ? e : ["phys"] };
 /** Where a falcon hovers: over the hero's head (the second one a little behind). */
 export const perch = (slot) => [30 - slot * 14, 70 - slot * 4];
 
@@ -57,7 +59,7 @@ export function summon(w, id, st) {
   if (sk.body === "falcon") {
     // a falcon: no health, it doesn't go away; it hovers over the archer's head between dives
     const n = minionsOf(w, id).length, [px, py] = perch(n);
-    const m = { id: w.nextId++, skill: id, body: "falcon", elems: sk.elems, x: px, y: py, hp: 1, max: 1, life: Infinity, invulnerable: true, atkT: 0.4 + n * 0.5, hits: 0, st, slot: n, state: "perch", target: null, flash: 0, atk: 0, tick: 0 };
+    const m = { id: w.nextId++, skill: id, body: "falcon", elems: elemsOf(w, sk), x: px, y: py, hp: 1, max: 1, life: Infinity, invulnerable: true, atkT: 0.4 + n * 0.5, hits: 0, st, slot: n, state: "perch", target: null, flash: 0, atk: 0, tick: 0 };
     w.minions.push(m);
     w.events.push({ type: "summon", id: m.id, skill: id, body: m.body, elems: m.elems, x: px, y: py });
     return true;
@@ -67,7 +69,7 @@ export function summon(w, id, st) {
   const x = sk.body === "golem" ? WALL_X + 34 + w.rng.range(0, 30) : sk.body === "spirit" ? WALL_X + 14 + w.rng.range(0, 16) : WALL_X + 20;
   // as sturdy against this chapter's blows as the first chapter's
   const hp = st.hp * (w.mods?.summonHp ?? 1) * (CHAPTERS[Math.min(5, w.chapter ?? 1) - 1]?.dmg ?? 1);
-  const m = { id: w.nextId++, skill: id, body: sk.body, elems: sk.elems, x, y, hp, max: hp, life: st.life, atkT: 0.3, hits: 0, st, revived: false, tick: 0, flash: 0, atk: 0 };
+  const m = { id: w.nextId++, skill: id, body: sk.body, elems: elemsOf(w, sk), x, y, hp, max: hp, life: st.life, atkT: 0.3, hits: 0, st, revived: false, tick: 0, flash: 0, atk: 0 };
   w.minions.push(m);
   w.events.push({ type: "summon", id: m.id, skill: id, body: m.body, elems: m.elems, x, y });
   return true;

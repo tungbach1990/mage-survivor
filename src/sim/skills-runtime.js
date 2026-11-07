@@ -9,6 +9,7 @@ import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js";
 import { W, H, GEM, WALL_X, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js";
 
 export const IMBUE_CHANCE = 0.25;
+export const LOCKED_DMG = 2.2;
 /** A skill's numbers now, with the run's modifiers: cooldown, area, and fire slowed by the rain. */
 export function skillStats(w, id) {
   const st = { ...stats(id, w.skills[id].level) };
@@ -33,15 +34,17 @@ export function skillStats(w, id) {
   const open = (mk) => !w.unlocked || w.unlocked.has(mk);
   const imbued = SKILLS[id].basic && w.imbue?.size ? [...w.imbue].filter(() => w.rng.chance(IMBUE_CHANCE)) : [];
   const gear = st.dmg && m.imbue ? Object.entries(m.imbue).filter(([, p]) => w.rng.chance(p * (m.imbueMul ?? 1))).map(([mk]) => mk) : [];
-  const also = [...(SKILLS[id].also ?? []), ...imbued, ...gear];
-  // a low basic attack with nothing on it is drawn plain: no colour at all
-  st.plain = !!SKILLS[id].basic && w.skills[id].level <= 2 && !imbued.length && !gear.length;
-  void open;
+  const also = [...(SKILLS[id].also ?? []).filter(open), ...imbued, ...gear];
+  // a skill whose mark the class hasn't unlocked still hits, but leaves no mark (a basic attack always does)
+  st.locked = !SKILLS[id].basic && !open(SKILLS[id].elem);
+  if (st.locked && st.dmg) st.dmg *= LOCKED_DMG;   // what it lacks in marks it makes up in plain force
+  // drawn plain (no colour at all): a low basic attack with nothing on it, or a skill with no mark open
+  st.plain = (!!SKILLS[id].basic && w.skills[id].level <= 2 && !imbued.length && !gear.length) || (st.locked && !also.length);
   if (also.length) st.also = also;
   return st;
 }
 /** What a hit of this skill carries: its element effect's strength. */
-const carry = (st) => ({ burn: st.burn, poison: st.poison, stun: st.stun, freezeAt3: st.freezeAt3, push: st.push, stacks: st.stacks, also: st.also, plain: st.plain });
+const carry = (st) => ({ burn: st.burn, poison: st.poison, stun: st.stun, freezeAt3: st.freezeAt3, push: st.push, stacks: st.stacks, also: st.also, plain: st.plain, lockMark: st.locked });
 /** After a blow lands: a basic attack's extras (an Acolyte's light mends the wall, a Merchant's cart drops a coin). */
 function perks(w, st) { if (st.mend) w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.mend); if (st.coin) w.gold += 1 }
 
@@ -101,7 +104,7 @@ export function cast(w, id) {
       else if (sk.at === "strongest") { const e = inView(w).sort((a, b) => b.hp - a.hp)[0]; if (!e) return false; [x, y] = [e.x, e.y] }
       else { const c = densest(w, 26); if (!c) return false; [x, y] = [c.x, c.y] }
       const z = { id: w.nextId++, skill: id, elem: sk.elem, x, y, st, t: 0, life: st.life ?? 0, tickT: 0 };
-      w.events.push({ type: "zone", skill: id, elem: sk.elem, x, y, r: st.radius, life: st.life ?? 0.6 });
+      w.events.push({ type: "zone", skill: id, elem: sk.elem, x, y, r: st.radius, life: st.life ?? 0.6, plain: !!st.plain });
       if (!st.life) zoneHit(w, z); else w.zones.push(z);
       return true;
     }
@@ -144,7 +147,7 @@ export function cast(w, id) {
       const hit = alive(w).filter((e) => Math.abs(e.y - c.y) <= st.width && e.x <= WALL_X + st.length);
       if (!hit.length) return false;
       for (const e of hit) { damage(w, e, st.dmg, sk.elem, { ...carry(st), push: undefined }); if (st.push && e.hp > 0 && movable(e)) e.x += st.push * (ENEMIES[e.type].boss ? 0.2 : 1) }
-      w.events.push({ type: "dash", skill: id, elem: sk.elem, x: WALL_X, x2: WALL_X + st.length, y: c.y });
+      w.events.push({ type: "dash", skill: id, elem: sk.elem, x: WALL_X, x2: WALL_X + st.length, y: c.y, plain: !!st.plain });
       return true;
     }
     default: return false;

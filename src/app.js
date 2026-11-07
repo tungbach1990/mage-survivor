@@ -275,7 +275,7 @@ function finishRun(won) {
   const items = out.items.map((it) => `<span class="rar-${it.rarity}">${itemName(it)}</span>`).join(", ");
   $("sum-body").innerHTML = `
     <p>${sum.endless ? "Vô tận" : `Chương ${sum.chapter}`} · qua <b>${sum.waves}</b> đợt · hạ <b>${sum.kills}</b> quái · cấp <b>${sum.level}</b> · thức tỉnh <b>${sum.awakened.length}</b>/10 nguyên tố${sum.chaos ? ` · <b style="color:#ff8ac8">${sum.chaos} lần CHAOS</b>` : ""}</p>
-    <p>💎 +<b>${out.crystals}</b>${out.mageLevels ? ` · Pháp sư lên <b>${out.mageLevels}</b> cấp` : ""}</p>
+    <p>💎 +<b>${out.crystals}</b>${out.mageLevels ? ` · Tài khoản lên <b>${out.mageLevels}</b> cấp` : ""}</p>
     ${out.discovered.length ? `<p>Khám phá mới: ${out.discovered.map((k) => `<b>${REACTION_BY_ID[k]?.label ?? k}</b>`).join(", ")}</p>` : ""}
     ${items ? `<p>Đồ rơi: ${items}</p>` : ""}
     ${out.achievements.length ? `<p>Thành tích: ${out.achievements.map((a) => `★ ${a.name} (+${a.reward}💎)`).join(", ")}</p>` : ""}

@@ -98,7 +98,8 @@ export function damage(w, e, amount, elem, opts = {}) {
   const def = ENEMIES[e.type], st = e.status, real = IS_ELEM.has(elem) && !opts.reaction;
   // what this hit sets off: the new element against the newest aura it carries
   // (a combo only between two marks of the same school: two elements, or two martial marks)
-  const fresh = real && !opts.noAura && !e.auras.has(elem) && !def.markImmune?.includes(elem);
+  // lockMark: the hit's own mark isn't the class's yet: it lands, but leaves no mark (its extra marks still do)
+  const fresh = real && !opts.noAura && !opts.lockMark && !e.auras.has(elem) && !def.markImmune?.includes(elem);
   const phys = isPhys(elem), school = schoolOf(elem);
   let pair = null;
   if (fresh && e.auras.size) {
@@ -138,7 +139,7 @@ export function damage(w, e, amount, elem, opts = {}) {
   if (!opts.quiet && amount >= 1) w.events.push({ type: "dmg", x: cx, y: cy - def.cy, amount: Math.round(amount), elem: IS_ELEM.has(elem) ? elem : elem === "tier" ? "arcane" : elem === "phys" ? "sunder" : elem, crit: !!opts.crit, plain: !!opts.plain });
 
   // the element's aura and effect (also on the killing blow, so a death can still spread it)
-  if (real && !opts.noAura) applyAura(w, e, elem, { ...opts, hit: amount });
+  if (real && !opts.noAura && !opts.lockMark) applyAura(w, e, elem, { ...opts, hit: amount });
   // a blow can carry more marks than its own (a Bash: daze and sunder; an imbued blade): those count for tiers
   let more = false;
   if (real && !opts.noAura && e.hp > 0) for (const m of opts.also ?? []) if (!e.auras.has(m) && applyAura(w, e, m, { ...opts, hit: amount })) more = true;
@@ -279,7 +280,8 @@ function api(w) {
     nearest: (x, y, n, skip) => nearest(w, x, y, n, new Set(skip ? [skip] : [])),
     strongest: (n, skip) => alive(w).filter((o) => o !== skip).sort((a, b) => b.hp - a.hp).slice(0, n),
     dmg: (o, amount, elem) => damage(w, o, amount, elem, { reaction: true }),
-    aura: (o, elem) => applyAura(w, o, elem, { noBurst: false }),
+    // a reaction spreads only marks the class has (an elemental monster's own mark aside)
+    aura: (o, elem) => (!w.unlocked || w.unlocked.has(elem) ? applyAura(w, o, elem, { noBurst: false }) : false),
     removeAura: (o, elem) => removeAura(o, elem),
     stun: (o, d) => stun(w, o, d),
     freeze: (o, d, force) => applyFreeze(o, ENEMIES[o.type], d, force),

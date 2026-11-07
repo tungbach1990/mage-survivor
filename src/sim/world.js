@@ -83,7 +83,7 @@ export function spawn(w, type, x, y, opts = {}) {
   Object.assign(resist, tt.resist ?? {});
   const e = {
     id: w.nextId++, type, x, y, hp, max: hp, state: "walk", atkT: 0, walkT: w.rng.next(), status: freshStatus(), flash: 0,
-    small: opts.scale === "small", auras: new Map(), tiers: new Set(), resist, speedMul: T.monster.speed * (tt.speed ?? 1), dmgMul: ch.dmg * T.monster.dmg * (tt.dmg ?? 1) * (def.boss ? T.boss.dmg : 1),
+    small: opts.scale === "small", auras: new Map(), tiers: new Set(), resist, speedMul: T.monster.speed * (tt.speed ?? 1), dmgMul: ch.dmg * T.monster.dmg * (tt.dmg ?? 1) * (def.boss ? T.boss.dmg * (ch.boss?.dmgMul ?? 1) : 1),
     immune: def.fly ? new Set(["root", "mud"]) : null, phys: tt.phys ?? def.phys ?? 1,
     tenacity: def.boss ? { mul: T.boss.ccMul, max: T.boss.poise, time: T.boss.unstop, slowFloor: T.boss.slowFloor, poise: 0, unstop: 0 } : null,
     lavaT: 0, groundT: 0, boss: opts.boss ?? null, bossPhase: 1, shield: 0, elite: null, swap: ch.swap ?? null,

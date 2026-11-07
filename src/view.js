@@ -157,6 +157,7 @@ export function createRenderer(A) {
       }
       case "explode": blast(ev.x, ev.y, ev.elem, ev.r); shake = Math.max(shake, 1.5); break;
       case "zone": {
+        if (ev.plain) { rings.push({ x: ev.x, y: ev.y, r: ev.r, t: 0, life: 0.35, col: [190, 190, 196] }); break }   // no mark open: a grey ring
         const z = LOOKS[ev.skill]?.zone;
         if (z) add(z.mod, { x: ev.x, y: ev.y, ...z.opts(ev.r), light: 0.45, seed: rng.int(0, 99) }, { life: z.life ?? ev.life + 0.4, fade: 0.4, cache: z.cache });
         else blast(ev.x, ev.y, ev.elem, ev.r);
@@ -240,7 +241,7 @@ export function createRenderer(A) {
         shake = Math.max(shake, ev.width >= 60 ? 2 : 1);
         break;
       }
-      case "dash": beams.push({ x: ev.x, y: ev.y - 8, x2: ev.x2, y2: ev.y - 8, t: 0, life: 0.3, col: COL[ev.elem] ?? [220, 220, 230], w: 3 }); spark(ev.x2, ev.y - 8, ev.elem, 0.4); shake = Math.max(shake, 2); break;
+      case "dash": beams.push({ x: ev.x, y: ev.y - 8, x2: ev.x2, y2: ev.y - 8, t: 0, life: 0.3, col: ev.plain ? [190, 190, 196] : COL[ev.elem] ?? [220, 220, 230], w: 3 }); spark(ev.x2, ev.y - 8, ev.elem, 0.4); shake = Math.max(shake, 2); break;
       case "mend": add(healFx, { x: 30, y: 118, light: 0.5, seed: rng.int(0, 99) }, { life: 1.2, fade: 0.4, must: true }); break;
       case "miss": spark(ev.x, ev.y, "blind", 0.3); break;
       case "gold": spark(30, 100, "bounty", 0.4); break;

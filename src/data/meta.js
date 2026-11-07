@@ -67,7 +67,7 @@ export const talentCost = (t, level) => Math.round(t.base * Math.pow(TALENT_GROW
 
 // ---------- marks: every class can unlock all twenty; three to start ----------
 export const START_MARKS = {
-  mage: ["fire", "ice", "volt"], swordman: ["sunder", "daze", "bleed"], archer: ["bleed", "pin", "cripple"],
+  mage: ["fire", "ice", "volt"], swordman: ["sunder", "daze", "disarm"], archer: ["bleed", "pin", "cripple"],
   thief: ["venom", "expose", "blind"], acolyte: ["daze", "sunder", "expose"], merchant: ["bounty", "daze", "cripple"],
 };
 export const START_ELEMENTS = START_MARKS.mage;
@@ -154,7 +154,7 @@ export const ACHIEVEMENTS = [
   ["elem5", "Đa hệ", "Một nghề mở 5 dấu", 50, (p) => Object.values(p.perClass ?? {}).some((c) => c.marks.length >= 5)],
   ["elem10", "Thập hệ", "Một nghề mở 10 dấu", 200, (p) => Object.values(p.perClass ?? {}).some((c) => c.marks.length >= 10)],
   ["awaken10", "Thức tỉnh", "Thức tỉnh 10 nguyên tố trong một lượt", 250, (p) => P(p).maxAwakened >= 10],
-  ["mage10", "Đại pháp sư", "Pháp sư cấp 10", 150, (p) => p.mageLevel >= 10],
+  ["mage10", "Lão luyện", "Tài khoản cấp 10", 150, (p) => p.mageLevel >= 10],
   ["legend", "Báu vật", "Nhặt được đồ Huyền thoại", 100, (p) => P(p).legendaries >= 1],
   ["flawless", "Không trầy xước", "Qua một chương mà tường còn đầy máu", 120, (p) => P(p).flawless >= 1],
   ["elite100", "Săn tinh anh", "Hạ 100 quái tinh anh", 80, (p) => P(p).elites >= 100],
