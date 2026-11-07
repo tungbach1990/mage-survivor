@@ -3,13 +3,13 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw6firc3";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw6firc3";
-import { SKILLS } from "../data/skills.js?v=mw6firc3";
-import { CODEX } from "../data/reactions.js?v=mw6firc3";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw6firc3";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw6firc3";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw6firc3";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw6fu9if";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw6fu9if";
+import { SKILLS } from "../data/skills.js?v=mw6fu9if";
+import { CODEX } from "../data/reactions.js?v=mw6fu9if";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw6fu9if";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw6fu9if";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw6fu9if";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
@@ -183,7 +183,10 @@ export function claimQuest(p, i) {
 // ---------- what a run earns ----------
 export function crystalsFor(sum, mods = {}) {
   const ch = sum.chapter;
-  return Math.round((sum.waves * (1 + 0.5 * ch) + sum.bosses * 20 * ch + (sum.won ? 50 * ch : 0)) * (mods.crystalMul ?? 1));
+  // every monster slain is worth something (a third of a crystal, more in later chapters), and a run never
+  // pays less than 10: a beaten run still buys a little strength
+  const kills = (sum.kills ?? 0) * (1 + 0.5 * (ch - 1)) / 3;
+  return Math.round(Math.max(10, sum.waves * (1 + 0.5 * ch) + kills + sum.bosses * 20 * ch + (sum.won ? 50 * ch : 0)) * (mods.crystalMul ?? 1));
 }
 /**
  * Fold a finished run into the profile. Returns what changed: { crystals, mageLevels, items, achievements,
