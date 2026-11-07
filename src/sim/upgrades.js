@@ -30,7 +30,8 @@ const cls = (w) => w.cls ?? "mage";
 export const learnable = (w, id) => {
   const sk = SKILLS[id];
   if (!sk.cls.includes(cls(w)) || sk.basic || id === "chaosseed" || skillT(id).off) return false;
-  return cls(w) !== "mage" || schoolOf(sk.elem) !== "arcane" || w.unlocked.has(sk.elem);
+  // a class's own book is always there (it is the class); a Mage's book is the elements, opened one by one
+  return cls(w) !== "mage" || w.unlocked.has(sk.elem);
 };
 /** The martial marks a class's own book never leaves: offered as imbues for its basic attack. */
 export const imbuesFor = (c) => {
@@ -57,7 +58,7 @@ export function cardPool(w) {
     const wanted = have.size >= 6 && fresh ? 6 : fresh ? 3 : 2;
     cards.push({ kind: "learn", id, elem: sk.elem, title: `Học ${sk.name}`, text: sk.desc, weight: wanted });
   }
-  for (const m of imbuesFor(cls(w))) if (!w.imbue.has(m)) cards.push({ kind: "imbue", elem: m, title: `Tẩm ${ELEM[m].name}`, text: `Đòn đánh thường để lại thêm dấu ${ELEM[m].name}.`, weight: 3 });
+  for (const m of imbuesFor(cls(w))) if (!w.imbue.has(m) && w.unlocked.has(m)) cards.push({ kind: "imbue", elem: m, title: `Tẩm ${ELEM[m].name}`, text: `Đòn đánh thường để lại thêm dấu ${ELEM[m].name}.`, weight: 3 });
   for (const s of STATS) cards.push({ kind: "stat", id: s.id, title: s.title, text: s.text, weight: 1 });
   if (w.chapter >= 2) for (const r of REACTS) cards.push({ kind: "react", id: r.id, title: r.title, text: r.text, weight: 1 });
   for (const el of w.awakened) if (!w.mastery.has(el)) cards.push({ kind: "mastery", elem: el, title: `Tinh thông ${ELEM[el].name}`, text: `+25% sát thương các đòn mang dấu ${ELEM[el].name}.`, weight: 2 });
@@ -89,7 +90,7 @@ export function refreshPassives(w) {
   // the class's own strength (balanced so each can hold the wall), the admin's word, then the passives
   const c = CLASSES[w.cls ?? "mage"], t = T.classes?.[w.cls ?? "mage"] ?? {};
   w.power = (c?.power ?? 1) * (t.dmg ?? 1);   // on the skills' own numbers (skillStats)
-  w.pm = { dmg: 1, wallTaken: t.wallTaken ?? 1, gold: 1 };
+  w.pm = { dmg: 1, wallTaken: (t.wallTaken ?? 1) * (w.mods?.wallTaken ?? 1), gold: w.mods?.gold ?? 1 };
   for (const [id, s] of Object.entries(w.skills)) {
     if (SKILLS[id].passive !== "mod") continue;
     const st = SKILLS[id].stats(s.level);

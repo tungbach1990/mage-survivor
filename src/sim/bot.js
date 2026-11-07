@@ -4,22 +4,29 @@
 import { createWorld, step, drain, chooseCard, summary } from "./world.js";
 import { speedFactor } from "./status.js";
 import { freshProfile, runOptions, rollItem } from "../meta/profile.js";
-import { TALENTS } from "../data/meta.js";
-import { ELEMENTS } from "../data/elements.js";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js";
 import { CLASS_IDS } from "../data/classes.js";
 
 const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
 
-/** A profile at three stages: "fresh", "half" (half the talents, six elements), "full" (all of it, gear). */
+/**
+ * A profile at three stages, for every class: "fresh"; "half" (half its tree, six marks of its own school);
+ * "full" (its whole tree, all twenty marks, gear of its own).
+ */
 export function presetProfile(kind) {
   const p = freshProfile();
-  if (kind === "fresh") { p.classes = [...CLASS_IDS]; return p }
   p.classes = [...CLASS_IDS];
+  if (kind === "fresh") return p;
   const frac = kind === "half" ? 0.5 : 1;
-  for (const t of TALENTS) p.talents[t.id] = Math.round(t.max * frac);
-  p.unlocked = kind === "half" ? ELEMENTS.slice(0, 6) : [...ELEMENTS];
   p.mageLevel = kind === "half" ? 6 : 20;
-  if (kind === "full") { p.gear.staff = rollItem(11, 5); p.gear.cloak = rollItem(22, 5); p.gear.amulet = rollItem(33, 5) }
+  for (const c of CLASS_IDS) {
+    const pc = p.perClass[c], home = homeSchool(c);
+    for (const t of TALENT_TREES[c]) pc.talents[t.id] = Math.round(t.max * frac);
+    const own = home === "arcane" ? ELEMENTS : home === "martial" ? MARTIAL : [...MARTIAL.slice(0, 3), ...ELEMENTS];
+    pc.marks = kind === "half" ? [...new Set([...START_MARKS[c], ...own])].slice(0, 6) : [...MARKS];
+    if (kind === "full") pc.gear = Object.fromEntries(["weapon", "cloak", "amulet"].map((s, i) => [s, { ...rollItem(11 * (i + 1), 5, 0, { cls: c, marks: pc.marks }), slot: s }]));
+  }
   return p;
 }
 

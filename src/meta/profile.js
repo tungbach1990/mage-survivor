@@ -1,35 +1,52 @@
 // The profile: everything that lasts between runs, its saving and loading, what a run starts with, and what a
-// run earns. Pure functions over a plain object, so Node tests drive it with an in-memory store.
+// run earns. Shared: crystals, the bag, the account level, records, codex, achievements, quests. Per class
+// (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
+// Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
 import { Rng } from "../../lib/pixelfx/core/math.js";
-import { ELEMENTS } from "../data/elements.js";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js";
 import { SKILLS } from "../data/skills.js";
 import { CODEX } from "../data/reactions.js";
-import { CLASSES } from "../data/classes.js";
-import { TALENTS, talentCost, START_ELEMENTS, ELEMENT_COST, mageXpNext, SLOTS, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js";
+import { CLASSES, CLASS_IDS } from "../data/classes.js";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js";
 import { DEFAULT_MODS } from "../sim/world.js";
 
 export const SAVE_KEY = "msd.save.v1";
-export const VERSION = 1;
+export const VERSION = 2;
 
+const freshClass = (cls) => ({ talents: {}, marks: [...START_MARKS[cls]], gear: { weapon: null, cloak: null, amulet: null } });
 export function freshProfile() {
   return {
-    v: VERSION, crystals: 0, talents: {}, unlocked: [...START_ELEMENTS], mageXp: 0, mageLevel: 1,
-    gear: { staff: null, cloak: null, amulet: null }, bag: [], codex: [], counts: {}, achievements: [],
+    v: VERSION, crystals: 0, mageXp: 0, mageLevel: 1,
+    perClass: Object.fromEntries(CLASS_IDS.map((c) => [c, freshClass(c)])),
+    bag: [], codex: [], counts: {}, achievements: [],
     quests: { day: null, list: [] }, best: { chapter: 0, endless: 0, byClass: {} },
     classes: ["mage", "swordman"], lastClass: "mage",
     stats: { runs: 0, kills: 0, waves: 0, elites: 0, legendaries: 0, flawless: 0, maxAwakened: 0 },
     itemSeed: 1,
   };
 }
-/** Bring an older save up to date (and fill anything missing). */
+/** An item from an older save: the staff slot is the weapon now, and an item belongs to a class. */
+const fixItem = (it, cls = "mage") => (it ? { ...it, slot: it.slot === "staff" ? "weapon" : it.slot, cls: it.cls ?? cls } : null);
+/** Bring an older save up to date (and fill anything missing). v1 (one tree, elements, gear) all goes to the Mage. */
 export function migrate(data) {
-  const p = { ...freshProfile(), ...(data ?? {}) };
-  p.stats = { ...freshProfile().stats, ...(data?.stats ?? {}) };
-  p.best = { ...freshProfile().best, ...(data?.best ?? {}) };
-  p.best.byClass = { ...(data?.best?.byClass ?? {}) };
-  p.classes = [...new Set(["mage", "swordman", ...(data?.classes ?? [])])].filter((c) => CLASSES[c]);
-  p.gear = { ...freshProfile().gear, ...(data?.gear ?? {}) };
+  const d = data ?? {}, p = { ...freshProfile(), ...d };
+  p.stats = { ...freshProfile().stats, ...(d.stats ?? {}) };
+  p.best = { ...freshProfile().best, ...(d.best ?? {}) };
+  p.best.byClass = { ...(d.best?.byClass ?? {}) };
+  p.classes = [...new Set(["mage", "swordman", ...(d.classes ?? [])])].filter((c) => CLASSES[c]);
+  p.perClass = Object.fromEntries(CLASS_IDS.map((c) => {
+    const o = d.perClass?.[c];
+    return [c, o ? { talents: { ...o.talents }, marks: [...new Set([...START_MARKS[c], ...(o.marks ?? [])])], gear: { ...freshClass(c).gear, ...o.gear } } : freshClass(c)];
+  }));
+  if (!d.perClass && (d.talents || d.unlocked || d.gear)) {
+    const m = p.perClass.mage;
+    m.talents = { ...(d.talents ?? {}) };
+    m.marks = [...new Set([...START_MARKS.mage, ...(d.unlocked ?? [])])];
+    m.gear = { weapon: fixItem(d.gear?.staff), cloak: fixItem(d.gear?.cloak), amulet: fixItem(d.gear?.amulet) };
+  }
+  p.bag = (d.bag ?? []).map((it) => fixItem(it));
+  delete p.talents; delete p.unlocked; delete p.gear;
   p.v = VERSION;
   return p;
 }
@@ -41,16 +58,22 @@ export function save(store, p) { p.savedAt = Date.now(); store.setItem(SAVE_KEY,
 export const exportSave = (p) => JSON.stringify(p, null, 1);
 export const importSave = (text) => migrate(JSON.parse(text));
 
-// ---------- what a run starts with ----------
-export function profileMods(p) {
-  const m = { ...DEFAULT_MODS(), elem: {} };
-  for (const t of TALENTS) { const l = p.talents[t.id] ?? 0; if (l) t.mod(m, l) }
+// ---------- a class's part ----------
+export const pc = (p, cls) => p.perClass[cls] ?? (p.perClass[cls] = freshClass(cls));
+export const marksOpen = (p, cls) => pc(p, cls).marks;
+export function profileMods(p, cls = p.lastClass ?? "mage") {
+  const m = { ...DEFAULT_MODS(), elem: {}, imbue: {} }, c = pc(p, cls);
+  for (const t of TALENT_TREES[cls]) { const l = c.talents[t.id] ?? 0; if (l) t.mod(m, l) }
   m.dmg *= 1 + 0.01 * Math.min(50, p.mageLevel - 1);
-  for (const it of Object.values(p.gear)) if (it) applyItem(m, it);
+  for (const it of Object.values(c.gear)) if (it) applyItem(m, it);
   return m;
 }
-export const chaosUnlocked = (p) => ELEMENTS.every((e) => p.unlocked.includes(e));
-/** A run starts with the class's basic attack: at level 2 from mage level 3. */
+/** CHAOS Seed for a class: all ten marks of its own school open (the Acolyte: any ten). */
+export function chaosUnlocked(p, cls = p.lastClass ?? "mage") {
+  const open = marksOpen(p, cls), home = homeSchool(cls);
+  return home === "both" ? open.length >= 10 : (home === "arcane" ? ELEMENTS : MARTIAL).every((m) => open.includes(m));
+}
+/** A run starts with the class's basic attack: at level 2 from account level 3. */
 export const basicLevel = (p) => (p.mageLevel >= 3 ? 2 : 1);
 export const classOpen = (p, cls) => p.classes.includes(cls);
 export function unlockClass(p, cls) {
@@ -62,37 +85,39 @@ export function unlockClass(p, cls) {
 export const endlessOpen = (p) => p.best.chapter >= 5 || (p.mageLevel >= 8 && p.best.chapter >= 3);
 export const chapterOpen = (p, n) => n <= p.best.chapter + 1;
 
-/** The options for createWorld: the class picked (one the profile has) starts with its basic attack. */
+/** The options for createWorld: the class picked (one the profile has) with its tree, marks and gear. */
 export function runOptions(p, { chapter = 1, endless = false, cls = p.lastClass ?? "mage" } = {}) {
   if (!classOpen(p, cls)) cls = "mage";
-  return { cls, chapter, endless, mods: profileMods(p), unlocked: p.unlocked, chaosUnlocked: chaosUnlocked(p), codex: p.codex, basicLevel: basicLevel(p) };
+  return { cls, chapter, endless, mods: profileMods(p, cls), unlocked: marksOpen(p, cls), chaosUnlocked: chaosUnlocked(p, cls), codex: p.codex, basicLevel: basicLevel(p) };
 }
 
 // ---------- spending ----------
-export function buyTalent(p, id) {
-  const t = TALENTS.find((x) => x.id === id), l = p.talents[id] ?? 0;
+export function buyTalent(p, cls, id) {
+  const t = TALENT_TREES[cls]?.find((x) => x.id === id), c = pc(p, cls), l = c.talents[id] ?? 0;
   if (!t || l >= t.max) return false;
   const cost = talentCost(t, l);
   if (p.crystals < cost) return false;
-  p.crystals -= cost; p.talents[id] = l + 1;
+  p.crystals -= cost; c.talents[id] = l + 1;
   return true;
 }
-export function unlockElement(p, el) {
-  if (p.unlocked.includes(el) || !(el in ELEMENT_COST) || p.crystals < ELEMENT_COST[el]) return false;
-  p.crystals -= ELEMENT_COST[el]; p.unlocked.push(el);
+export function unlockMark(p, cls, mark) {
+  const c = pc(p, cls), cost = markCost(cls, mark);
+  if (!MARKS.includes(mark) || c.marks.includes(mark) || p.crystals < cost) return false;
+  p.crystals -= cost; c.marks.push(mark);
   return true;
 }
-export function equip(p, itemId) {
+export function equip(p, cls, itemId) {
   const i = p.bag.findIndex((it) => it.id === itemId);
   if (i < 0) return false;
-  const it = p.bag[i];
+  const it = p.bag[i], c = pc(p, cls);
+  if (it.cls !== cls) return false;
   if (it.slot === "amulet" && p.mageLevel < 5) return false;
-  const old = p.gear[it.slot];
-  p.gear[it.slot] = it; p.bag.splice(i, 1);
+  const old = c.gear[it.slot];
+  c.gear[it.slot] = it; p.bag.splice(i, 1);
   if (old) p.bag.push(old);
   return true;
 }
-export function unequip(p, slot) { if (!p.gear[slot] || p.bag.length >= BAG_SIZE) return false; p.bag.push(p.gear[slot]); p.gear[slot] = null; return true }
+export function unequip(p, cls, slot) { const c = pc(p, cls); if (!c.gear[slot] || p.bag.length >= BAG_SIZE) return false; p.bag.push(c.gear[slot]); c.gear[slot] = null; return true }
 export const salvageValue = (it) => ({ common: 5, rare: 15, epic: 40, legendary: 120 })[it.rarity];
 export function salvage(p, itemId) {
   const i = p.bag.findIndex((it) => it.id === itemId);
@@ -103,23 +128,33 @@ export function salvage(p, itemId) {
 
 // ---------- gear ----------
 export function applyItem(m, it) {
+  m.imbue ??= {};
   for (const a of it.affixes) AFFIXES.find((x) => x[0] === a.id)?.[3](m, a.v);
   if (it.legendary) LEGENDARY.find((x) => x[0] === it.legendary)?.[2](m);
 }
 export function affixText(a) { const def = AFFIXES.find((x) => x[0] === a.id); return def ? def[1].replace("{v}", a.v) : a.id }
-/** A random item for a chapter, from a seed (so tests and drops repeat). */
-export function rollItem(seed, chapter, luck = 0) {
-  const r = new Rng(seed), slots = Object.keys(SLOTS);
+export const itemName = (it) => `${slotName(it.slot, it.cls)} ${RARITY[it.rarity].name}`;
+/**
+ * A random item for a chapter, from a seed (so tests and drops repeat), for a class: its lines only name marks
+ * the class has open, and its imbues only marks of the other school (the Acolyte: either).
+ */
+export function rollItem(seed, chapter, luck = 0, { cls = "mage", marks = MARKS } = {}) {
+  const r = new Rng(seed), slots = Object.keys(SLOTS), open = new Set(marks);
   const w = Object.entries(RARITY).map(([k, v]) => [k, v.weight * (k === "common" ? 1 : 1 + 0.25 * (chapter - 1) + 0.15 * luck)]);
   let x = r.next() * w.reduce((s, [, v]) => s + v, 0), rarity = "common";
   for (const [k, v] of w) { if (x < v) { rarity = k; break } x -= v }
-  const pool = [...AFFIXES], affixes = [];
-  for (let i = 0; i < RARITY[rarity].affixes; i++) {
+  const pool = AFFIXES.filter((a) => {
+    const o = a[4];
+    if (!o) return true;
+    if (o.legacy || !open.has(o.mark)) return false;
+    return !o.imbue || homeSchool(cls) === "both" || crossSchool(cls, o.mark);
+  }), affixes = [];
+  for (let i = 0; i < RARITY[rarity].affixes && pool.length; i++) {
     const a = pool.splice(Math.floor(r.next() * pool.length), 1)[0], [lo, hi] = a[2];
-    affixes.push({ id: a[0], v: Math.round((lo + (hi - lo) * r.next()) * (1 + 0.15 * (chapter - 1))) });
+    affixes.push({ id: a[0], v: Math.round((lo + (hi - lo) * r.next()) * (a[4]?.imbue ? 1 : 1 + 0.15 * (chapter - 1))) });
   }
   const slot = slots[Math.floor(r.next() * slots.length)];
-  return { id: `i${seed}`, slot, rarity, affixes, legendary: rarity === "legendary" ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter };
+  return { id: `i${seed}`, cls, slot, rarity, affixes, legendary: rarity === "legendary" ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter };
 }
 
 // ---------- quests ----------
@@ -152,32 +187,31 @@ export function crystalsFor(sum, mods = {}) {
  * quests (done now), discovered }.
  */
 export function settle(p, sum, opts = {}) {
-  const mods = profileMods(p), out = { crystals: 0, mageLevels: 0, items: [], achievements: [], quests: [], discovered: [] };
-  // crystals and mage xp
+  const cls = sum.cls ?? "mage", mods = profileMods(p, cls), out = { crystals: 0, mageLevels: 0, items: [], achievements: [], quests: [], discovered: [] };
+  // crystals and account xp
   out.crystals = crystalsFor(sum, mods);
   p.crystals += out.crystals;
   p.mageXp += sum.waves * 10 + sum.kills + sum.bosses * 50;
   while (p.mageXp >= mageXpNext(p.mageLevel)) { p.mageXp -= mageXpNext(p.mageLevel); p.mageLevel++; out.mageLevels++ }
   // records
   if (sum.won && !sum.endless) { p.best.chapter = Math.max(p.best.chapter, sum.chapter); if (sum.wallLeft >= 0.999) p.stats.flawless++ }
-  // the class's own record
-  if (sum.cls) {
-    const b = (p.best.byClass[sum.cls] ??= { chapter: 0, endless: 0, runs: 0 });
+  {
+    const b = (p.best.byClass[cls] ??= { chapter: 0, endless: 0, runs: 0 });
     b.runs++;
     if (sum.won && !sum.endless) b.chapter = Math.max(b.chapter, sum.chapter);
     if (sum.endless) b.endless = Math.max(b.endless, sum.waves);
-    p.lastClass = sum.cls;
-    if (sum.chaos && CLASSES[sum.cls].school !== "arcane") p.stats.martialChaos = (p.stats.martialChaos ?? 0) + sum.chaos;
+    p.lastClass = cls;
+    if (sum.chaos && CLASSES[cls].school !== "arcane") p.stats.martialChaos = (p.stats.martialChaos ?? 0) + sum.chaos;
   }
   if (sum.endless) p.best.endless = Math.max(p.best.endless, sum.waves);
   Object.assign(p.stats, { runs: p.stats.runs + 1, kills: p.stats.kills + sum.kills, waves: p.stats.waves + sum.waves, elites: p.stats.elites + (sum.elites ?? 0), maxAwakened: Math.max(p.stats.maxAwakened, sum.awakened.length) });
   // the codex and reaction totals
   for (const [k, n] of Object.entries(sum.counts)) p.counts[k] = (p.counts[k] ?? 0) + n;
   for (const k of Object.keys(sum.counts)) if (!p.codex.includes(k) && CODEX.some((c) => c.id === k)) { p.codex.push(k); out.discovered.push(k) }
-  // drops: a boss is sure to drop, each wave has a small chance
+  // drops for the class played: a boss is sure to drop, each wave has a small chance
   const drops = sum.bosses + Array.from({ length: sum.waves }, (_, i) => new Rng((opts.seed ?? 1) * 97 + i).next() < 0.05).filter(Boolean).length;
   for (let i = 0; i < drops; i++) {
-    const it = rollItem(p.itemSeed++ * 7919 + (opts.seed ?? 0), sum.chapter, mods.luck ?? 0);
+    const it = rollItem(p.itemSeed++ * 7919 + (opts.seed ?? 0), sum.chapter, mods.luck ?? 0, { cls, marks: marksOpen(p, cls) });
     if (it.rarity === "legendary") p.stats.legendaries++;
     if (p.bag.length < BAG_SIZE) p.bag.push(it); else p.crystals += salvageValue(it);
     out.items.push(it);
@@ -195,4 +229,4 @@ export function settle(p, sum, opts = {}) {
   return out;
 }
 
-export { TALENTS, talentCost, ELEMENT_COST, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, QUESTS, BAG_SIZE };
+export { TALENTS, TALENT_TREES, talentCost, ELEMENT_COST, markCost, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, ACHIEVEMENTS, QUESTS, BAG_SIZE };

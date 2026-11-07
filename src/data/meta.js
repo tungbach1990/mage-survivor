@@ -1,44 +1,96 @@
-// What carries over between runs: the talent tree, element unlocks, gear, achievements, daily quests.
+// What carries over between runs: per class the talent tree, the marks unlocked and the gear worn; shared, the
+// crystals, the bag, the account level, achievements and daily quests.
 
 import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js";
+import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js";
 const MARTIAL_IDS = new Set([...MARTIAL_PAIRS.map((p) => p[2]), ...MARTIAL_TRIADS.map((t) => t[1])]);
 
-// ---------- talents: 4 branches, 16 nodes; cost = base * growth^level ----------
-export const TALENTS = [
-  // wall
-  { id: "wallHp", branch: "Tường", name: "Tường dày", max: 5, base: 20, text: "+20 máu tường mỗi cấp", mod: (m, l) => (m.wallMax += 20 * l) },
-  { id: "wallRegen", branch: "Tường", name: "Tự vá", max: 5, base: 30, text: "Tường hồi 0,15 máu/giây mỗi cấp", mod: (m, l) => (m.regen += 0.15 * l) },
-  { id: "thorns", branch: "Tường", name: "Gai đá", max: 5, base: 30, text: "Quái đánh tường nhận 6 sát thương mỗi cấp", mod: (m, l) => (m.thorns += 6 * l) },
-  { id: "startCard", branch: "Tường", name: "Chuẩn bị", max: 3, base: 60, text: "Bắt đầu lượt với thêm 1 lần chọn thẻ mỗi cấp", mod: (m, l) => (m.startCards = (m.startCards ?? 0) + l) },
-  // power
-  { id: "dmg", branch: "Sức mạnh", name: "Pháp lực", max: 5, base: 25, text: "+5% sát thương mỗi cấp", mod: (m, l) => (m.dmg *= 1 + 0.05 * l) },
-  { id: "crit", branch: "Sức mạnh", name: "Chí mạng", max: 5, base: 30, text: "+3% tỉ lệ chí mạng (x1.5) mỗi cấp", mod: (m, l) => (m.crit += 0.03 * l) },
-  { id: "react", branch: "Sức mạnh", name: "Cộng hưởng", max: 5, base: 35, text: "+6% sát thương phản ứng mỗi cấp", mod: (m, l) => (m.reactDmg *= 1 + 0.06 * l) },
-  { id: "tier", branch: "Sức mạnh", name: "Tầng nguyên tố", max: 5, base: 45, text: "+8% sát thương TRIAD→HEXA mỗi cấp", mod: (m, l) => (m.tierDmg *= 1 + 0.08 * l) },
-  // arcana
-  { id: "cd", branch: "Huyền thuật", name: "Niệm nhanh", max: 5, base: 30, text: "−3% hồi chiêu mỗi cấp", mod: (m, l) => (m.cd *= 1 - 0.03 * l) },
-  { id: "area", branch: "Huyền thuật", name: "Lan tỏa", max: 5, base: 25, text: "+4% diện rộng mỗi cấp", mod: (m, l) => (m.area *= 1 + 0.04 * l) },
-  { id: "auraDur", branch: "Huyền thuật", name: "Ấn lâu", max: 5, base: 35, text: "+10% thời gian aura mỗi cấp", mod: (m, l) => (m.auraDur *= 1 + 0.1 * l) },
-  { id: "focus", branch: "Huyền thuật", name: "Hội tụ", max: 3, base: 50, text: "Phép đơn mục tiêu ưu tiên quái nhiều aura", mod: (m, l) => (m.focus += 0.4 * l) },
-  // fortune
-  { id: "crystals", branch: "Vận may", name: "Mỏ tinh thể", max: 5, base: 30, text: "+10% tinh thể mỗi cấp", mod: (m, l) => (m.crystalMul = 1 + 0.1 * l) },
-  { id: "rerolls", branch: "Vận may", name: "Đổi thẻ", max: 3, base: 40, text: "+1 lần đổi thẻ mỗi lượt chọn", mod: (m, l) => (m.rerolls = l) },
-  { id: "choices", branch: "Vận may", name: "Thêm lựa chọn", max: 1, base: 300, text: "4 thẻ thay vì 3", mod: (m, l) => (m.choices += l) },
-  { id: "luck", branch: "Vận may", name: "Bàn tay vàng", max: 5, base: 35, text: "Đồ rơi hiếm hơn", mod: (m, l) => (m.luck = l) },
+// ---------- talents: one tree per class, 4 branches of 4; cost = base * growth^level ----------
+const T = (id, branch, name, max, base, text, mod) => ({ id, branch, name, max, base, text, mod });
+const COMMON = [
+  T("wallHp", "Tường", "Tường dày", 5, 20, "+20 máu tường mỗi cấp", (m, l) => (m.wallMax += 20 * l)),
+  T("wallRegen", "Tường", "Tự vá", 5, 30, "Tường hồi 0,15 máu/giây mỗi cấp", (m, l) => (m.regen += 0.15 * l)),
+  T("thorns", "Tường", "Gai đá", 5, 30, "Quái đánh tường nhận 6 sát thương mỗi cấp", (m, l) => (m.thorns += 6 * l)),
+  T("dmg", "Sức mạnh", "Sức mạnh", 5, 25, "+5% sát thương mỗi cấp", (m, l) => (m.dmg *= 1 + 0.05 * l)),
+  T("crit", "Sức mạnh", "Chí mạng", 5, 30, "+3% tỉ lệ chí mạng mỗi cấp", (m, l) => (m.crit += 0.03 * l)),
+  T("react", "Sức mạnh", "Cộng hưởng", 5, 35, "+6% sát thương phản ứng/combo mỗi cấp", (m, l) => (m.reactDmg *= 1 + 0.06 * l)),
+  T("tier", "Sức mạnh", "Tầng dấu", 5, 45, "+8% sát thương TRIAD→HEXA mỗi cấp", (m, l) => (m.tierDmg *= 1 + 0.08 * l)),
+  T("cd", "Kỹ năng", "Nhanh tay", 5, 30, "−3% hồi chiêu mỗi cấp", (m, l) => (m.cd *= 1 - 0.03 * l)),
+  T("area", "Kỹ năng", "Lan tỏa", 5, 25, "+4% diện rộng mỗi cấp", (m, l) => (m.area *= 1 + 0.04 * l)),
+  T("auraDur", "Kỹ năng", "Dấu lâu", 5, 35, "+10% thời gian dấu mỗi cấp", (m, l) => (m.auraDur *= 1 + 0.1 * l)),
+  T("rerolls", "Vận may", "Đổi thẻ", 3, 40, "+1 lần đổi thẻ mỗi lượt chọn", (m, l) => (m.rerolls = l)),
+  T("luck", "Vận may", "Bàn tay vàng", 5, 35, "Đồ rơi hiếm hơn", (m, l) => (m.luck = l)),
 ];
+const SIG = "Đặc trưng";
+const SIGNATURE = {
+  mage: [
+    T("summonHp", SIG, "Triệu hồi bền", 5, 35, "+15% máu triệu hồi mỗi cấp", (m, l) => (m.summonHp *= 1 + 0.15 * l)),
+    T("weatherDur", SIG, "Mưa dài", 5, 40, "+10% thời gian mưa phép mỗi cấp", (m, l) => (m.weatherDur *= 1 + 0.1 * l)),
+    T("focus", SIG, "Hội tụ", 3, 50, "Phép đơn mục tiêu ưu tiên quái nhiều dấu", (m, l) => (m.focus += 0.4 * l)),
+    T("bh", SIG, "Hố Đen rộng", 3, 80, "+10% bán kính Hố Đen mỗi cấp", (m, l) => (m.bhRadius *= 1 + 0.1 * l)),
+  ],
+  swordman: [
+    T("meleeDmg", SIG, "Lưỡi bén", 5, 30, "+8% sát thương cận chiến mỗi cấp", (m, l) => (m.meleeDmg *= 1 + 0.08 * l)),
+    T("reach", SIG, "Tầm chém", 3, 45, "+5 tầm với đòn cận chiến mỗi cấp", (m, l) => (m.reach += 5 * l)),
+    T("guard", SIG, "Giữ cổng", 5, 40, "Tường nhận −4% sát thương mỗi cấp", (m, l) => (m.wallTaken *= 1 - 0.04 * l)),
+    T("sunder", SIG, "Phá giáp sâu", 3, 50, "Phá giáp +8% sát thương vật lý mỗi cấp", (m, l) => (m.sunder += 0.08 * l)),
+  ],
+  archer: [
+    T("pierce", SIG, "Mũi tên xuyên", 2, 80, "+1 xuyên cho tên/tia mỗi cấp", (m, l) => (m.pierce += l)),
+    T("rapid", SIG, "Bắn nhanh", 5, 35, "−4% hồi chiêu skill bắn mỗi cấp", (m, l) => (m.boltCd *= 1 - 0.04 * l)),
+    T("traps", SIG, "Bẫy bền", 5, 30, "+15% thời gian bẫy và vùng mỗi cấp", (m, l) => (m.zoneLife *= 1 + 0.15 * l)),
+    T("sharp", SIG, "Thiện xạ", 5, 40, "+4% tỉ lệ chí mạng mỗi cấp", (m, l) => (m.crit += 0.04 * l)),
+  ],
+  thief: [
+    T("dot", SIG, "Nọc đặc", 5, 30, "+10% sát thương chảy máu/nọc/độc mỗi cấp", (m, l) => (m.dotDmg *= 1 + 0.1 * l)),
+    T("backstab", SIG, "Đâm lén", 5, 40, "Chí mạng +10% sát thương mỗi cấp", (m, l) => (m.critMul += 0.1 * l)),
+    T("pickpocket", SIG, "Móc túi", 5, 25, "+10% vàng mỗi cấp", (m, l) => (m.gold *= 1 + 0.1 * l)),
+    T("evade", SIG, "Né tránh", 5, 40, "Quái đánh trượt tường thêm 3% mỗi cấp", (m, l) => (m.dodge += 0.03 * l)),
+  ],
+  acolyte: [
+    T("healMul", SIG, "Hồi phục", 5, 30, "+12% lượng hồi tường mỗi cấp", (m, l) => (m.healMul *= 1 + 0.12 * l)),
+    T("holy", SIG, "Thánh quang", 5, 35, "+8% sát thương Ánh sáng mỗi cấp", (m, l) => (m.elem.light = (m.elem.light ?? 1) * (1 + 0.08 * l))),
+    T("aegis", SIG, "Giáp thánh", 5, 40, "Tường nhận −4% sát thương mỗi cấp", (m, l) => (m.wallTaken *= 1 - 0.04 * l)),
+    T("grace", SIG, "Ân điển", 5, 35, "+15% máu Thiên thần/triệu hồi mỗi cấp", (m, l) => (m.summonHp *= 1 + 0.15 * l)),
+  ],
+  merchant: [
+    T("trade", SIG, "Buôn may", 5, 25, "+12% vàng mỗi cấp", (m, l) => (m.gold *= 1 + 0.12 * l)),
+    T("discount", SIG, "Giảm giá", 3, 45, "Skill tốn vàng rẻ hơn 12% mỗi cấp", (m, l) => (m.goldCost *= 1 - 0.12 * l)),
+    T("heavycart", SIG, "Xe đẩy nặng", 5, 30, "+8% sát thương cận chiến, +15% đẩy lùi mỗi cấp", (m, l) => { m.meleeDmg *= 1 + 0.08 * l; m.push *= 1 + 0.15 * l }),
+    T("hirelings", SIG, "Thuê bền", 5, 35, "+15% máu golem/quầy hàng mỗi cấp", (m, l) => (m.summonHp *= 1 + 0.15 * l)),
+  ],
+};
+export const TALENT_TREES = Object.fromEntries(Object.entries(SIGNATURE).map(([c, sig]) => [c, [...COMMON, ...sig]]));
+export const TALENTS = TALENT_TREES.mage;
 export const TALENT_GROWTH = 1.7;
 export const talentCost = (t, level) => Math.round(t.base * Math.pow(TALENT_GROWTH, level));
 
-// ---------- elements: three to start, the rest bought (or earned) ----------
-export const START_ELEMENTS = ["fire", "ice", "volt"];
-export const ELEMENT_COST = { water: 150, earth: 200, wind: 250, poison: 300, light: 400, dark: 500, arcane: 600 };
+// ---------- marks: every class can unlock all twenty; three to start ----------
+export const START_MARKS = {
+  mage: ["fire", "ice", "volt"], swordman: ["sunder", "daze", "bleed"], archer: ["bleed", "pin", "cripple"],
+  thief: ["venom", "expose", "blind"], acolyte: ["daze", "sunder", "expose"], merchant: ["bounty", "daze", "cripple"],
+};
+export const START_ELEMENTS = START_MARKS.mage;
+const BASE_COST = {
+  fire: 150, ice: 150, volt: 150, water: 150, earth: 200, wind: 250, poison: 300, light: 400, dark: 500, arcane: 600,
+  bleed: 150, daze: 150, sunder: 150, cripple: 200, pin: 200, expose: 250, blind: 300, disarm: 400, venom: 400, bounty: 500,
+};
+export const ELEMENT_COST = Object.fromEntries(ELEMENTS.filter((e) => !START_ELEMENTS.includes(e)).map((e) => [e, BASE_COST[e]]));
+/** A class's own school: the Mage elements, the Acolyte both, the rest martial. */
+export const homeSchool = (cls) => (cls === "mage" ? "arcane" : cls === "acolyte" ? "both" : "martial");
+export const crossSchool = (cls, mark) => homeSchool(cls) !== "both" && schoolOf(mark) !== homeSchool(cls);
+/** What unlocking a mark costs a class: marks of the other school half as much again. */
+export const markCost = (cls, mark) => Math.round(BASE_COST[mark] * (crossSchool(cls, mark) ? 1.5 : 1));
 
-// ---------- mage level: account xp from runs ----------
+// ---------- account level: xp from every run ----------
 export const mageXpNext = (level) => Math.round(100 * Math.pow(1.35, level - 1));
 export const MAGE_PERKS = { 3: "Đòn đánh thường bắt đầu ở cấp 2", 5: "Mở ô Bùa hộ mệnh", 8: "Mở Vô tận sớm (khi đã qua chương 3)" };
 
-// ---------- gear ----------
-export const SLOTS = { staff: "Gậy", cloak: "Áo choàng", amulet: "Bùa hộ mệnh" };
+// ---------- gear: three slots per class; the weapon named for the class ----------
+export const SLOTS = { weapon: "Vũ khí", cloak: "Áo choàng", amulet: "Bùa hộ mệnh" };
+export const WEAPON_NAME = { mage: "Gậy phép", swordman: "Kiếm", archer: "Cung", thief: "Dao găm", acolyte: "Chùy", merchant: "Xe đẩy" };
+export const slotName = (slot, cls) => (slot === "weapon" ? WEAPON_NAME[cls] ?? "Vũ khí" : SLOTS[slot] ?? slot);
+
 export const RARITY = {
   common:    { name: "Thường",      color: "#c8c8d0", affixes: 1, weight: 60 },
   rare:      { name: "Hiếm",        color: "#5ab8f4", affixes: 2, weight: 28 },
@@ -58,7 +110,11 @@ export const AFFIXES = [
   ["regen", "+{v} hồi tường/10s", [2, 6], (m, v) => (m.regen += v / 10)],
   ["xp", "+{v}% kinh nghiệm", [5, 15], (m, v) => (m.xp *= 1 + v / 100)],
   ["crystal", "+{v}% tinh thể", [5, 15], (m, v) => (m.crystalMul = (m.crystalMul ?? 1) * (1 + v / 100))],
-  ...["fire", "ice", "volt", "water", "earth", "wind", "poison", "light", "dark", "arcane"].map((el) => [`e_${el}`, `+{v}% sát thương ${el}`, [8, 20], (m, v) => (m.elem[el] = (m.elem[el] ?? 1) * (1 + v / 100))]),
+  // a mark's damage (m_), and an imbue (i_): the class's blows carry a mark of the other school now and then
+  ...MARKS.map((mk) => [`m_${mk}`, `+{v}% sát thương ${ELEM[mk].name}`, [8, 20], (m, v) => (m.elem[mk] = (m.elem[mk] ?? 1) * (1 + v / 100)), { mark: mk }]),
+  ...MARKS.map((mk) => [`i_${mk}`, `Tẩm ${ELEM[mk].name} {v}%`, [8, 20], (m, v) => (m.imbue[mk] = Math.max(m.imbue[mk] ?? 0, v / 100)), { mark: mk, imbue: true }]),
+  // older saves: e_<element>
+  ...ELEMENTS.map((el) => [`e_${el}`, `+{v}% sát thương ${ELEM[el].name}`, [8, 20], (m, v) => (m.elem[el] = (m.elem[el] ?? 1) * (1 + v / 100)), { mark: el, legacy: true }]),
 ];
 export const LEGENDARY = [
   ["bh", "Hố Đen bán kính +50%", (m) => (m.bhRadius *= 1.5)],
@@ -66,6 +122,7 @@ export const LEGENDARY = [
   ["slot", "+1 ô skill", (m) => (m.slots += 1)],
   ["aura", "Aura kéo dài gấp rưỡi", (m) => (m.auraDur *= 1.5)],
   ["resonance", "Sát thương phản ứng +50%", (m) => (m.reactDmg *= 1.5)],
+  ["imbue2", "Vũ khí nguyên tố: tỉ lệ tẩm dấu ×2", (m) => (m.imbueMul *= 2)],
 ];
 export const BAG_SIZE = 30;
 
@@ -94,14 +151,14 @@ export const ACHIEVEMENTS = [
   ["kills1k", "Đồ tể", "Hạ 1.000 quái", 50, (p) => P(p).kills >= 1000],
   ["kills10k", "Huyền thoại", "Hạ 10.000 quái", 300, (p) => P(p).kills >= 10000],
   ["runs10", "Kiên trì", "Chơi 10 lượt", 40, (p) => P(p).runs >= 10],
-  ["elem5", "Đa hệ", "Mở khóa 5 nguyên tố", 50, (p) => p.unlocked.length >= 5],
-  ["elem10", "Thập hệ", "Mở khóa cả 10 nguyên tố", 200, (p) => p.unlocked.length >= 10],
+  ["elem5", "Đa hệ", "Một nghề mở 5 dấu", 50, (p) => Object.values(p.perClass ?? {}).some((c) => c.marks.length >= 5)],
+  ["elem10", "Thập hệ", "Một nghề mở 10 dấu", 200, (p) => Object.values(p.perClass ?? {}).some((c) => c.marks.length >= 10)],
   ["awaken10", "Thức tỉnh", "Thức tỉnh 10 nguyên tố trong một lượt", 250, (p) => P(p).maxAwakened >= 10],
   ["mage10", "Đại pháp sư", "Pháp sư cấp 10", 150, (p) => p.mageLevel >= 10],
   ["legend", "Báu vật", "Nhặt được đồ Huyền thoại", 100, (p) => P(p).legendaries >= 1],
   ["flawless", "Không trầy xước", "Qua một chương mà tường còn đầy máu", 120, (p) => P(p).flawless >= 1],
   ["elite100", "Săn tinh anh", "Hạ 100 quái tinh anh", 80, (p) => P(p).elites >= 100],
-  ["talent20", "Cây đại thụ", "Tổng 20 cấp nâng cấp", 100, (p) => Object.values(p.talents).reduce((a, b) => a + b, 0) >= 20],
+  ["talent20", "Cây đại thụ", "Tổng 20 cấp nâng cấp", 100, (p) => Object.values(p.perClass ?? {}).reduce((a, c) => a + Object.values(c.talents).reduce((x, y) => x + y, 0), 0) >= 20],
   // the classes
   ...[["mage", "Pháp sư"], ["swordman", "Kiếm sĩ"], ["archer", "Cung thủ"], ["thief", "Đạo tặc"], ["acolyte", "Tu sĩ"], ["merchant", "Thương nhân"]].map(([c, n]) =>
     [`ch1_${c}`, `${n} giữ cổng`, `Qua chương 1 bằng ${n}`, 40, (p) => (p.best.byClass?.[c]?.chapter ?? 0) >= 1]),

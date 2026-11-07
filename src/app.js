@@ -8,15 +8,15 @@ import { createRenderer } from "./view.js";
 import { createWorld, step, drain, chooseCard, reroll, summary, xpNext, W, H } from "./sim/world.js";
 import { ENEMIES } from "./sim/enemies.js";
 import { SKILLS, stats } from "./data/skills.js";
-import { ELEM, ELEMENTS } from "./data/elements.js";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js";
 import { CODEX, REACTION_BY_ID } from "./data/reactions.js";
 import { CHAPTERS } from "./data/chapters.js";
 import { CLASSES, CLASS_IDS } from "./data/classes.js";
 import { ENVS } from "./data/environments.js";
 import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js";
 import { ENEMIES as KINDS } from "./sim/enemies.js";
-import { TALENTS, talentCost, ELEMENT_COST, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockElement, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(W, H);
@@ -64,7 +64,7 @@ document.addEventListener("click", (e) => { const b = e.target.closest("[data-go
 
 function drawMenu() {
   const next = mageXpNext(P.mageLevel);
-  $("profile-line").innerHTML = `Pháp sư cấp <b>${P.mageLevel}</b> (${P.mageXp}/${next}) · 💎 <b>${P.crystals}</b> · Chương cao nhất: <b>${P.best.chapter}</b>${P.best.endless ? ` · Vô tận: <b>${P.best.endless}</b>` : ""} · Codex ${P.codex.length}/${CODEX.length}${cloudState === "off" ? "" : ` · ${{ loading: "☁ đang tải…", saving: "☁ đang lưu…", saved: "☁ đã lưu lên Telegram", error: "☁ lỗi lưu đám mây (vẫn lưu trên máy)" }[cloudState]}`}${tuned() ? ` · <b style="color:#ffb060">⚙ cấu hình cân bằng tùy chỉnh</b>` : ""}`;
+  $("profile-line").innerHTML = `Tài khoản cấp <b>${P.mageLevel}</b> (${P.mageXp}/${next}) · 💎 <b>${P.crystals}</b> · Chương cao nhất: <b>${P.best.chapter}</b>${P.best.endless ? ` · Vô tận: <b>${P.best.endless}</b>` : ""} · Codex ${P.codex.length}/${CODEX.length}${cloudState === "off" ? "" : ` · ${{ loading: "☁ đang tải…", saving: "☁ đang lưu…", saved: "☁ đã lưu lên Telegram", error: "☁ lỗi lưu đám mây (vẫn lưu trên máy)" }[cloudState]}`}${tuned() ? ` · <b style="color:#ffb060">⚙ cấu hình cân bằng tùy chỉnh</b>` : ""}`;
 }
 
 const heroImg = (c) => `<img class="hero" src="assets/anims/${CLASSES[c].look}.png" alt="">`;
@@ -109,56 +109,78 @@ function drawClasses() {
 }
 $("go").onclick = () => startRun();
 
+// the class the hall's pages are showing (talents, marks, gear): a bar of the classes the player has
+let viewCls = P.lastClass ?? "mage", bagAll = false;
+function classBar(page) {
+  const bar = $(`${page}-classbar`);
+  bar.innerHTML = "";
+  if (!classOpen(P, viewCls)) viewCls = "mage";
+  for (const c of CLASS_IDS.filter((x) => classOpen(P, x))) {
+    const b = document.createElement("button");
+    b.textContent = CLASSES[c].name; b.className = viewCls === c ? "on" : "";
+    b.onclick = () => { viewCls = c; go(page) };
+    bar.appendChild(b);
+  }
+}
 function drawTalents() {
-  const box = $("talent-list");
+  classBar("talents");
+  const box = $("talent-list"), mine = pc(P, viewCls).talents;
   box.innerHTML = "";
-  for (const t of TALENTS) {
-    const l = P.talents[t.id] ?? 0, max = l >= t.max, cost = talentCost(t, l), el = document.createElement("div");
-    el.className = `tile ${l ? "on" : ""}`;
+  for (const t of TALENT_TREES[viewCls]) {
+    const l = mine[t.id] ?? 0, max = l >= t.max, cost = talentCost(t, l), el = document.createElement("div");
+    el.className = `tile ${l ? "on" : ""} ${t.branch === "Đặc trưng" ? "sig" : ""}`;
     el.innerHTML = `<b>${t.name}</b> <small>${t.branch} · cấp ${l}/${t.max}</small><small>${t.text}</small>`;
     const b = document.createElement("button");
     b.textContent = max ? "Tối đa" : `💎 ${cost}`;
     b.disabled = max || P.crystals < cost;
-    b.onclick = () => { if (buyTalent(P, t.id)) { persist(); go("talents") } };
+    b.onclick = () => { if (buyTalent(P, viewCls, t.id)) { persist(); go("talents") } };
     el.appendChild(b);
     box.appendChild(el);
   }
 }
 function drawElements() {
-  const box = $("elem-list");
-  box.innerHTML = "";
-  for (const el of ELEMENTS) {
-    const has = P.unlocked.includes(el), cost = ELEMENT_COST[el], d = document.createElement("div");
-    d.className = `tile ${has ? "on" : "locked"}`;
-    d.style.width = "170px";
-    const skills = Object.entries(SKILLS).filter(([, s]) => s.elem === el).map(([, s]) => s.name).join(", ");
-    d.innerHTML = `<b style="color:rgb(${ELEM[el].color})">${ELEM[el].icon} ${ELEM[el].name}</b><small>${skills}</small>`;
-    if (!has) { const b = document.createElement("button"); b.textContent = `Mở 💎 ${cost}`; b.disabled = P.crystals < cost; b.onclick = () => { if (unlockElement(P, el)) { persist(); go("elements") } }; d.appendChild(b) }
-    box.appendChild(d);
+  classBar("elements");
+  const open = marksOpen(P, viewCls);
+  for (const [id, list] of [["elem-list", ELEMENTS], ["mark-list", MARTIAL]]) {
+    const box = $(id);
+    box.innerHTML = "";
+    for (const mk of list) {
+      const has = open.includes(mk), cost = markCost(viewCls, mk), d = document.createElement("div");
+      d.className = `tile mark ${has ? "on" : "locked"}`;
+      const skills = Object.values(SKILLS).filter((s) => s.cls.includes(viewCls) && (s.elem === mk || s.also?.includes(mk)) && !s.basic).map((s) => s.name).slice(0, 4).join(", ");
+      d.innerHTML = `<b style="color:rgb(${ELEM[mk].color})">${ELEM[mk].icon} ${ELEM[mk].name}</b><small>${skills || (crossSchool(viewCls, mk) ? "Tẩm qua trang bị" : "Thẻ tẩm đòn đánh thường")}</small>`;
+      if (!has) { const b = document.createElement("button"); b.textContent = `Mở 💎 ${cost}`; b.disabled = P.crystals < cost; b.onclick = () => { if (unlockMark(P, viewCls, mk)) { persist(); go("elements") } }; d.appendChild(b) }
+      box.appendChild(d);
+    }
   }
-  const c = document.createElement("div");
-  c.className = `tile ${chaosUnlocked(P) ? "on" : "locked"}`;
-  c.innerHTML = `<b style="color:#ff8ac8">✺ CHAOS</b><small>${chaosUnlocked(P) ? "Đã mở: thức tỉnh đủ 10 nguyên tố trong lượt để nhận Chaos Seed" : "Mở khi có đủ 10 nguyên tố"}</small>`;
-  box.appendChild(c);
+  const ok = chaosUnlocked(P, viewCls), need = { arcane: "đủ 10 nguyên tố", martial: "đủ 10 dấu võ thuật", both: "10 dấu bất kỳ" }[homeSchool(viewCls)];
+  $("chaos-note").innerHTML = `<b style="color:#ff8ac8">✺ CHAOS</b> · ${ok ? `Đã mở cho ${CLASSES[viewCls].name}: thức tỉnh đủ 10 dấu trong lượt để nhận Chaos Seed` : `${CLASSES[viewCls].name} cần mở ${need}`} · Dấu khác trường phái giá ×1,5 và đi vào trận qua trang bị tẩm dấu.`;
 }
-function itemTile(it, actions) {
+function itemTile(it, actions, dim = false) {
   const d = document.createElement("div");
-  d.className = "tile item";
-  d.innerHTML = `<b class="rar-${it.rarity}">${SLOTS[it.slot]} ${RARITY[it.rarity].name}</b><small>Chương ${it.chapter}</small><ul>${it.affixes.map((a) => `<li>${affixText(a)}</li>`).join("")}${it.legendary ? `<li class="rar-legendary">★ ${{ bh: "Hố Đen bán kính +50%", hexa: "Sát thương tầng +60%", slot: "+1 ô skill", aura: "Aura kéo dài gấp rưỡi", resonance: "Sát thương phản ứng +50%" }[it.legendary]}</li>` : ""}</ul>`;
+  d.className = `tile item ${dim ? "locked" : ""}`;
+  d.innerHTML = `<b class="rar-${it.rarity}">${itemName(it)}</b><small>${CLASSES[it.cls]?.name ?? ""} · Chương ${it.chapter}</small><ul>${it.affixes.map((a) => `<li>${affixText(a)}</li>`).join("")}${it.legendary ? `<li class="rar-legendary">★ ${{ bh: "Hố Đen bán kính +50%", hexa: "Sát thương tầng +60%", slot: "+1 ô skill", aura: "Dấu kéo dài gấp rưỡi", resonance: "Sát thương phản ứng +50%", imbue2: "Tỉ lệ tẩm dấu ×2" }[it.legendary]}</li>` : ""}</ul>`;
   for (const [label, fn] of actions) { const b = document.createElement("button"); b.textContent = label; b.onclick = () => { fn(); persist(); go("gear") }; d.appendChild(b) }
   return d;
 }
 function drawGear() {
-  const slots = $("gear-slots");
+  classBar("gear");
+  const slots = $("gear-slots"), gear = pc(P, viewCls).gear;
   slots.innerHTML = "";
   for (const s of Object.keys(SLOTS)) {
-    const it = P.gear[s];
-    if (it) slots.appendChild(itemTile(it, [["Tháo", () => unequip(P, s)]]));
-    else { const d = document.createElement("div"); d.className = "tile item locked"; d.innerHTML = `<b>${SLOTS[s]}</b><small>${s === "amulet" && P.mageLevel < 5 ? "Mở ở pháp sư cấp 5" : "Trống"}</small>`; slots.appendChild(d) }
+    const it = gear[s];
+    if (it) slots.appendChild(itemTile(it, [["Tháo", () => unequip(P, viewCls, s)]]));
+    else { const d = document.createElement("div"); d.className = "tile item locked"; d.innerHTML = `<b>${slotName(s, viewCls)}</b><small>${s === "amulet" && P.mageLevel < 5 ? "Mở ở tài khoản cấp 5" : "Trống"}</small>`; slots.appendChild(d) }
   }
-  const bag = $("bag");
-  bag.innerHTML = P.bag.length ? "" : "<p class='hint'>Hạ boss để nhận đồ.</p>";
-  for (const it of P.bag) bag.appendChild(itemTile(it, [["Trang bị", () => equip(P, it.id)], [`Phân rã +${salvageValue(it)}💎`, () => salvage(P, it.id)]]));
+  const filt = $("bag-filter");
+  filt.innerHTML = "";
+  for (const [all, label] of [[false, `Đồ ${CLASSES[viewCls].name}`], [true, "Tất cả"]]) { const b = document.createElement("button"); b.textContent = label; b.className = bagAll === all ? "on" : ""; b.onclick = () => { bagAll = all; go("gear") }; filt.appendChild(b) }
+  const bag = $("bag"), list = P.bag.filter((it) => bagAll || it.cls === viewCls);
+  bag.innerHTML = list.length ? "" : "<p class='hint'>Hạ boss bằng nghề này để nhận đồ của nó.</p>";
+  for (const it of list) {
+    const mine = it.cls === viewCls;
+    bag.appendChild(itemTile(it, [...(mine ? [["Trang bị", () => equip(P, viewCls, it.id)]] : []), [`Phân rã +${salvageValue(it)}💎`, () => salvage(P, it.id)]], !mine));
+  }
 }
 function drawCodex() {
   const bz = $("bestiary");
@@ -250,7 +272,7 @@ function finishRun(won) {
   const sum = summary(w), out = settle(P, sum, { seed: w.seed });
   persist();
   $("sum-title").textContent = won ? "CHIẾN THẮNG!" : w.wall.hp <= 0 ? "TƯỜNG ĐÃ SỤP" : "KẾT THÚC LƯỢT";
-  const items = out.items.map((it) => `<span class="rar-${it.rarity}">${SLOTS[it.slot]} ${RARITY[it.rarity].name}</span>`).join(", ");
+  const items = out.items.map((it) => `<span class="rar-${it.rarity}">${itemName(it)}</span>`).join(", ");
   $("sum-body").innerHTML = `
     <p>${sum.endless ? "Vô tận" : `Chương ${sum.chapter}`} · qua <b>${sum.waves}</b> đợt · hạ <b>${sum.kills}</b> quái · cấp <b>${sum.level}</b> · thức tỉnh <b>${sum.awakened.length}</b>/10 nguyên tố${sum.chaos ? ` · <b style="color:#ff8ac8">${sum.chaos} lần CHAOS</b>` : ""}</p>
     <p>💎 +<b>${out.crystals}</b>${out.mageLevels ? ` · Pháp sư lên <b>${out.mageLevels}</b> cấp` : ""}</p>

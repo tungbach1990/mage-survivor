@@ -56,7 +56,7 @@ export const CLASS_SKILLS = {
   venomcloud: S("thief", "Venom Cloud", "venom", "zone", "Mây nọc 4 giây ở chỗ đông.", { cd: L(6, 4), dmg: L(3, 7), radius: L(22, 28), life: 4, tick: 0.5 }, { at: "crowd", icon: "icon_venomcloud" }),
 
   // ---------------- Acolyte: light, mending, a mace ----------------
-  heal: S("acolyte", "Heal", "light", "heal", "Hồi máu cho tường.", { cd: L(6, 4), heal: L(12, 30) }, { icon: "icon_heal" }),
+  heal: S("acolyte", "Heal", "light", "heal", "Hồi máu cho tường.", { cd: L(7, 5), heal: L(10, 22) }, { icon: "icon_heal" }),
   blessing: S("acolyte", "Blessing", "light", "passive", "Bị động: +8% → +25% sát thương.", { cd: 0, dmg: L(1.08, 1.25) }, { passive: "mod", icon: "icon_blessing" }),
   angelus: S("acolyte", "Angelus", "light", "passive", "Bị động: tường nhận ít sát thương hơn (−10% → −25%).", { cd: 0, wallTaken: L(0.9, 0.75) }, { passive: "mod", icon: "icon_angelus" }),
   magnus: S("acolyte", "Magnus Exorcismus", "light", "zone", "Thập tự thánh 3 giây ở chỗ đông.", { cd: L(8, 6), dmg: L(6, 14), radius: L(26, 32), life: 3, tick: 0.5 }, { at: "crowd", icon: "icon_magnus" }),
@@ -79,12 +79,12 @@ export const CLASS_SKILLS = {
 export const SHARED = { holylance: ["mage", "acolyte"], smite: ["mage", "acolyte"], angel: ["mage", "acolyte"], stonegolem: ["mage", "merchant"] };
 
 export const CLASSES = {
-  mage:     { power: 1.35, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
+  mage:     { power: 1.45, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
   swordman: { power: 1.75, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
   archer:   { power: 1.7, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
-  thief:    { power: 2, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
-  acolyte:  { power: 1.0, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật." },
-  merchant: { power: 1.4, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
+  thief:    { power: 2.3, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
+  acolyte:  { power: 1.5, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật." },
+  merchant: { power: 1.55, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
 };
 export const CLASS_IDS = Object.keys(CLASSES);
 /** The marks a class gathers toward awakening and CHAOS (Chaos Seed sows these). */

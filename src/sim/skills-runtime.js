@@ -18,10 +18,23 @@ export function skillStats(w, id) {
   if (st.cd) st.cd *= (w.mods?.cd ?? 1) * (tu.cd ?? 1);
   if (st.radius) st.radius *= w.mods?.area ?? 1;
   if (SKILLS[id].elem === "fire" && w.weather?.kind === "rain" && st.speed) st.speed *= WEATHER.rain.fireSpeed;
-  // the marks it leaves besides its own: the skill's, and (a basic attack) those it was imbued with
-  // (an imbue clings to a quarter of the blows, or ten marks would come far too easily)
+  // the class tree's signature numbers
+  const m = w.mods ?? {}, kind = SKILLS[id].kind;
+  if (st.dmg && (kind === "melee" || kind === "dash")) st.dmg *= m.meleeDmg ?? 1;
+  if (st.reach) st.reach += m.reach ?? 0;
+  if (kind === "bolt") { if (m.pierce) st.pierce = (st.pierce ?? 1) + m.pierce; if (st.cd) st.cd *= m.boltCd ?? 1 }
+  if (kind === "zone" && st.life) st.life *= m.zoneLife ?? 1;
+  if (st.gold) st.gold = Math.max(1, Math.round(st.gold * (m.goldCost ?? 1)));
+  if (st.push) st.push *= m.push ?? 1;
+  if (st.heal) st.heal *= m.healMul ?? 1;
+  if (kind === "weather" && st.dur) st.dur *= m.weatherDur ?? 1;
+  // the marks it leaves besides its own: the skill's (if the class has them open), those a basic attack was
+  // imbued with by a card (a quarter of the blows), and those the gear imbues every blow with now and then
+  const open = (mk) => !w.unlocked || w.unlocked.has(mk);
   const imbued = SKILLS[id].basic && w.imbue?.size ? [...w.imbue].filter(() => w.rng.chance(IMBUE_CHANCE)) : [];
-  const also = [...(SKILLS[id].also ?? []), ...imbued];
+  const gear = st.dmg && m.imbue ? Object.entries(m.imbue).filter(([, p]) => w.rng.chance(p * (m.imbueMul ?? 1))).map(([mk]) => mk) : [];
+  const also = [...(SKILLS[id].also ?? []), ...imbued, ...gear];
+  void open;
   if (also.length) st.also = also;
   return st;
 }

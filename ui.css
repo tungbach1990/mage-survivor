@@ -137,3 +137,8 @@ html, body { overscroll-behavior: none; touch-action: manipulation; -webkit-tap-
 .cls-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; }
 #codex-tabs button.on { border-color: #ffe286; background: #4a3460; }
 @media (max-width: 760px), (max-height: 480px) { .tile.cls { width: 84px; } .tile .hero { transform: none; margin: 0; } }
+/* per-class pages */
+.classbar button.on { border-color: #ffe286; background: #4a3460; }
+.tile.sig { border-color: #8a6a3a; }
+.tile.mark { width: 150px; }
+@media (max-width: 760px), (max-height: 480px) { .tile.mark { width: 110px; } }

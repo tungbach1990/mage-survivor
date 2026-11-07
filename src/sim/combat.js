@@ -114,7 +114,7 @@ export function damage(w, e, amount, elem, opts = {}) {
     if (elem === "tier") amount *= w.mods?.tierDmg ?? 1;
   }
   if (e.auras.has("earth")) amount *= AURA.earthTaken;
-  if (phys) amount *= (e.phys ?? 1) * (e.auras.has("sunder") ? AURA.sunder : 1);
+  if (phys) amount *= (e.phys ?? 1) * (e.auras.has("sunder") ? AURA.sunder + (w.mods?.sunder ?? 0) : 1);
   if (st.brittle > 0) amount *= 1.4;
   if (e.auras.size > 6) amount *= 1 + AURA.unstable * (e.auras.size - 6);
   if (st.judged && real) { amount *= AURA.judged; st.judged = false; e.judgedHit = true }
@@ -122,8 +122,8 @@ export function damage(w, e, amount, elem, opts = {}) {
   if (e.resist?.[elem] !== undefined) amount *= e.resist[elem];
   if (e.elite === "armored" && !opts.reaction && elem !== "tier") amount *= 0.5;
   e.lastHit = w.t;
-  if (real && phys && st.exposed > 0) { st.exposed--; amount *= 1.5; opts = { ...opts, crit: true } }   // exposed: this blow is a sure crit
-  else if (real && w.mods?.crit && w.rng.chance(w.mods.crit)) { amount *= 1.5; opts = { ...opts, crit: true } }
+  if (real && phys && st.exposed > 0) { st.exposed--; amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }   // exposed: this blow is a sure crit
+  else if (real && w.mods?.crit && w.rng.chance(w.mods.crit)) { amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }
   // a shield (an elite's, a boss's) takes reactions only
   if (e.shield > 0) {
     const breaks = e.shieldBy === "tier" ? elem === "tier" || elem === "chaos" : opts.reaction || elem === "tier" || elem === "chaos";

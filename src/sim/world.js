@@ -8,7 +8,7 @@
 import { Rng } from "../../lib/pixelfx/core/math.js";
 import { ENEMIES, SPAWN_X } from "./enemies.js";
 import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js";
-import { ELEMENTS, AURA } from "../data/elements.js";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js";
 import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js";
 import { ENVS, ENV_POOL } from "../data/environments.js";
 import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js";
@@ -26,7 +26,9 @@ import { updateBlackHoles } from "./chaos.js";
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
 
-export const DEFAULT_MODS = () => ({ dmg: 1, cd: 1, area: 1, auraDur: 1, reactDmg: 1, tierDmg: 1, crit: 0, focus: 0, bhRadius: 1, elem: {}, slots: 0, choices: 0, xp: 1, regen: 0, thorns: 0, wallMax: 0 });
+export const DEFAULT_MODS = () => ({ dmg: 1, cd: 1, area: 1, auraDur: 1, reactDmg: 1, tierDmg: 1, crit: 0, focus: 0, bhRadius: 1, elem: {}, slots: 0, choices: 0, xp: 1, regen: 0, thorns: 0, wallMax: 0,
+  // the class trees' signature numbers
+  meleeDmg: 1, reach: 0, pierce: 0, boltCd: 1, zoneLife: 1, dotDmg: 1, critMul: 0, gold: 1, goldCost: 1, push: 1, healMul: 1, wallTaken: 1, dodge: 0, weatherDur: 1, sunder: 0, summonHp: 1, imbue: {}, imbueMul: 1 });
 
 /**
  * A new run. opts: { cls (the class: mage, swordman, archer, thief, acolyte, merchant), chapter (1-5), endless,
@@ -35,14 +37,14 @@ export const DEFAULT_MODS = () => ({ dmg: 1, cd: 1, area: 1, auraDur: 1, reactDm
  */
 export function createWorld(seed = 1, opts = {}) {
   const mods = { ...DEFAULT_MODS(), ...(opts.mods ?? {}) };
-  mods.elem = { ...(opts.mods?.elem ?? {}) };
+  mods.elem = { ...(opts.mods?.elem ?? {}) }; mods.imbue = { ...(opts.mods?.imbue ?? {}) };
   const wallMax = 150 + mods.wallMax;
   const cls = CLASSES[opts.cls] ? opts.cls : "mage";
   const start = opts.skills ?? { [`basic_${cls}`]: opts.basicLevel ?? 1 };
   const w = {
     t: 0, rng: new Rng(seed), nextId: 1, seed, cls, schoolMarks: marksOf(cls), imbue: new Set(), pm: { dmg: 1, wallTaken: 1, gold: 1 },
     chapter: opts.endless ? ENDLESS.base : opts.chapter ?? 1, endless: !!opts.endless,
-    mods, unlocked: new Set(opts.unlocked ?? ELEMENTS), chaosUnlocked: opts.chaosUnlocked ?? true,
+    mods, unlocked: new Set(opts.unlocked ?? MARKS), chaosUnlocked: opts.chaosUnlocked ?? true,
     wall: { hp: wallMax, max: wallMax },
     gold: 0, kills: 0, dealt: 0, xp: 0, level: 1, levelsDue: (mods.startCards ?? 0) + (opts.endless ? 4 : (opts.chapter ?? 1) - 1),   // later chapters start a few cards ahead
     wave: 0, waveT: 0, spawns: [], phase: "rest", restT: 1.5, cardReason: null,
@@ -398,8 +400,8 @@ export function step(w, dt) {
     const due = tickStatus(e, dt);
     if (e.justUnstoppable) { e.justUnstoppable = false; w.events.push({ type: "unstoppable", id: e.id, x: e.x, y: e.y - def.cy }) }
     if (due.burn > 0) damage(w, e, due.burn, "burn", { quiet: true, reaction: true });
-    if (due.poison > 0 && e.hp > 0) damage(w, e, due.poison, "poison", { quiet: true, reaction: true });
-    if (due.phys > 0 && e.hp > 0) damage(w, e, due.phys, "phys", { quiet: true, reaction: true });   // bleeding, venom
+    if (due.poison > 0 && e.hp > 0) damage(w, e, due.poison * w.mods.dotDmg, "poison", { quiet: true, reaction: true });
+    if (due.phys > 0 && e.hp > 0) damage(w, e, due.phys * w.mods.dotDmg, "phys", { quiet: true, reaction: true });   // bleeding, venom
     if (e.elite === "regen" && e.hp > 0 && canRegen(w, e)) e.hp = Math.min(e.max, e.hp + e.max * 0.015 * dt);
     if (e.hp <= 0) continue;
     updateBoss(w, e, dt);
@@ -438,7 +440,7 @@ export function step(w, dt) {
       if (e.atkT >= def.rate) {
         e.atkT -= def.rate;
         // blinded, it may miss; disarmed or sickened, it hits softer
-        if (e.auras.has("blind") && w.rng.chance(AURA.blind)) { w.events.push({ type: "miss", x: e.x - def.half, y: e.y - def.cy }); continue }
+        if ((e.auras.has("blind") && w.rng.chance(AURA.blind)) || (w.mods.dodge && w.rng.chance(w.mods.dodge))) { w.events.push({ type: "miss", x: e.x - def.half, y: e.y - def.cy }); continue }
         const hit = def.dmg * e.dmgMul * fury(w) * (e.auras.has("dark") && !e.immune?.has("curse") ? AURA.curse.wall : 1) * (e.auras.has("disarm") ? AURA.disarm : 1) * (e.status.weak > 0 ? 0.5 : 1) * (b ? 1 : w.pm.wallTaken);
         if (def.bomber) {   // it goes off on whatever it reached, and is gone
           if (b) hitMinion(w, b, e, hit * 2); else w.wall.hp = Math.max(0, w.wall.hp - hit);
