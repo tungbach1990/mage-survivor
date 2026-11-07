@@ -209,14 +209,14 @@ function tiers(w, e, H) {
     const ctx = { A: api(w), e, x: e.x, y: e.y, H, w };
     if (named) { for (const o of around(w, e.x, e.y, 18)) damage(w, o, H, "tier", { reaction: true }); named.fx(ctx) }
     else tier.fx(ctx);
-  } else if (n >= 7 && n <= 9 && !e.tiers.has(7)) {
+  } else if (n >= 7 && n < (w.chaosAt ?? 10) && !e.tiers.has(7)) {
     e.tiers.add(7);
     count(w, UNSTABLE.id, []);
     w.events.push({ type: "reaction", kind: UNSTABLE.id, x: e.x, y: e.y - ENEMIES[e.type].cy, elems: [...e.auras.keys()] });
-  } else if (n >= 10 && !e.tiers.has(10) && !((e.noChaosUntil ?? 0) > w.t)) {
+  } else if (n >= (w.chaosAt ?? 10) && !e.tiers.has(10) && !((e.noChaosUntil ?? 0) > w.t)) {
     if (reactT("chaos").off) return;
     // the first black hole of a wave comes easily, each one after it takes longer (reset each wave)
-    const cd = (w.skills?.chaosseed ? 18 : 25) * (1 + (w.chaosThisWave ?? 0));
+    const cd = (w.skills?.chaosseed ? 18 : 25) * (1 + (w.chaosThisWave ?? 0)) * (w.chaosCd ?? 1);
     if ((w.cds.chaos ?? 0) > w.t) return;
     w.cds.chaos = w.t + cd;
     w.chaosThisWave = (w.chaosThisWave ?? 0) + 1;

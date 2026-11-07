@@ -30,10 +30,10 @@ const SIGNATURE = {
     T("bh", SIG, "Hố Đen rộng", 3, 80, "+10% bán kính Hố Đen mỗi cấp", (m, l) => (m.bhRadius *= 1 + 0.1 * l)),
   ],
   swordman: [
-    T("meleeDmg", SIG, "Lưỡi bén", 5, 30, "+8% sát thương cận chiến mỗi cấp", (m, l) => (m.meleeDmg *= 1 + 0.08 * l)),
+    T("meleeDmg", SIG, "Lưỡi bén", 5, 30, "+4% sát thương cận chiến mỗi cấp", (m, l) => (m.meleeDmg *= 1 + 0.04 * l)),
     T("reach", SIG, "Tầm chém", 3, 45, "+5 tầm với đòn cận chiến mỗi cấp", (m, l) => (m.reach += 5 * l)),
-    T("guard", SIG, "Giữ cổng", 5, 40, "Tường nhận −4% sát thương mỗi cấp", (m, l) => (m.wallTaken *= 1 - 0.04 * l)),
-    T("sunder", SIG, "Phá giáp sâu", 3, 50, "Phá giáp +8% sát thương vật lý mỗi cấp", (m, l) => (m.sunder += 0.08 * l)),
+    T("guard", SIG, "Giữ cổng", 5, 40, "Tường nhận −2% sát thương mỗi cấp", (m, l) => (m.wallTaken *= 1 - 0.02 * l)),
+    T("sunder", SIG, "Phá giáp sâu", 3, 50, "Phá giáp +4% sát thương vật lý mỗi cấp", (m, l) => (m.sunder += 0.04 * l)),
   ],
   archer: [
     T("pierce", SIG, "Mũi tên xuyên", 2, 80, "+1 xuyên cho tên/tia mỗi cấp", (m, l) => (m.pierce += l)),
@@ -48,9 +48,9 @@ const SIGNATURE = {
     T("evade", SIG, "Né tránh", 5, 40, "Quái đánh trượt tường thêm 3% mỗi cấp", (m, l) => (m.dodge += 0.03 * l)),
   ],
   acolyte: [
-    T("healMul", SIG, "Hồi phục", 5, 30, "+12% lượng hồi tường mỗi cấp", (m, l) => (m.healMul *= 1 + 0.12 * l)),
+    T("healMul", SIG, "Hồi phục", 5, 30, "+7% lượng hồi tường mỗi cấp", (m, l) => (m.healMul *= 1 + 0.07 * l)),
     T("holy", SIG, "Thánh quang", 5, 35, "+8% sát thương Ánh sáng mỗi cấp", (m, l) => (m.elem.light = (m.elem.light ?? 1) * (1 + 0.08 * l))),
-    T("aegis", SIG, "Giáp thánh", 5, 40, "Tường nhận −4% sát thương mỗi cấp", (m, l) => (m.wallTaken *= 1 - 0.04 * l)),
+    T("aegis", SIG, "Giáp thánh", 5, 40, "Tường nhận −2% sát thương mỗi cấp", (m, l) => (m.wallTaken *= 1 - 0.02 * l)),
     T("grace", SIG, "Ân điển", 5, 35, "+15% máu Thiên thần/triệu hồi mỗi cấp", (m, l) => (m.summonHp *= 1 + 0.15 * l)),
   ],
   merchant: [

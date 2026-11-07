@@ -41,7 +41,7 @@ export function updateBlackHoles(w, dt) {
       for (const e of alive(w)) {
         if (!inBlast(e, bh.x, bh.y, bh.r)) continue;
         const def = ENEMIES[e.type];
-        const amount = (def.boss ? e.max * BLACK_HOLE.bossFrac * bh.power : (e.max * BLACK_HOLE.dmgFrac + BLACK_HOLE.dmgFlat * (w.mods?.dmg ?? 1)) * bh.power) * (reactT("chaos").dmg ?? 1);
+        const amount = (def.boss ? e.max * BLACK_HOLE.bossFrac * bh.power : (e.max * BLACK_HOLE.dmgFrac + BLACK_HOLE.dmgFlat * (w.mods?.dmg ?? 1)) * bh.power) * (reactT("chaos").dmg ?? 1) * (w.chaosPow ?? 1);
         damage(w, e, amount, "chaos", { reaction: true, raw: true });
         // survivors keep all the marks (for the tiers), but can't open another black hole for a while: no chains
         if (e.hp > 0) { for (const el of w.schoolMarks ?? ELEMENTS) applyAura(w, e, el, { noBurst: true }); e.tiers.add(10); e.noChaosUntil = w.t + 30 }

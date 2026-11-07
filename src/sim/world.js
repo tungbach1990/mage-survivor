@@ -42,7 +42,7 @@ export function createWorld(seed = 1, opts = {}) {
   const cls = CLASSES[opts.cls] ? opts.cls : "mage";
   const start = opts.skills ?? { [`basic_${cls}`]: opts.basicLevel ?? 1 };
   const w = {
-    t: 0, rng: new Rng(seed), nextId: 1, seed, cls, schoolMarks: marksOf(cls), imbue: new Set(), pm: { dmg: 1, wallTaken: 1, gold: 1 },
+    t: 0, rng: new Rng(seed), nextId: 1, seed, cls, schoolMarks: marksOf(cls), chaosAt: CLASSES[cls].chaosAt ?? 10, chaosCd: CLASSES[cls].chaosCd ?? 1, chaosPow: CLASSES[cls].chaosPow ?? 1, imbue: new Set(), pm: { dmg: 1, wallTaken: 1, gold: 1 },
     chapter: opts.endless ? ENDLESS.base : opts.chapter ?? 1, endless: !!opts.endless,
     mods, unlocked: new Set(opts.unlocked ?? MARKS), chaosUnlocked: opts.chaosUnlocked ?? true,
     wall: { hp: wallMax, max: wallMax },
