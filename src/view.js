@@ -56,6 +56,7 @@ const PLAIN = {   // the unadorned look of each class's basic attack
   steel: ["#121214", "#2a2a30", "#4a4a54", "#6e7080", "#9a9cac", "#c4c6d2", "#e4e6ee", "#ffffff"],
   wood: ["#140c06", "#2e1c0e", "#4e3218", "#6e4a26", "#94683a", "#b88c5a", "#dcc0a0", "#fff4e4"],
   holy: ["#1a160c", "#3a321c", "#5e5434", "#8a7e58", "#b4aa84", "#d8d0b0", "#f0ecdc", "#ffffff"],
+  grey: ["#141416", "#2c2c30", "#4c4c52", "#74747a", "#a0a0a6", "#c8c8cc", "#e8e8ea", "#ffffff"],
 };
 const PLAIN_OF = { basic_mage: "mage", basic_swordman: "steel", basic_archer: "wood", basic_thief: "steel", basic_acolyte: "holy", basic_merchant: "wood" };
 /** The palette a basic attack is drawn in: an imbued mark's; its own element's from grade 2; else plain. */
@@ -97,6 +98,8 @@ export function createRenderer(A) {
   const bolts = [], labels = [], stones = [], rings = [], beams = [], sigils = [];
   // Arrow Shower: each arrow flies up out of the sky from the archer, then drops on its spot; `at` is when it lands
   let volleys = [];
+  // plain basic attacks (levels 1-2, nothing imbued): a grey swing, a grey flick where a shot lands
+  let swings = [], flicks = [];
   let shake = 0, shakeT = 0, numbers = 0, clock = 0, rainK = 0, lavaK = 0, flash = 0, flashCol = [236, 226, 255], space = 0;
   const DROPS = Array.from({ length: 140 }, () => ({ x: rng.range(-20, W + 10), y: rng.range(4, H - 2), period: rng.range(0.42, 0.6), off: rng.next(), len: rng.int(4, 6) }));
   const STARS = Array.from({ length: 60 }, () => ({ x: rng.range(0, W), y: rng.range(0, H), p: rng.range(0, 6) }));
@@ -137,7 +140,7 @@ export function createRenderer(A) {
     switch (ev.type) {
       case "shot": {
         const look = LOOKS[ev.skill]?.shot, ang = Math.atan2(ev.vy, ev.vx);
-        if (!look) break;
+        if (!look || ev.plain) break;   // plain shots are drawn straight from the world (drawPlain)
         const e = add(look.mod, { x: ev.x, y: ev.y + (look.dy ?? 0), ...look.opts(ang, ev.id, ev.basic ? { g: grade(ev.lvl), pal: basicPalette(ev), mark: ev.mark } : null) }, { kind: "shot", must: true, dy: look.dy, cache: look.cache });
         if (e) byShot.set(ev.id, e);
         break;
@@ -145,6 +148,7 @@ export function createRenderer(A) {
       case "shotEnd": { const e = byShot.get(ev.id); if (e) { e.fx.stop(); e.life = e.age + 0.3; byShot.delete(ev.id) } break }
       case "impact": {
         if (!ev.basic) { spark(ev.x, ev.y, ev.elem); break }
+        if (ev.plain) { flicks.push({ x: ev.x, y: ev.y, t: 0 }); break }
         // a basic hit: a small dull spark at first, brighter and in colour as it grows
         const g = grade(ev.lvl), pal = basicPalette(ev);
         spark(ev.x, ev.y, ev.elem, 0.3 + 0.08 * g, ev.mark ? 0.35 : [0.12, 0.22, 0.4, 0.55][g], pal);
@@ -178,7 +182,7 @@ export function createRenderer(A) {
         const box = [Math.max(0, x - 30), Math.max(0, y - 52), Math.min(W - 1, x + 46), Math.min(H - 1, y + 16)];
         if (box[0] > box[2] || box[1] > box[3]) break;
         numbers++;
-        add(dmgNumber, { x, y, text: String(ev.amount), palette: NUM[ev.elem] ?? NUM.fire, seed: rng.int(0, 99) }, { life: 1.05, number: true, cache: 2, box });
+        add(dmgNumber, { x, y, text: String(ev.amount), palette: ev.plain ? PLAIN.grey : NUM[ev.elem] ?? NUM.fire, seed: rng.int(0, 99) }, { life: 1.05, number: true, cache: 2, box });
         break;
       }
       case "death": add(poof, { x: ev.x, y: ev.y, light: 0.4, seed: rng.int(0, 99) }, { life: 1.2, fade: 0.4 }); if (ev.boss) shake = Math.max(shake, 4); break;
@@ -224,6 +228,7 @@ export function createRenderer(A) {
       case "melee": {
         // a swing at the gate: a slash (a spin for the wide ones, a flurry of daggers), in the mark's colour
         const mod = ev.repeat > 1 ? daggerFlurry : ev.width >= 60 ? spinSlash : swordSlash;
+        if (ev.plain) { swings.push({ x: ev.x, y: ev.y, t: 0, w: ev.width, n: ev.repeat }); break }
         if (ev.basic) {
           // a basic swing: a plain steel arc at first; sparks, light and its colour as it levels
           const g = grade(ev.lvl);
@@ -287,6 +292,8 @@ export function createRenderer(A) {
     const keep = (list, f) => { for (let i = list.length - 1; i >= 0; i--) if (!f(list[i])) list.splice(i, 1) };
     for (const v of volleys) { v.t += dt; if (!v.landed && v.t >= v.at) { v.landed = true; rings.push({ x: v.x, y: v.y + 8, r: 5, t: 0, life: 0.25, col: [200, 180, 150] }) } }
     volleys = volleys.filter((v) => v.t < v.at + 0.6);
+    for (const s of swings) s.t += dt; for (const f of flicks) f.t += dt;
+    swings = swings.filter((s) => s.t < 0.18); flicks = flicks.filter((f) => f.t < 0.12);
     keep(bolts, (b) => b.t < b.life); keep(labels, (l) => l.t < (l.big ? 1.3 : 0.9)); keep(stones, (s) => s.t < 1.4); keep(rings, (r) => r.t < r.life); keep(beams, (b) => b.t < b.life); keep(sigils, (s) => s.t < s.life);
     shakeT += dt; shake = Math.max(0, shake - dt * 10); flash = Math.max(0, flash - dt);
     const kind = w.weather.kind;
@@ -661,6 +668,22 @@ export function createRenderer(A) {
     // red fletching at the back
     for (let i = 0; i < 3; i++) { const bx = hx - ux * (L - i), by = hy - uy * (L - i); put(bx - uy, by + ux, [226, 64, 58], k); put(bx + uy, by - ux, [226, 64, 58], k) }
   }
+  // the plain look: grey and white only, no light
+  function drawPlain(w) {
+    const G = [200, 200, 204], D = [120, 120, 126];
+    for (const s of w.shots) {
+      if (!s.plain || s.dead || (s.delay ?? 0) > 0) continue;
+      const v = Math.hypot(s.vx, s.vy) || 1, ux = s.vx / v, uy = s.vy / v, sk = s.skill;
+      if (sk === "basic_archer") { line(s.x - ux * 8, s.y - uy * 8, s.x - ux, s.y - uy, D, 1); put(s.x, s.y, G, 1) }
+      else if (sk === "basic_thief") { line(s.x - ux * 4, s.y - uy * 4, s.x, s.y, G, 1) }
+      else { put(s.x, s.y, G, 1); put(s.x + 1, s.y, G, 1); put(s.x, s.y + 1, G, 1); put(s.x + 1, s.y + 1, G, 1); line(s.x - ux * 6, s.y - uy * 6, s.x - ux, s.y - uy, D, 0.5) }
+    }
+    for (const s of swings) {
+      const k = 1 - s.t / 0.18, r = 14 + 6 * (s.t / 0.18);
+      for (let a = -1.1; a <= 1.1; a += 0.06) put(s.x + 4 + Math.cos(a) * r, s.y - 6 + Math.sin(a) * r * 0.9, G, 0.8 * k);
+    }
+    for (const f of flicks) { const k = 1 - f.t / 0.12; put(f.x, f.y, G, k); put(f.x - 1, f.y - 1, D, k * 0.7); put(f.x + 1, f.y + 1, D, k * 0.7) }
+  }
   function drawVolleys() {
     const RISE = 0.3, FALL = 0.22;
     for (const v of volleys) {
@@ -817,6 +840,7 @@ export function createRenderer(A) {
     drawFx(fxs.filter((f) => !f.number && f.kind !== "weather" && f.kind !== "bh"), "front");
     if (bolts.length) drawBolts();
     if (rings.length) drawRings();
+    drawPlain(w);
     if (beams.length || volleys.length) drawBeams();
     if (w.blackholes.length) lens(w);
     drawFx(fxs.filter((f) => f.kind === "bh"), "front");

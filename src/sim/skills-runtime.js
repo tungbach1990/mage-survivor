@@ -34,12 +34,14 @@ export function skillStats(w, id) {
   const imbued = SKILLS[id].basic && w.imbue?.size ? [...w.imbue].filter(() => w.rng.chance(IMBUE_CHANCE)) : [];
   const gear = st.dmg && m.imbue ? Object.entries(m.imbue).filter(([, p]) => w.rng.chance(p * (m.imbueMul ?? 1))).map(([mk]) => mk) : [];
   const also = [...(SKILLS[id].also ?? []), ...imbued, ...gear];
+  // a low basic attack with nothing on it is drawn plain: no colour at all
+  st.plain = !!SKILLS[id].basic && w.skills[id].level <= 2 && !imbued.length && !gear.length;
   void open;
   if (also.length) st.also = also;
   return st;
 }
 /** What a hit of this skill carries: its element effect's strength. */
-const carry = (st) => ({ burn: st.burn, poison: st.poison, stun: st.stun, freezeAt3: st.freezeAt3, push: st.push, stacks: st.stacks, also: st.also });
+const carry = (st) => ({ burn: st.burn, poison: st.poison, stun: st.stun, freezeAt3: st.freezeAt3, push: st.push, stacks: st.stacks, also: st.also, plain: st.plain });
 /** After a blow lands: a basic attack's extras (an Acolyte's light mends the wall, a Merchant's cart drops a coin). */
 function perks(w, st) { if (st.mend) w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.mend); if (st.coin) w.gold += 1 }
 
@@ -54,7 +56,8 @@ function shoot(w, id, st, tx, ty, extra = {}) {
   w.shots.push(s);
   // how it should look: its level, and a mark it carries beyond its own (an imbue: card or gear)
   s.lvl = w.skills[id]?.level ?? 1; s.mark = st.also?.find((m) => !(SKILLS[id].also ?? []).includes(m)) ?? null;
-  w.events.push({ type: "shot", id: s.id, skill: id, elem: s.elem, kind: s.kind, x: s.x, y: s.y, vx: s.vx, vy: s.vy, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[id].basic });
+  s.plain = !!st.plain;
+  w.events.push({ type: "shot", id: s.id, skill: id, elem: s.elem, kind: s.kind, x: s.x, y: s.y, vx: s.vx, vy: s.vy, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[id].basic, plain: s.plain });
   return s;
 }
 
@@ -131,7 +134,7 @@ export function cast(w, id) {
         if (st.push && e.hp > 0 && movable(e)) e.x += st.push * (ENEMIES[e.type].boss ? 0.2 : 1);
         perks(w, st);
       }
-      w.events.push({ type: "melee", skill: id, elem: sk.elem, x: WALL_X + 6, y: y0, reach: st.reach, width: st.width, n: hit.length, repeat: st.repeat ?? 1, lvl: w.skills[id]?.level ?? 1, basic: !!sk.basic, mark: st.also?.find((m) => !(sk.also ?? []).includes(m)) ?? null });
+      w.events.push({ type: "melee", skill: id, elem: sk.elem, x: WALL_X + 6, y: y0, reach: st.reach, width: st.width, n: hit.length, repeat: st.repeat ?? 1, lvl: w.skills[id]?.level ?? 1, basic: !!sk.basic, plain: !!st.plain, mark: st.also?.find((m) => !(sk.also ?? []).includes(m)) ?? null });
       if (st.wave) { const e = pickTarget(w); if (e) shoot(w, id, { ...st, speed: 220, pierce: 5, dmg: st.dmg * 0.8 }, ...aimAt(e, 220)) }
       return true;
     }
@@ -215,7 +218,7 @@ export function updateShots(w, dt) {
         damage(w, e, s.st.dmg, s.elem, carry(s.st));
         perks(w, s.st);
         if (s.st.push && s.elem !== "wind" && e.hp > 0 && movable(e)) e.x += s.st.push * (ENEMIES[e.type].boss ? 0.2 : 1);
-        w.events.push({ type: "impact", skill: s.skill, elem: s.elem, x: s.x, y: s.y, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[s.skill]?.basic });
+        w.events.push({ type: "impact", skill: s.skill, elem: s.elem, x: s.x, y: s.y, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[s.skill]?.basic, plain: s.plain });
         if (++s.pierced >= (s.st.pierce ?? 1)) { s.dead = true; break }
       }
       if (s.target && !s.dead && s.left < -60) s.dead = true;

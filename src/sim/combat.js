@@ -135,7 +135,7 @@ export function damage(w, e, amount, elem, opts = {}) {
   e.flash = 0.12;
   w.dealt += amount;
   const [cx, cy] = center(e);
-  if (!opts.quiet && amount >= 1) w.events.push({ type: "dmg", x: cx, y: cy - def.cy, amount: Math.round(amount), elem: IS_ELEM.has(elem) ? elem : elem === "tier" ? "arcane" : elem === "phys" ? "sunder" : elem, crit: !!opts.crit });
+  if (!opts.quiet && amount >= 1) w.events.push({ type: "dmg", x: cx, y: cy - def.cy, amount: Math.round(amount), elem: IS_ELEM.has(elem) ? elem : elem === "tier" ? "arcane" : elem === "phys" ? "sunder" : elem, crit: !!opts.crit, plain: !!opts.plain });
 
   // the element's aura and effect (also on the killing blow, so a death can still spread it)
   if (real && !opts.noAura) applyAura(w, e, elem, { ...opts, hit: amount });
