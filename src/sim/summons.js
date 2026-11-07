@@ -13,11 +13,56 @@ import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, add
 const BLOCK = 8;   // how far in front of a golem a monster stops
 
 export const minionsOf = (w, id) => w.minions.filter((m) => m.skill === id && m.hp > 0);
+/** Where a falcon hovers: over the hero's head (the second one a little behind). */
+export const perch = (slot) => [30 - slot * 14, 70 - slot * 4];
+
+/**
+ * A falcon's hunt: from its perch it picks the foremost monster in reach, stoops on it, rakes it with its
+ * talons (its marks, by turns) and climbs back to the perch to wait for the next dive.
+ */
+function hunt(w, m, dt) {
+  const st = m.st;
+  if (m.state === "perch") {
+    const [px, py] = perch(m.slot);
+    m.x += (px - m.x) * Math.min(1, dt * 6); m.y += (py - m.y) * Math.min(1, dt * 6);
+    if (m.atkT > 0) return;
+    const e = inView(w).filter((o) => o.x - WALL_X <= st.range).sort((a, b) => a.x - b.x)[0];
+    if (!e) { m.atkT = 0.2; return }
+    m.state = "dive"; m.target = e.id;
+    w.events.push({ type: "falconDive", id: m.id, x: m.x, y: m.y });
+    return;
+  }
+  if (m.state === "dive") {
+    const e = w.enemies.find((o) => o.id === m.target && o.hp > 0);
+    if (!e) { m.state = "return"; return }
+    const [tx, ty] = center(e), dx = tx - m.x, dy = ty - m.y, d = Math.hypot(dx, dy), step = st.speed * dt;
+    if (d > step + 2) { m.x += (dx / d) * step; m.y += (dy / d) * step; return }
+    m.x = tx; m.y = ty;
+    for (let i = 0; i < (st.claws ?? 1); i++) if (e.hp > 0) strike(w, m, e);
+    m.atk = 0.2;
+    w.events.push({ type: "claw", id: m.id, x: tx, y: ty, elem: m.elems[(m.hits + 1) % m.elems.length] });
+    m.state = "return";
+    return;
+  }
+  // climbing back, a little slower than the stoop
+  const [px, py] = perch(m.slot), dx = px - m.x, dy = py - m.y, d = Math.hypot(dx, dy), step = st.speed * 0.7 * dt;
+  if (d > step + 1) { m.x += (dx / d) * step; m.y += (dy / d) * step; return }
+  m.x = px; m.y = py; m.state = "perch"; m.atkT = st.rate;
+}
 
 /** Summon one ally of skill `id` (if there's room). Returns whether it did. */
 export function summon(w, id, st) {
   if (!inView(w).length || minionsOf(w, id).length >= st.max) return false;
-  const sk = SKILLS[id], c = densest(w) ?? { y: (LANE[0] + LANE[1]) / 2 };
+  const sk = SKILLS[id];
+  if (sk.body === "falcon") {
+    // a falcon: no health, it doesn't go away; it hovers over the archer's head between dives
+    const n = minionsOf(w, id).length, [px, py] = perch(n);
+    const m = { id: w.nextId++, skill: id, body: "falcon", elems: sk.elems, x: px, y: py, hp: 1, max: 1, life: Infinity, invulnerable: true, atkT: 0.4 + n * 0.5, hits: 0, st, slot: n, state: "perch", target: null, flash: 0, atk: 0, tick: 0 };
+    w.minions.push(m);
+    w.events.push({ type: "summon", id: m.id, skill: id, body: m.body, elems: m.elems, x: px, y: py });
+    return true;
+  }
+  const c = densest(w) ?? { y: (LANE[0] + LANE[1]) / 2 };
   const y = Math.round(Math.max(LANE[0] + 4, Math.min(LANE[1] - 4, c.y + w.rng.range(-14, 14))));
   const x = sk.body === "golem" ? WALL_X + 34 + w.rng.range(0, 30) : sk.body === "spirit" ? WALL_X + 14 + w.rng.range(0, 16) : WALL_X + 20;
   // as sturdy against this chapter's blows as the first chapter's
@@ -105,6 +150,7 @@ export function updateMinions(w, dt) {
     const st = m.st;
     m.life -= dt; m.atkT -= dt; m.flash = Math.max(0, m.flash - dt); m.atk = Math.max(0, m.atk - dt); m.tick -= dt;
     let did = false;
+    if (m.body === "falcon") { hunt(w, m, dt); continue }
     if (m.hp > 0 && m.life > 0) {
     if (m.body === "spirit") { if (m.atkT <= 0) did = shoot(w, m) }
     else if (m.body === "beast") did = bite(w, m, dt);

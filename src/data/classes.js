@@ -42,7 +42,7 @@ export const CLASS_SKILLS = {
   huntersmark: S("archer", "Hunter's Mark", "expose", "bolt", "Đánh dấu con mạnh: đòn sau chí mạng.", { cd: L(3, 2), dmg: L(10, 22), speed: 380, pierce: 2 }, { icon: "icon_huntersmark" }),
   blindarrow: S("archer", "Blind Arrow", "blind", "ball", "Mũi tên khói: làm mù một vùng.", { cd: L(3.5, 2.4), dmg: L(14, 32), radius: L(18, 24), speed: 220 }, { icon: "icon_blindarrow" }),
   chargearrow: S("archer", "Charge Arrow", "sunder", "bolt", "Mũi tên nặng xuyên 3 con, hất lùi: Phá giáp.", { cd: L(3, 2), dmg: L(22, 48), speed: 300, pierce: 3, push: 16 }, { icon: "icon_chargearrow" }),
-  falcon: S("archer", "Falcon", "bleed", "summon", "Triệu hồi chim ưng: lao xuống mổ, Chảy máu + Đánh dấu.", { cd: L(9, 6), max: (l) => (l >= 4 ? 2 : 1), hp: L(50, 100), dmg: L(14, 32), rate: 0.7, range: 140, life: 16 }, { body: "spirit", elems: ["bleed", "expose"], icon: "icon_falcon" }),
+  falcon: S("archer", "Falcon", "bleed", "summon", "Chim ưng bay trên đầu cung thủ, không có máu, ở mãi: lao xuống cào kẻ địch rồi rút về. Chảy máu + Đánh dấu. Cấp 3: cào 2 nhát. Cấp 4: thêm 1 con.", { cd: 1, max: (l) => (l >= 4 ? 2 : 1), dmg: L(16, 36), rate: L(1.6, 1), range: 230, speed: 260, claws: (l) => (l >= 3 ? 2 : 1) }, { body: "falcon", elems: ["bleed", "expose"], icon: "icon_falcon" }),
   anklesnare: S("archer", "Ankle Snare", "pin", "zone", "Bẫy kẹp 3 giây: Ghim + Què.", { cd: L(7, 5), dmg: L(4, 9), radius: 20, life: 3, tick: 0.6 }, { at: "crowd", also: ["cripple"], icon: "icon_anklesnare" }),
 
   // ---------------- Thief: poison, tricks, gold ----------------

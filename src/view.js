@@ -25,6 +25,10 @@ import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js";
 import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js";
 import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js";
 import * as healFx from "../lib/pixelfx/fx/holy/heal.js";
+import * as birdFx from "../lib/pixelfx/fx/critters/bird.js";
+import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js";
+// the archer's falcon: pixelfx's bird in a falcon's browns, a cream breast
+const FALCON = { palette: ["#1a0e08", "#3a2414", "#5c3a1e", "#84562c", "#ae7a44", "#d8ac72", "#fff0d0"], breast: ["#5a3a1e", "#b48a5a", "#e8d0a4", "#fff4dc"] };
 import { LOOKS, blastOf } from "./render/looks.js";
 import { FRAMES } from "./assets.js";
 import { ENEMIES } from "./sim/enemies.js";
@@ -211,6 +215,7 @@ export function createRenderer(A) {
       case "charge": spark(ev.x + 6, ev.y - 2, "earth", 0.4); shake = Math.max(shake, 1); break;
       case "enrage": flash = 0.2; flashCol = [255, 60, 40]; shake = Math.max(shake, 3); note("ENRAGE", ev.x, ev.y - 30, [255, 90, 70], true); break;
       case "unstoppable": note("UNSTOPPABLE", ev.x, ev.y - 10, [255, 210, 90]); rings.push({ x: ev.x, y: ev.y + 8, r: 18, t: 0, life: 0.5, col: [255, 210, 90] }); break;
+      case "claw": add(clawSwipe, { x: ev.x - 10, y: ev.y + 6, palette: NUM.bleed, light: 0.4, seed: rng.int(0, 99) }, { life: 0.5, fade: 0.2 }); spark(ev.x, ev.y, "bleed", 0.35); break;
       case "minionDie": add(poof, { x: ev.x, y: ev.y, light: 0.4, seed: rng.int(0, 99) }, { life: 1, fade: 0.4 }); break;
     }
   }
@@ -235,6 +240,7 @@ export function createRenderer(A) {
 
   // ---------- the step ----------
   function update(w, events, dt, frozenTime = false) {
+    updateFalcons(w);
     clock += dt;
     for (const ev of events) onEvent(ev);
     syncOverlays(w);
@@ -595,7 +601,24 @@ export function createRenderer(A) {
     }
     return (painted[key] = { ...s, pic: { ...src, px } });
   }
+  // falcons are effects that follow their minion: facing the way they fly, nose down in the stoop
+  const falcons = new Map();
+  function updateFalcons(w) {
+    const live = new Set();
+    for (const m of w.minions) {
+      if (m.body !== "falcon") continue;
+      live.add(m.id);
+      let f = falcons.get(m.id);
+      if (!f || !fxs.includes(f)) { f = add(birdFx, { x: m.x, y: m.y, light: 0.3, seed: m.id, ...FALCON }, { kind: "falcon", must: true, cache: 1 }); falcons.set(m.id, f) }
+      const o = f.fx.options, back = m.state === "return";
+      o.x = Math.round(m.x); o.y = Math.round(m.y);
+      o.flip = back;
+      o.angle = m.state === "dive" ? 0.5 : 0;
+    }
+    for (const [id, f] of falcons) if (!live.has(id)) { const i = fxs.indexOf(f); if (i >= 0) fxs.splice(i, 1); falcons.delete(id) }
+  }
   function drawMinion(m) {
+    if (m.body === "falcon") return;
     const s = bodyIn(m.body, m.elems), f = m.atk > 0 ? 2 : Math.floor(clock * 3 + m.id) % 2, bob = m.body === "spirit" ? Math.round(Math.sin(clock * 4 + m.id) * 1.5) - 6 : 0;
     if (m.life < 1.5 && Math.floor(clock * 10) % 2) return;   // about to go: blinking
     darken(m.x, m.y, Math.round(s.fw / 3), 2, 0.7);
