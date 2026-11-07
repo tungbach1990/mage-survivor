@@ -37,7 +37,7 @@ export const CLASS_SKILLS = {
 
   // ---------------- Archer: from the wall, far ----------------
   doublestrafe: S("archer", "Double Strafe", "bleed", "bolt", "Hai mũi tên liên tiếp: Chảy máu.", { cd: L(1.6, 1), dmg: L(18, 42), speed: 340, count: 2 }, { icon: "icon_doublestrafe" }),
-  arrowshower: S("archer", "Arrow Shower", "cripple", "zone", "Mưa tên xuống chỗ đông: Què.", { cd: L(4.5, 3), dmg: L(16, 38), radius: L(26, 34) }, { at: "crowd", icon: "icon_arrowshower" }),
+  arrowshower: S("archer", "Arrow Shower", "cripple", "volley", "Bắn một loạt tên lên trời, tên rơi xuống chỗ quái đông: mỗi mũi gây sát thương và Què. Cấp càng cao càng nhiều tên (6 → 16).", { cd: L(4.5, 3.2), dmg: L(9, 18), arrows: L(6, 16), radius: L(24, 32), hit: 7, rise: 0.55, gap: 0.035 }, { icon: "icon_arrowshower" }),
   pinshot: S("archer", "Pin Shot", "pin", "bolt", "Mũi tên ghim: giữ chân.", { cd: L(2.5, 1.6), dmg: L(24, 52), speed: 360 }, { icon: "icon_pinshot" }),
   huntersmark: S("archer", "Hunter's Mark", "expose", "bolt", "Đánh dấu con mạnh: đòn sau chí mạng.", { cd: L(3, 2), dmg: L(10, 22), speed: 380, pierce: 2 }, { icon: "icon_huntersmark" }),
   blindarrow: S("archer", "Blind Arrow", "blind", "ball", "Mũi tên khói: làm mù một vùng.", { cd: L(3.5, 2.4), dmg: L(14, 32), radius: L(18, 24), speed: 220 }, { icon: "icon_blindarrow" }),

@@ -100,6 +100,21 @@ export function cast(w, id) {
       if (!st.life) zoneHit(w, z); else w.zones.push(z);
       return true;
     }
+    case "volley": {
+      // arrows loosed high into the sky; a moment later they come down, scattered over where the monsters are
+      // thickest, each one hurting what it lands on
+      const c = densest(w, 26); if (!c) return false;
+      const n = Math.round(st.arrows), arrows = [];
+      for (let i = 0; i < n; i++) {
+        const a = w.rng.range(0, Math.PI * 2), r = Math.sqrt(w.rng.next()) * st.radius;
+        arrows.push({ x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r * 0.6, t: st.rise + i * st.gap + w.rng.range(0, 0.08) });
+      }
+      for (const ar of arrows) w.timers.push({ t: ar.t, fn: () => {
+        for (const e of around(w, ar.x, ar.y, st.hit)) damage(w, e, st.dmg, sk.elem, carry(st));
+      } });
+      w.events.push({ type: "volley", skill: id, elem: sk.elem, x: GEM[0], y: GEM[1], arrows });
+      return true;
+    }
     case "melee": {
       // a swing at what is near the wall: the nearest one and its neighbours in a band `width` tall
       const near = alive(w).filter((e) => e.x - ENEMIES[e.type].half <= WALL_X + st.reach).sort((a, b) => a.x - b.x);

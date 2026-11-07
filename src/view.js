@@ -82,6 +82,8 @@ export function createRenderer(A) {
   const rng = new Rng(99);
   const fxs = [], byShot = new Map(), overlays = new Map();
   const bolts = [], labels = [], stones = [], rings = [], beams = [], sigils = [];
+  // Arrow Shower: each arrow flies up out of the sky from the archer, then drops on its spot; `at` is when it lands
+  let volleys = [];
   let shake = 0, shakeT = 0, numbers = 0, clock = 0, rainK = 0, lavaK = 0, flash = 0, flashCol = [236, 226, 255], space = 0;
   const DROPS = Array.from({ length: 140 }, () => ({ x: rng.range(-20, W + 10), y: rng.range(4, H - 2), period: rng.range(0.42, 0.6), off: rng.next(), len: rng.int(4, 6) }));
   const STARS = Array.from({ length: 60 }, () => ({ x: rng.range(0, W), y: rng.range(0, H), p: rng.range(0, 6) }));
@@ -215,6 +217,7 @@ export function createRenderer(A) {
       case "charge": spark(ev.x + 6, ev.y - 2, "earth", 0.4); shake = Math.max(shake, 1); break;
       case "enrage": flash = 0.2; flashCol = [255, 60, 40]; shake = Math.max(shake, 3); note("ENRAGE", ev.x, ev.y - 30, [255, 90, 70], true); break;
       case "unstoppable": note("UNSTOPPABLE", ev.x, ev.y - 10, [255, 210, 90]); rings.push({ x: ev.x, y: ev.y + 8, r: 18, t: 0, life: 0.5, col: [255, 210, 90] }); break;
+      case "volley": for (const [i, a] of ev.arrows.entries()) volleys.push({ go: i * 0.022, x0: ev.x + rng.range(-1, 1), y0: ev.y - 4, up: rng.range(-0.6, 0.6), x: a.x, y: a.y - 8, at: a.t, t: 0, landed: false }); break;
       case "claw": add(clawSwipe, { x: ev.x - 10, y: ev.y + 6, palette: NUM.bleed, light: 0.4, seed: rng.int(0, 99) }, { life: 0.5, fade: 0.2 }); spark(ev.x, ev.y, "bleed", 0.35); break;
       case "minionDie": add(poof, { x: ev.x, y: ev.y, light: 0.4, seed: rng.int(0, 99) }, { life: 1, fade: 0.4 }); break;
     }
@@ -255,6 +258,8 @@ export function createRenderer(A) {
     for (let i = fxs.length - 1; i >= 0; i--) { const f = fxs[i]; if (f.age >= f.life || (f.fx.done() && f.kind !== "overlay")) { if (f.number) numbers--; release(f); fxs.splice(i, 1) } }
     for (const list of [bolts, labels, stones, rings, beams, sigils]) for (const b of list) b.t += dt;
     const keep = (list, f) => { for (let i = list.length - 1; i >= 0; i--) if (!f(list[i])) list.splice(i, 1) };
+    for (const v of volleys) { v.t += dt; if (!v.landed && v.t >= v.at) { v.landed = true; rings.push({ x: v.x, y: v.y + 8, r: 5, t: 0, life: 0.25, col: [200, 180, 150] }) } }
+    volleys = volleys.filter((v) => v.t < v.at + 0.6);
     keep(bolts, (b) => b.t < b.life); keep(labels, (l) => l.t < (l.big ? 1.3 : 0.9)); keep(stones, (s) => s.t < 1.4); keep(rings, (r) => r.t < r.life); keep(beams, (b) => b.t < b.life); keep(sigils, (s) => s.t < s.life);
     shakeT += dt; shake = Math.max(0, shake - dt * 10); flash = Math.max(0, flash - dt);
     const kind = w.weather.kind;
@@ -550,6 +555,7 @@ export function createRenderer(A) {
     }
   }
   function drawBeams() {
+    drawVolleys();
     for (const b of beams) { const k = 1 - b.t / b.life; line(b.x, b.y, b.x2, b.y2, b.col, 0.95 * k, b.w); if (b.w > 1) line(b.x, b.y, b.x2, b.y2, [255, 255, 255], 0.7 * k) }
   }
   // the tiers: a turning figure on the ground (triangle, square, pentagram, hexagram), its corners in the elements
@@ -616,6 +622,36 @@ export function createRenderer(A) {
       o.angle = m.state === "dive" ? 0.5 : 0;
     }
     for (const [id, f] of falcons) if (!live.has(id)) { const i = fxs.indexOf(f); if (i >= 0) fxs.splice(i, 1); falcons.delete(id) }
+  }
+  // an arrow: a wooden shaft, a steel head at (hx, hy), pale fletching at the back, along (dx, dy)
+  function arrow(hx, hy, dx, dy, k = 1) {
+    const L = 12, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+    // a dark edge beside the shaft so it reads on grass and stone alike
+    line(hx - ux * L + 1, hy - uy * L, hx - ux * 3 + 1, hy - uy * 3, [40, 24, 14], k * 0.6);
+    line(hx - ux * L, hy - uy * L, hx - ux * 3, hy - uy * 3, [170, 112, 58], k);
+    // the head: a steel point two pixels wide
+    for (let i = 0; i < 3; i++) { put(hx - ux * i, hy - uy * i, i ? [190, 198, 214] : [255, 255, 255], k); put(hx - ux * (i + 1) - uy, hy - uy * (i + 1) + ux, [150, 158, 176], k * (i === 1 ? 1 : 0)); put(hx - ux * (i + 1) + uy, hy - uy * (i + 1) - ux, [150, 158, 176], k * (i === 1 ? 1 : 0)) }
+    // red fletching at the back
+    for (let i = 0; i < 3; i++) { const bx = hx - ux * (L - i), by = hy - uy * (L - i); put(bx - uy, by + ux, [226, 64, 58], k); put(bx + uy, by - ux, [226, 64, 58], k) }
+  }
+  function drawVolleys() {
+    const RISE = 0.3, FALL = 0.22;
+    for (const v of volleys) {
+      if (v.t < v.go) continue;
+      if (v.t < v.go + RISE) {   // going up from the bow in a fan, out of sight
+        const u = (v.t - v.go) / RISE, x = v.x0 + (30 + 40 * v.up) * u, y = v.y0 - 150 * u;
+        arrow(x, y, (30 + 40 * v.up) / 150, -1);
+      } else if (v.t < v.at) {   // coming down on its spot, the last FALL seconds
+        const left = v.at - v.t;
+        if (left > FALL) continue;
+        const u = 1 - left / FALL, x = v.x - 14 * (1 - u), y = v.y - 120 * (1 - u);
+        arrow(x, y, 0.12, 1);
+        line(x - 2.5, y - 34, x - 1.4, y - 14, [255, 255, 255], 0.3);   // a streak behind it
+      } else {   // stuck in the ground a moment, fading
+        const k = 1 - (v.t - v.at) / 0.6;
+        arrow(v.x, v.y + 8, 0.12, 1, k);
+      }
+    }
   }
   function drawMinion(m) {
     if (m.body === "falcon") return;
@@ -754,7 +790,7 @@ export function createRenderer(A) {
     drawFx(fxs.filter((f) => !f.number && f.kind !== "weather" && f.kind !== "bh"), "front");
     if (bolts.length) drawBolts();
     if (rings.length) drawRings();
-    if (beams.length) drawBeams();
+    if (beams.length || volleys.length) drawBeams();
     if (w.blackholes.length) lens(w);
     drawFx(fxs.filter((f) => f.kind === "bh"), "front");
     if (rainK > 0.01 || (env === "rain" && envK > 0)) drawRain(env === "rain" ? Math.max(rainK, 0.45 * envK) : rainK);
