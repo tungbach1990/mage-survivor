@@ -3,7 +3,7 @@
 // a reaction card (from chapter 2), an imbue (martial classes: the basic attack carries a mark the class's book
 // lacks, so every class can gather all ten), the wall, and once the class's ten marks have awakened, Chaos Seed.
 
-import { SKILLS, maxLevel } from "../data/skills.js";
+import { SKILLS, maxLevel, reqOf } from "../data/skills.js";
 import { ELEM, MARTIAL, schoolOf } from "../data/elements.js";
 import { CLASSES } from "../data/classes.js";
 import { T, skillT } from "../data/tuning.js";
@@ -30,8 +30,8 @@ const cls = (w) => w.cls ?? "mage";
 export const learnable = (w, id) => {
   const sk = SKILLS[id];
   if (!sk.cls.includes(cls(w)) || sk.basic || id === "chaosseed" || skillT(id).off) return false;
-  // a class's own book is always there (it is the class); a Mage's book is the elements, opened one by one
-  return cls(w) !== "mage" || w.unlocked.has(sk.elem);
+  // every class: a skill shows up only once all the marks it needs are unlocked
+  return reqOf(id).every((m) => w.unlocked.has(m));
 };
 /** The martial marks a class's own book never leaves: offered as imbues for its basic attack. */
 export const imbuesFor = (c) => {
@@ -56,8 +56,7 @@ export function cardPool(w) {
     // past six marks, the missing ones come first
     const marks = marksOfSkill(sk), fresh = marks.some((m) => !have.has(m));
     const wanted = have.size >= 6 && fresh ? 6 : fresh ? 3 : 2;
-    const locked = !w.unlocked.has(sk.elem) ? ` (Chưa mở dấu ${ELEM[sk.elem]?.name}: chỉ gây sát thương, không để dấu.)` : "";
-    cards.push({ kind: "learn", id, elem: sk.elem, title: `Học ${sk.name}`, text: sk.desc + locked, weight: wanted });
+    cards.push({ kind: "learn", id, elem: sk.elem, title: `Học ${sk.name}`, text: sk.desc, weight: wanted });
   }
   for (const m of imbuesFor(cls(w))) if (!w.imbue.has(m) && w.unlocked.has(m)) cards.push({ kind: "imbue", elem: m, title: `Tẩm ${ELEM[m].name}`, text: `Đòn đánh thường để lại thêm dấu ${ELEM[m].name}.`, weight: 3 });
   for (const s of STATS) cards.push({ kind: "stat", id: s.id, title: s.title, text: s.text, weight: 1 });
