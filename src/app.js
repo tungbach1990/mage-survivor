@@ -392,7 +392,7 @@ function hud() {
     set($("boss-name"), "text", CHAPTERS[Math.min(5, w.chapter) - 1].boss.name + (boss.tenacity?.unstop > 0 ? " · KHÔNG THỂ CẢN" : boss.enraged ? " · NỔI ĐIÊN" : ""));
     set($("boss-fill"), "width", `${((100 * boss.hp) / boss.max).toFixed(1)}%`);
     set($("boss-shield"), "width", `${((100 * boss.shield) / boss.max).toFixed(1)}%`);
-    set($("boss-hint"), "text", boss.shield > 0 ? (boss.shieldBy === "tier" ? "Khiên: cần phản ứng TẦNG (TRIAD+)" : "Khiên: cần phản ứng") : "");
+    set($("boss-hint"), "text", boss.shield > 0 ? (boss.shieldBy === "tier" ? "Khiên: TRIAD+ phá thẳng, đòn thường mài dần (Phá giáp mài nhanh)" : "Khiên: phản ứng phá thẳng, đòn thường mài dần (Phá giáp mài nhanh)") : "");
   }
   const E = ENVS[w.env] ?? ENVS.clear, eb = $("env");
   set(eb, "text", `${E.icon} ${E.name}`); eb.title = E.vi;

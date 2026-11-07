@@ -128,8 +128,8 @@ export function damage(w, e, amount, elem, opts = {}) {
   if (real && phys && st.exposed > 0) { st.exposed--; amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }   // exposed: this blow is a sure crit
   else if (real && w.mods?.crit && w.rng.chance(w.mods.crit)) { amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }
   // a shield (an elite's, a boss's): reactions (or tiers) break it outright; any other blow wears it down a
-  // little, a physical one more (it's force against a barrier), more still on a sundered monster; a tenth of
-  // such a blow gets through to the body
+  // little, a physical one more (it's force against a barrier), more still on a sundered monster. Nothing
+  // reaches the body while the shield stands.
   if (e.shield > 0) {
     const breaks = e.shieldBy === "tier" ? elem === "tier" || elem === "chaos" : opts.reaction || elem === "tier" || elem === "chaos";
     let s;
@@ -137,7 +137,7 @@ export function damage(w, e, amount, elem, opts = {}) {
     else {
       const wear = phys ? (e.auras.has("sunder") ? SHIELD_WEAR.sundered : SHIELD_WEAR.phys) : SHIELD_WEAR.magic;
       s = Math.min(e.shield, amount * wear);
-      amount *= 0.1;
+      amount = 0;
       w.events.push({ type: "shieldHit", id: e.id, x: e.x, y: e.y });
     }
     e.shield -= s;

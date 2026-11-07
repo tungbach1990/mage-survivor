@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Mage Survivor Defense</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <link rel="stylesheet" href="ui.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="screen" width="320" height="180"></canvas>
+
+    <!-- ===== in a run ===== -->
+    <div id="hud" hidden>
+      <div id="hud-top">
+        <div class="bar wall"><span class="label">Tường</span><div class="track"><div id="wall-fill" class="fill"></div></div><span id="wall-text"></span></div>
+        <div id="env" class="badge env"></div>
+        <div id="weather" class="badge" hidden></div>
+        <div id="wave"></div>
+        <div id="fps" hidden></div>
+        <button id="pause-btn" title="Tạm dừng (P)">⏸</button>
+      </div>
+      <div id="xp"><span id="lvl">Lv 1</span><div class="track"><div id="xp-fill" class="fill"></div></div></div>
+      <div id="boss" hidden><span id="boss-name"></span><div class="track"><div id="boss-fill" class="fill"></div><div id="boss-shield" class="fill shield"></div></div><small id="boss-hint"></small></div>
+      <div id="hud-bottom">
+        <div id="skills"></div>
+        <div id="sigils" title="Ấn nguyên tố: sáng dần theo số phản ứng; đủ 10 phản ứng thì thức tỉnh"></div>
+      </div>
+      <div id="toasts"></div>
+      <div id="banner" hidden></div>
+    </div>
+
+    <div id="cards" class="overlay" hidden>
+      <h2 id="cards-title">Chọn nâng cấp</h2>
+      <div id="card-list"></div>
+      <p class="hint">Chạm vào thẻ (hoặc phím 1–4) · <span id="reroll-hint"></span></p>
+      <button id="reroll-btn" hidden></button>
+    </div>
+    <div id="pause" class="overlay" hidden><h1>Tạm dừng</h1><button id="resume" class="big">▶ Chơi tiếp</button><button data-go="quit">Bỏ lượt (vẫn nhận thưởng)</button></div>
+
+    <div id="summary" class="overlay" hidden>
+      <h1 id="sum-title"></h1>
+      <div id="sum-body"></div>
+      <button data-go="menu">Về sảnh</button>
+    </div>
+
+    <!-- ===== the hall ===== -->
+    <div id="menu" class="page">
+      <h1>Mage Survivor Defense</h1>
+      <div id="profile-line"></div>
+      <div class="menu-grid">
+        <button data-go="setup" class="big">▶ Chơi</button>
+        <button data-go="talents">Nâng cấp</button>
+        <button data-go="classes">Nghề</button>
+        <button data-go="elements">Nguyên tố & dấu</button>
+        <button data-go="gear">Trang bị</button>
+        <button data-go="codex">Codex</button>
+        <button data-go="achievements">Thành tích & Nhiệm vụ</button>
+        <button data-go="settings">Cài đặt</button>
+        <button data-go="admin" class="admin-btn">⚙ Quản trị cân bằng</button>
+      </div>
+      <p class="keys"><b>P</b> tạm dừng · <b>F</b> FPS · <b>1–4</b> chọn thẻ · <b>R</b> đổi thẻ</p>
+    </div>
+
+    <div id="setup" class="page" hidden>
+      <h2>Chọn chương</h2>
+      <div id="chapters" class="row"></div>
+      <h2>Nghề</h2>
+      <p id="start-hint" class="hint"></p>
+      <div id="starts" class="row wrap"></div>
+      <div class="row"><button data-go="menu">← Sảnh</button><button id="go" class="big">Bắt đầu</button></div>
+    </div>
+
+    <div id="talents" class="page" hidden><h2>Nâng cấp vĩnh viễn <span class="crys"></span></h2><div id="talents-classbar" class="row adm-tabs classbar"></div><div id="talent-list" class="cols"></div><button data-go="menu">← Sảnh</button></div>
+    <div id="elements" class="page" hidden><h2>Nguyên tố & dấu <span class="crys"></span></h2><div id="elements-classbar" class="row adm-tabs classbar"></div><h3>Nguyên tố</h3><div id="elem-list" class="row wrap"></div><h3>Dấu võ thuật</h3><div id="mark-list" class="row wrap"></div><p id="chaos-note" class="hint"></p><button data-go="menu">← Sảnh</button></div>
+    <div id="gear" class="page" hidden><h2>Trang bị <span class="crys"></span></h2><div id="gear-classbar" class="row adm-tabs classbar"></div><div id="gear-slots" class="row"></div><h3>Túi đồ (chung)</h3><div id="bag-filter" class="row adm-tabs classbar"></div><div id="bag" class="row wrap"></div><button data-go="menu">← Sảnh</button></div>
+    <div id="classes" class="page" hidden><h2>Nghề <span class="crys"></span></h2><div id="class-list" class="cols"></div><button data-go="menu">← Sảnh</button></div>
+    <div id="codex" class="page" hidden><h2>Codex phản ứng <span id="codex-count"></span></h2><div id="codex-tabs" class="row adm-tabs"></div><div id="codex-list" class="cols"></div><h2>Quái nguyên tố</h2><div id="bestiary" class="cols"></div><h2>Môi trường</h2><div id="envs" class="cols"></div><button data-go="menu">← Sảnh</button></div>
+    <div id="achievements" class="page" hidden><h2>Nhiệm vụ hôm nay</h2><div id="quest-list"></div><h2>Thành tích <span id="ach-count"></span></h2><div id="ach-list" class="cols"></div><button data-go="menu">← Sảnh</button></div>
+    <div id="settings" class="page" hidden>
+      <h2>Cài đặt</h2>
+      <div class="row"><button id="export">Xuất file lưu</button><label class="btn">Nhập file lưu<input id="import" type="file" accept=".json" hidden></label><button id="reset" class="danger">Xóa dữ liệu</button></div>
+      <button data-go="menu">← Sảnh</button>
+    </div>
+
+    <div id="admin" class="page admin" hidden></div>
+
+    <div id="loading" class="overlay"><p>Đang tải…</p></div>
+  </div>
+  <p id="rotate">↻ Xoay ngang điện thoại để chơi rộng hơn</p>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

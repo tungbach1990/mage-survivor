@@ -17,6 +17,6 @@ export const ELITES = {
   splitter: { tag: "SPLIT",   color: [240, 200, 120], vi: "Chết thì tách đôi" },
   regen:    { tag: "REGEN",    color: [120, 240, 120], vi: "Tự hồi 1,5% máu mỗi giây khi không bị đánh" },
   warded:   { tag: "WARD",  color: [200, 140, 255], vi: "Miễn nhiễm gần hết một nguyên tố" },
-  shielded: { tag: "SHIELD",  color: [140, 200, 255], vi: "Khiên chỉ phá được bằng phản ứng" },
+  shielded: { tag: "SHIELD",  color: [140, 200, 255], vi: "Khiên dày: phản ứng phá thẳng, đòn vật lý mài nhanh (nhất là khi đã Phá giáp)" },
 };
 export const ELITE_KINDS = Object.keys(ELITES);
