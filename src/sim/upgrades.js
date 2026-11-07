@@ -89,7 +89,10 @@ export function drawCards(w, n = 3) {
 export function refreshPassives(w) {
   // the class's own strength (balanced so each can hold the wall), the admin's word, then the passives
   const c = CLASSES[w.cls ?? "mage"], t = T.classes?.[w.cls ?? "mage"] ?? {};
-  w.power = (c?.power ?? 1) * (t.dmg ?? 1);   // on the skills' own numbers (skillStats)
+  // a new player's class: its "early" factor, fading as its tree fills (gone by the time it's half full)
+  // and its "mid" factor, strongest with half the tree (a class that is weak mid-game, strong at both ends)
+  const nv = w.novice ?? 0;
+  w.power = (c?.power ?? 1) * (t.dmg ?? 1) * (1 + ((c?.early ?? 1) - 1) * Math.max(0, Math.min(1, (nv - 0.5) * 2))) * (1 + ((c?.mid ?? 1) - 1) * Math.max(0, 1 - Math.abs(nv - 0.5) * 2));   // on the skills' own numbers (skillStats)
   w.pm = { dmg: 1, wallTaken: (t.wallTaken ?? 1) * (w.mods?.wallTaken ?? 1), gold: w.mods?.gold ?? 1 };
   for (const [id, s] of Object.entries(w.skills)) {
     if (SKILLS[id].passive !== "mod") continue;

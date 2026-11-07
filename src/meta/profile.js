@@ -88,7 +88,10 @@ export const chapterOpen = (p, n) => n <= p.best.chapter + 1;
 /** The options for createWorld: the class picked (one the profile has) with its tree, marks and gear. */
 export function runOptions(p, { chapter = 1, endless = false, cls = p.lastClass ?? "mage" } = {}) {
   if (!classOpen(p, cls)) cls = "mage";
-  return { cls, chapter, endless, mods: profileMods(p, cls), unlocked: marksOpen(p, cls), chaosUnlocked: chaosUnlocked(p, cls), codex: p.codex, basicLevel: basicLevel(p) };
+  // how new the player is with this class: 1 with an empty tree, 0 with all of it (the class's "novice" factor
+  // fades with it)
+  const tree = TALENT_TREES[cls], bought = tree.reduce((s, t) => s + (pc(p, cls).talents[t.id] ?? 0), 0), max = tree.reduce((s, t) => s + t.max, 0);
+  return { cls, chapter, endless, mods: profileMods(p, cls), unlocked: marksOpen(p, cls), chaosUnlocked: chaosUnlocked(p, cls), codex: p.codex, basicLevel: basicLevel(p), novice: 1 - bought / max };
 }
 
 // ---------- spending ----------

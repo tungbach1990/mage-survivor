@@ -11,22 +11,24 @@ import { CLASS_IDS } from "../data/classes.js";
 const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
 
 /**
- * A profile at three stages, for every class: "fresh"; "half" (half its tree, six marks of its own school);
+ * A profile at five stages, for every class: "fresh"; "early" (a few runs in: a quarter of its tree, four
+ * marks); "half" (half its tree, six marks of its own school); "most" (three quarters, eight marks, some gear);
  * "full" (its whole tree, all twenty marks, gear of its own).
  */
+const STAGE = { early: [0.25, 4, 3], half: [0.5, 6, 6], most: [0.75, 8, 12], full: [1, 20, 20] };
 export function presetProfile(kind) {
   const p = freshProfile();
   p.classes = [...CLASS_IDS];
   if (kind === "fresh") return p;
-  const frac = kind === "half" ? 0.5 : 1;
-  p.mageLevel = kind === "half" ? 6 : 20;
+  const [frac, nMarks, lvl] = STAGE[kind];
+  p.mageLevel = lvl;
   for (const c of CLASS_IDS) {
     const pc = p.perClass[c], home = homeSchool(c);
     for (const t of TALENT_TREES[c]) pc.talents[t.id] = Math.round(t.max * frac);
     // what a player would open first: the marks its own book uses most (the Acolyte: light and water)
     const own = home === "arcane" ? ELEMENTS : home === "martial" ? MARTIAL : ["light", "water", ...MARTIAL, ...ELEMENTS];
-    pc.marks = kind === "half" ? [...new Set([...START_MARKS[c], ...own])].slice(0, 6) : [...MARKS];
-    if (kind === "full") pc.gear = Object.fromEntries(["weapon", "cloak", "amulet"].map((s, i) => [s, { ...rollItem(11 * (i + 1), 5, 0, { cls: c, marks: pc.marks }), slot: s }]));
+    pc.marks = kind === "full" ? [...MARKS] : [...new Set([...START_MARKS[c], ...own])].slice(0, nMarks);
+    if (kind === "full" || kind === "most") pc.gear = Object.fromEntries(["weapon", "cloak", "amulet"].map((s, i) => [s, { ...rollItem(11 * (i + 1), 5, 0, { cls: c, marks: pc.marks }), slot: s }]));
   }
   return p;
 }

@@ -13,17 +13,17 @@ const S = (cls, name, elem, kind, desc, stats, extra = {}) => ({ name, elem, kin
 export const CLASS_SKILLS = {
   // ---------------- the basic attacks: one per class, the run starts with it, it levels to 8 ----------------
   basic_mage: S("mage", "Magic Bolt", "arcane", "bolt", "Đánh thường: tia phép huyền bí. Cấp 4: 2 tia. Cấp 8: xuyên 3 con.",
-    { cd: L8(0.8, 0.38), dmg: L8(13, 40), speed: 260, count: (l) => (l >= 4 ? 2 : 1), pierce: (l) => (l >= 8 ? 3 : 1) }, { basic: true, max: 8, icon: "icon_b_mage" }),
+    { cd: L8(0.8, 0.38), dmg: L8(8, 40), speed: 260, count: (l) => (l >= 4 ? 2 : 1), pierce: (l) => (l >= 8 ? 3 : 1) }, { basic: true, max: 8, icon: "icon_b_mage" }),
   basic_swordman: S("swordman", "Chém", "sunder", "melee", "Đánh thường: chém những con sát tường. Cấp 4: trúng 3 con. Cấp 8: chém ra sóng kiếm.",
-    { cd: L8(0.7, 0.38), dmg: L8(22, 48), reach: 30, width: 26, targets: (l) => (l >= 4 ? 3 : 2), wave: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_swordman" }),
+    { cd: L8(0.7, 0.38), dmg: L8(13, 48), reach: 30, width: 26, targets: (l) => (l >= 4 ? 3 : 2), wave: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_swordman" }),
   basic_archer: S("archer", "Bắn tên", "bleed", "bolt", "Đánh thường: một mũi tên. Cấp 4: 2 mũi. Cấp 8: xuyên 3 con.",
-    { cd: L8(0.7, 0.34), dmg: L8(12, 36), speed: 330, count: (l) => (l >= 4 ? 2 : 1), pierce: (l) => (l >= 8 ? 3 : 1) }, { basic: true, max: 8, icon: "icon_b_archer" }),
+    { cd: L8(0.7, 0.34), dmg: L8(18, 36), speed: 330, count: (l) => (l >= 4 ? 2 : 1), pierce: (l) => (l >= 8 ? 3 : 1) }, { basic: true, max: 8, icon: "icon_b_archer" }),
   basic_thief: S("thief", "Phi dao", "venom", "bolt", "Đánh thường: ném 2 dao găm tẩm nọc. Cấp 4: 3 dao. Cấp 8: dao tự đuổi theo.",
-    { cd: L8(0.62, 0.32), dmg: L8(7, 22), speed: 300, count: (l) => (l >= 4 ? 3 : 2), homing: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_thief" }),
+    { cd: L8(0.62, 0.32), dmg: L8(12, 22), speed: 300, count: (l) => (l >= 4 ? 3 : 2), homing: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_thief" }),
   basic_acolyte: S("acolyte", "Holy Light", "light", "bolt", "Đánh thường: tia thánh quang. Cấp 4: 2 tia. Cấp 8: mỗi tia hồi 1 máu tường.",
     { cd: L8(0.68, 0.4), dmg: L8(25, 38), speed: 260, count: (l) => (l >= 4 ? 2 : 1), mend: (l) => (l >= 8 ? 1 : 0) }, { basic: true, max: 8, icon: "icon_b_acolyte" }),
   basic_merchant: S("merchant", "Cart Hit", "daze", "melee", "Đánh thường: húc xe đẩy vào quái sát tường. Cấp 4: trúng 3 con. Cấp 8: mỗi cú rơi 1 vàng.",
-    { cd: L8(0.85, 0.45), dmg: L8(15, 44), reach: 32, width: 28, targets: (l) => (l >= 4 ? 3 : 2), coin: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_merchant" }),
+    { cd: L8(0.85, 0.45), dmg: L8(27, 44), reach: 32, width: 28, targets: (l) => (l >= 4 ? 3 : 2), coin: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_merchant" }),
 
   // ---------------- Swordman: a gatekeeper ----------------
   bash: S("swordman", "Bash", "daze", "melee", "Đập mạnh một con sát tường: Choáng + Phá giáp.", { cd: L(2.6, 2), dmg: L(60, 96), reach: 34, width: 20, targets: 1 }, { also: ["sunder"], icon: "icon_bash" }),
@@ -79,12 +79,12 @@ export const CLASS_SKILLS = {
 export const SHARED = { holylance: ["mage", "acolyte"], smite: ["mage", "acolyte"], angel: ["mage", "acolyte"], stonegolem: ["mage", "merchant"] };
 
 export const CLASSES = {
-  mage:     { power: 1.55, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
-  swordman: { chaosPow: 0.6, power: 1.6, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
-  archer:   { power: 1.9, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
-  thief:    { power: 2.35, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
-  acolyte:  { chaosAt: 12, chaosCd: 2.2, chaosPow: 0.15, power: 1.55, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
-  merchant: { power: 1.95, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
+  mage:     { early: 0.62, mid: 1.5, power: 1.55, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
+  swordman: { early: 0.67, chaosPow: 0.6, power: 1.95, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
+  archer:   { early: 1, power: 1.9, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
+  thief:    { early: 0.96, power: 2.35, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
+  acolyte:  { early: 0.86, mid: 0.85, chaosAt: 12, chaosCd: 2.2, chaosPow: 0.15, power: 1.85, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
+  merchant: { early: 1.22, power: 1.95, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
 };
 export const CLASS_IDS = Object.keys(CLASSES);
 /** The marks a class gathers toward awakening and CHAOS (Chaos Seed sows these). */
