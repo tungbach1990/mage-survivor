@@ -3,38 +3,38 @@
 // (labels, tier sigils, beams, wells), the black hole bending the picture round it, and every pixelfx effect.
 // The browser puts the bytes on a canvas; Node writes them to PNGs.
 
-import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7j4z1u";
-import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7j4z1u";
-import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7j4z1u";
-import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7j4z1u";
-import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7j4z1u";
-import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7j4z1u";
-import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7j4z1u";
-import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7j4z1u";
-import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7j4z1u";
-import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7j4z1u";
-import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7j4z1u";
-import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7j4z1u";
-import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7j4z1u";
-import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7j4z1u";
-import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7j4z1u";
-import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7j4z1u";
-import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7j4z1u";
-import * as rainCloud from "./fx/rain-cloud.js?v=mw7j4z1u";
-import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7j4z1u";
-import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7j4z1u";
-import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7j4z1u";
-import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7j4z1u";
-import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7j4z1u";
-import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7j4z1u";
+import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7j8yv5";
+import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7j8yv5";
+import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7j8yv5";
+import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7j8yv5";
+import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7j8yv5";
+import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7j8yv5";
+import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7j8yv5";
+import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7j8yv5";
+import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7j8yv5";
+import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7j8yv5";
+import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7j8yv5";
+import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7j8yv5";
+import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7j8yv5";
+import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7j8yv5";
+import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7j8yv5";
+import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7j8yv5";
+import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7j8yv5";
+import * as rainCloud from "./fx/rain-cloud.js?v=mw7j8yv5";
+import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7j8yv5";
+import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7j8yv5";
+import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7j8yv5";
+import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7j8yv5";
+import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7j8yv5";
+import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7j8yv5";
 // the archer's falcon: pixelfx's bird in a falcon's browns, a cream breast
 const FALCON = { palette: ["#1a0e08", "#3a2414", "#5c3a1e", "#84562c", "#ae7a44", "#d8ac72", "#fff0d0"], breast: ["#5a3a1e", "#b48a5a", "#e8d0a4", "#fff4dc"] };
-import { LOOKS, blastOf } from "./render/looks.js?v=mw7j4z1u";
-import { dressHero, gearGlow } from "./render/dress.js?v=mw7j4z1u";
-import { RARITY_GEM } from "./data/gear.js?v=mw7j4z1u";
-import { FRAMES } from "./assets.js?v=mw7j4z1u";
-import { ENEMIES } from "./sim/enemies.js?v=mw7j4z1u";
-import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7j4z1u";
+import { LOOKS, blastOf } from "./render/looks.js?v=mw7j8yv5";
+import { dressHero, gearGlow } from "./render/dress.js?v=mw7j8yv5";
+import { RARITY_GEM } from "./data/gear.js?v=mw7j8yv5";
+import { FRAMES } from "./assets.js?v=mw7j8yv5";
+import { ENEMIES } from "./sim/enemies.js?v=mw7j8yv5";
+import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7j8yv5";
 
 // ---- the screen stands up: 180 x 320. A field point (x: distance from the wall's side, y: across the lanes)
 // lands at (SX, SY): its lanes (y 76..172) across the screen, its depth up it (the wall at y 250, the spawn at
@@ -50,10 +50,10 @@ export const toScreen = (x, y, h = 0) => [SX(y), SY(x) - h];
 const rot = (vx, vy) => [vy * KX, -vx];
 const HERO = toScreen(MAGE_FEET[0], MAGE_FEET[1]);
 const WALL_Y = SY(WALL_X);   // the wall's outer face
-import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7j4z1u";
-import { REACTION_BY_ID } from "./data/reactions.js?v=mw7j4z1u";
-import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7j4z1u";
-import { BLACK_HOLE } from "./sim/chaos.js?v=mw7j4z1u";
+import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7j8yv5";
+import { REACTION_BY_ID } from "./data/reactions.js?v=mw7j8yv5";
+import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7j8yv5";
+import { BLACK_HOLE } from "./sim/chaos.js?v=mw7j8yv5";
 
 const MAX_LABELS = 6;
 const CLOUDS = {

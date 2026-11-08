@@ -5,23 +5,23 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7j4z1u";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7j4z1u";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7j4z1u";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7j4z1u";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7j4z1u";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7j4z1u";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7j4z1u";
-import { T, typeT } from "../data/tuning.js?v=mw7j4z1u";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7j4z1u";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7j4z1u";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7j4z1u";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw7j4z1u";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7j4z1u";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7j4z1u";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7j4z1u";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7j4z1u";
-import { updateBlackHoles } from "./chaos.js?v=mw7j4z1u";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7j8yv5";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7j8yv5";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7j8yv5";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7j8yv5";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7j8yv5";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7j8yv5";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7j8yv5";
+import { T, typeT } from "../data/tuning.js?v=mw7j8yv5";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7j8yv5";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7j8yv5";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7j8yv5";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw7j8yv5";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7j8yv5";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7j8yv5";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7j8yv5";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7j8yv5";
+import { updateBlackHoles } from "./chaos.js?v=mw7j8yv5";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
