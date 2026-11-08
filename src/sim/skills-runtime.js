@@ -1,12 +1,12 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw7owxdc";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7owxdc";
-import { T, skillT } from "../data/tuning.js?v=mw7owxdc";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw7owxdc";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7owxdc";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7owxdc";
+import { ENEMIES } from "./enemies.js?v=mw7p9372";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7p9372";
+import { T, skillT } from "../data/tuning.js?v=mw7p9372";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw7p9372";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7p9372";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7p9372";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -215,9 +215,20 @@ export function updateShots(w, dt) {
     w.src = s.skill;
     if (s.dead) continue;
     if (s.delay > 0) { s.delay -= dt; continue }
-    if (s.target) {   // homing: steer toward the target while it lives
-      const t = w.enemies.find((e) => e.id === s.target && e.hp > 0);
-      if (t) { const [tx, ty] = center(t), sp = Math.hypot(s.vx, s.vy), d = Math.hypot(tx - s.x, ty - s.y) || 1, k = Math.min(1, dt * 6); s.vx += ((tx - s.x) / d * sp - s.vx) * k; s.vy += ((ty - s.y) / d * sp - s.vy) * k }
+    if (s.target) {
+      // a seeking blade: flies straight at its mark; if the mark dies first, it swings round in a full circle,
+      // then goes straight for the nearest one left (up to three times)
+      const t = w.enemies.find((e) => e.id === s.target && e.hp > 0), sp = Math.hypot(s.vx, s.vy) || 1;
+      if (s.loop > 0) {
+        const turn = (Math.PI * 2) / 0.42 * dt * (s.spin ?? 1), c = Math.cos(turn), sn = Math.sin(turn), vx = s.vx;
+        s.vx = vx * c - s.vy * sn; s.vy = vx * sn + s.vy * c; s.loop -= Math.abs(turn);
+        if (s.loop <= 0) {
+          const next = alive(w).filter((e) => !s.hit.has(e.id)).sort((a, b) => Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(b.x - s.x, b.y - s.y))[0];
+          if (next) { s.target = next.id; s.locked = true } else s.target = null;
+        }
+      } else if (!t) {
+        if ((s.loops ?? 0) < 3) { s.loop = Math.PI * 2; s.loops = (s.loops ?? 0) + 1; s.spin = s.vy >= 0 ? 1 : -1; s.left = Math.max(s.left, 320) } else s.target = null;
+      } else if (s.locked) { const [tx, ty] = center(t), d = Math.hypot(tx - s.x, ty - s.y) || 1; s.vx = ((tx - s.x) / d) * sp; s.vy = ((ty - s.y) / d) * sp }
     }
     const step = Math.hypot(s.vx, s.vy) * dt;
     s.x += s.vx * dt; s.y += s.vy * dt; s.left -= step;

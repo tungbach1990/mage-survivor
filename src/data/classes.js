@@ -3,7 +3,7 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7owxdc";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7p9372";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8
@@ -18,7 +18,7 @@ export const CLASS_SKILLS = {
     { cd: L8(0.7, 0.38), dmg: L8(13, 34), reach: 30, width: 26, targets: (l) => (l >= 4 ? 3 : 2), wave: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_swordman" }),
   basic_archer: S("archer", "Bắn tên", "bleed", "bolt", "Đánh thường: một mũi tên. Cấp 4: 2 mũi. Cấp 8: xuyên 3 con.",
     { cd: L8(0.7, 0.34), dmg: L8(16, 26), speed: 330, count: (l) => (l >= 4 ? 2 : 1), pierce: (l) => (l >= 8 ? 3 : 1) }, { basic: true, max: 8, icon: "icon_b_archer" }),
-  basic_thief: S("thief", "Phi dao", "venom", "bolt", "Đánh thường: ném 2 dao găm tẩm nọc. Cấp 4: 3 dao. Cấp 8: dao tự đuổi theo.",
+  basic_thief: S("thief", "Phi dao", "venom", "bolt", "Đánh thường: ném 2 dao găm tẩm nọc. Cấp 4: 3 dao. Cấp 8: dao bay thẳng vào mục tiêu; mục tiêu chết trước thì dao lượn một vòng rồi lao vào con gần nhất.",
     { cd: L8(0.62, 0.32), dmg: L8(5, 8), speed: 300, count: (l) => (l >= 4 ? 3 : 2), homing: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_thief" }),
   basic_acolyte: S("acolyte", "Holy Light", "light", "strike", "Đánh thường: thập giá thánh quang giáng thẳng lên quái. Cấp 4: 2 thập giá. Cấp 8: mỗi thập giá hồi 1 máu tường.",
     { cd: L8(0.68, 0.4), dmg: L8(22, 28), speed: 260, count: (l) => (l >= 4 ? 2 : 1), mend: (l) => (l >= 8 ? 1 : 0) }, { basic: true, max: 8, icon: "icon_b_acolyte" }),

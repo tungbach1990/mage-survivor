@@ -3,16 +3,16 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7owxdc";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7owxdc";
-import { SKILLS } from "../data/skills.js?v=mw7owxdc";
-import { CODEX } from "../data/reactions.js?v=mw7owxdc";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7owxdc";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7owxdc";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw7owxdc";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw7owxdc";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7owxdc";
-import { GEAR_SCALE } from "../data/meta.js?v=mw7owxdc";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7p9372";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7p9372";
+import { SKILLS } from "../data/skills.js?v=mw7p9372";
+import { CODEX } from "../data/reactions.js?v=mw7p9372";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7p9372";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7p9372";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw7p9372";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw7p9372";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7p9372";
+import { GEAR_SCALE } from "../data/meta.js?v=mw7p9372";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
