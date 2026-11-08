@@ -6,16 +6,16 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw7j8yv5";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7j8yv5";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7j8yv5";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7j8yv5";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7j8yv5";
-import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7j8yv5";
-import { ENVS } from "../data/environments.js?v=mw7j8yv5";
-import { T, reactT } from "../data/tuning.js?v=mw7j8yv5";
+import { ENEMIES } from "./enemies.js?v=mw7jevkm";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7jevkm";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7jevkm";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7jevkm";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7jevkm";
+import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7jevkm";
+import { ENVS } from "../data/environments.js?v=mw7jevkm";
+import { T, reactT } from "../data/tuning.js?v=mw7jevkm";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw7j8yv5";
+import { startBlackHole } from "./chaos.js?v=mw7jevkm";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
@@ -26,6 +26,7 @@ export const OVERTIME = 120;
 export const WALL_HEAL_PER_SEC = 0.04;
 /** Mend the wall by n, within this second's budget (returns what it mended). */
 export function healWall(w, n) {
+  if (w.wall.hp <= 0) return 0;   // fallen: nothing raises it
   const sec = Math.floor(w.t);
   if (w.healSec !== sec) { w.healSec = sec; w.healLeft = w.wall.max * WALL_HEAL_PER_SEC }
   const k = Math.max(0, Math.min(n, w.healLeft, w.wall.max - w.wall.hp));
