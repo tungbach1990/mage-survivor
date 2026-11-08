@@ -3,38 +3,38 @@
 // (labels, tier sigils, beams, wells), the black hole bending the picture round it, and every pixelfx effect.
 // The browser puts the bytes on a canvas; Node writes them to PNGs.
 
-import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7fvyhu";
-import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7fvyhu";
-import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7fvyhu";
-import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7fvyhu";
-import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7fvyhu";
-import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7fvyhu";
-import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7fvyhu";
-import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7fvyhu";
-import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7fvyhu";
-import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7fvyhu";
-import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7fvyhu";
-import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7fvyhu";
-import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7fvyhu";
-import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7fvyhu";
-import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7fvyhu";
-import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7fvyhu";
-import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7fvyhu";
-import * as rainCloud from "./fx/rain-cloud.js?v=mw7fvyhu";
-import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7fvyhu";
-import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7fvyhu";
-import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7fvyhu";
-import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7fvyhu";
-import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7fvyhu";
-import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7fvyhu";
+import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7fxxao";
+import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7fxxao";
+import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7fxxao";
+import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7fxxao";
+import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7fxxao";
+import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7fxxao";
+import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7fxxao";
+import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7fxxao";
+import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7fxxao";
+import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7fxxao";
+import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7fxxao";
+import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7fxxao";
+import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7fxxao";
+import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7fxxao";
+import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7fxxao";
+import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7fxxao";
+import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7fxxao";
+import * as rainCloud from "./fx/rain-cloud.js?v=mw7fxxao";
+import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7fxxao";
+import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7fxxao";
+import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7fxxao";
+import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7fxxao";
+import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7fxxao";
+import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7fxxao";
 // the archer's falcon: pixelfx's bird in a falcon's browns, a cream breast
 const FALCON = { palette: ["#1a0e08", "#3a2414", "#5c3a1e", "#84562c", "#ae7a44", "#d8ac72", "#fff0d0"], breast: ["#5a3a1e", "#b48a5a", "#e8d0a4", "#fff4dc"] };
-import { LOOKS, blastOf } from "./render/looks.js?v=mw7fvyhu";
-import { dressHero, gearGlow } from "./render/dress.js?v=mw7fvyhu";
-import { RARITY_GEM } from "./data/gear.js?v=mw7fvyhu";
-import { FRAMES } from "./assets.js?v=mw7fvyhu";
-import { ENEMIES } from "./sim/enemies.js?v=mw7fvyhu";
-import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7fvyhu";
+import { LOOKS, blastOf } from "./render/looks.js?v=mw7fxxao";
+import { dressHero, gearGlow } from "./render/dress.js?v=mw7fxxao";
+import { RARITY_GEM } from "./data/gear.js?v=mw7fxxao";
+import { FRAMES } from "./assets.js?v=mw7fxxao";
+import { ENEMIES } from "./sim/enemies.js?v=mw7fxxao";
+import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7fxxao";
 
 // ---- the screen stands up: 180 x 320. A field point (x: distance from the wall's side, y: across the lanes)
 // lands at (SX, SY): its lanes (y 76..172) across the screen, its depth up it (the wall at y 250, the spawn at
@@ -50,10 +50,10 @@ export const toScreen = (x, y, h = 0) => [SX(y), SY(x) - h];
 const rot = (vx, vy) => [vy * KX, -vx];
 const HERO = toScreen(MAGE_FEET[0], MAGE_FEET[1]);
 const WALL_Y = SY(WALL_X);   // the wall's outer face
-import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7fvyhu";
-import { REACTION_BY_ID } from "./data/reactions.js?v=mw7fvyhu";
-import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7fvyhu";
-import { BLACK_HOLE } from "./sim/chaos.js?v=mw7fvyhu";
+import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7fxxao";
+import { REACTION_BY_ID } from "./data/reactions.js?v=mw7fxxao";
+import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7fxxao";
+import { BLACK_HOLE } from "./sim/chaos.js?v=mw7fxxao";
 
 const MAX_LABELS = 6;
 const CLOUDS = {
@@ -115,6 +115,8 @@ export function createRenderer(A) {
   let volleys = [];
   // plain basic attacks (levels 1-2, nothing imbued): a grey swing, a grey flick where a shot lands
   let swings = [], flicks = [];
+  // Holy Light: crosses set straight on the monsters
+  let crosses = [];
   let shake = 0, shakeT = 0, numbers = 0, clock = 0, rainK = 0, lavaK = 0, flash = 0, flashCol = [236, 226, 255], space = 0;
   const DROPS = Array.from({ length: 140 }, () => ({ x: rng.range(-20, W + 10), y: rng.range(4, H - 2), period: rng.range(0.42, 0.6), off: rng.next(), len: rng.int(4, 6) }));
   const STARS = Array.from({ length: 60 }, () => ({ x: rng.range(0, W), y: rng.range(0, H), p: rng.range(0, 6) }));
@@ -286,6 +288,7 @@ export function createRenderer(A) {
       case "enrage": flash = 0.2; flashCol = [255, 60, 40]; shake = Math.max(shake, 3); note("ENRAGE", ev.x, ev.y - 30, [255, 90, 70], true); break;
       case "unstoppable": note("UNSTOPPABLE", ev.x, ev.y - 10, [255, 210, 90]); rings.push({ x: ev.x, y: ev.y + 8, r: 18, t: 0, life: 0.5, col: [255, 210, 90] }); break;
       case "volley": for (const [i, a] of ev.arrows.entries()) volleys.push({ go: i * 0.022, x0: ev.x + rng.range(-1, 1), y0: ev.y - 4, up: rng.range(-0.6, 0.6), x: a.x, y: a.y - 8, at: a.t, t: 0, landed: false }); break;
+      case "cross": crosses.push({ x: ev.x, y: ev.y, t: 0, g: ev.plain ? -1 : grade(ev.lvl), col: ev.mark ? COL[ev.mark] : null }); break;
       case "claw": add(clawSwipe, { x: ev.x, y: ev.y + 6, angle: -Math.PI / 2, palette: NUM.bleed, light: 0.4, seed: rng.int(0, 99) }, { life: 0.5, fade: 0.2 }); spark(ev.x, ev.y, "bleed", 0.35); break;
       case "minionDie": add(poof, { x: ev.x, y: ev.y, light: 0.4, seed: rng.int(0, 99) }, { life: 1, fade: 0.4 }); break;
     }
@@ -331,6 +334,7 @@ export function createRenderer(A) {
     volleys = volleys.filter((v) => v.t < v.at + 0.6);
     for (const s of swings) s.t += dt; for (const f of flicks) f.t += dt;
     swings = swings.filter((s) => s.t < 0.18); flicks = flicks.filter((f) => f.t < 0.12);
+    for (const c of crosses) c.t += dt; crosses = crosses.filter((c) => c.t < 0.45);
     keep(bolts, (b) => b.t < b.life); keep(labels, (l) => l.t < (l.big ? 1.3 : 0.9)); keep(stones, (s) => s.t < 1.4); keep(rings, (r) => r.t < r.life); keep(beams, (b) => b.t < b.life); keep(sigils, (s) => s.t < s.life);
     shakeT += dt; shake = Math.max(0, shake - dt * 10); flash = Math.max(0, flash - dt);
     const kind = w.weather.kind;
@@ -725,7 +729,24 @@ export function createRenderer(A) {
       const k = 1 - s.t / 0.18, r = 14 + 6 * (s.t / 0.18);
       for (let a = -1.1; a <= 1.1; a += 0.06) put(s.x + Math.sin(a) * r * 1.2, s.y - 6 - Math.cos(a) * r * 0.7, G, 0.8 * k);
     }
+    for (const c of crosses) drawCross(c);
     for (const f of flicks) { const k = 1 - f.t / 0.12; put(f.x, f.y, G, k); put(f.x - 1, f.y - 1, D, k * 0.7); put(f.x + 1, f.y + 1, D, k * 0.7) }
+  }
+  function drawCross(c) {
+    const g = c.g, life = 0.45, u = c.t / life;
+    // it comes down from above in the first moment, then holds and fades
+    const drop = Math.max(0, 1 - c.t / 0.07) * 10, k = u < 0.6 ? 1 : (1 - u) / 0.4;
+    const L = g < 0 ? 7 : 8 + g * 2, A = Math.round(L * 0.6), wide = g >= 1;
+    const core = c.col ?? (g < 0 ? [235, 235, 228] : g === 0 ? [240, 236, 220] : [255, 244, 190]);
+    const edge = c.col ?? (g < 0 ? [150, 150, 150] : g <= 1 ? [200, 190, 160] : [240, 200, 80]);
+    const x = Math.round(c.x), y = Math.round(c.y - drop);
+    // the bars: the long one down, the short one across, a third of the way from its top
+    for (let j = -A; j <= L; j++) { put(x, y + j, core, k); if (wide) { put(x - 1, y + j, edge, k * 0.8); put(x + 1, y + j, edge, k * 0.8) } }
+    const cy = y - Math.round(A * 0.2);
+    for (let i = -A; i <= A; i++) { put(x + i, cy, core, k); if (wide) { put(x + i, cy - 1, edge, k * 0.8); put(x + i, cy + 1, edge, k * 0.8) } }
+    // grown: a glow round it and rays at level 8
+    if (g >= 1) for (let a = 0; a < 24; a++) { const r = A + 2 + u * 4; put(x + Math.cos(a * 0.262) * r, cy + Math.sin(a * 0.262) * r, edge, 0.35 * k * (g >= 2 ? 1.5 : 1)) }
+    if (g >= 3) for (let a = 0; a < 8; a++) { const ang = a * 0.785 + 0.39; for (let r = A + 3; r < A + 3 + 6 * (1 - u); r++) put(x + Math.cos(ang) * r, cy + Math.sin(ang) * r, core, 0.5 * k) }
   }
   function drawVolleys() {
     const RISE = 0.3, FALL = 0.22;

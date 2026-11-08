@@ -3,7 +3,7 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7fvyhu";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7fxxao";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8
@@ -20,7 +20,7 @@ export const CLASS_SKILLS = {
     { cd: L8(0.7, 0.34), dmg: L8(16, 26), speed: 330, count: (l) => (l >= 4 ? 2 : 1), pierce: (l) => (l >= 8 ? 3 : 1) }, { basic: true, max: 8, icon: "icon_b_archer" }),
   basic_thief: S("thief", "Phi dao", "venom", "bolt", "Đánh thường: ném 2 dao găm tẩm nọc. Cấp 4: 3 dao. Cấp 8: dao tự đuổi theo.",
     { cd: L8(0.62, 0.32), dmg: L8(10, 16), speed: 300, count: (l) => (l >= 4 ? 3 : 2), homing: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_thief" }),
-  basic_acolyte: S("acolyte", "Holy Light", "light", "bolt", "Đánh thường: tia thánh quang. Cấp 4: 2 tia. Cấp 8: mỗi tia hồi 1 máu tường.",
+  basic_acolyte: S("acolyte", "Holy Light", "light", "strike", "Đánh thường: thập giá thánh quang giáng thẳng lên quái. Cấp 4: 2 thập giá. Cấp 8: mỗi thập giá hồi 1 máu tường.",
     { cd: L8(0.68, 0.4), dmg: L8(22, 28), speed: 260, count: (l) => (l >= 4 ? 2 : 1), mend: (l) => (l >= 8 ? 1 : 0) }, { basic: true, max: 8, icon: "icon_b_acolyte" }),
   basic_merchant: S("merchant", "Cart Hit", "daze", "melee", "Đánh thường: húc xe đẩy vào quái sát tường. Cấp 4: trúng 3 con. Cấp 8: mỗi cú rơi 1 vàng.",
     { cd: L8(0.85, 0.45), dmg: L8(24, 32), reach: 32, width: 28, targets: (l) => (l >= 4 ? 3 : 2), coin: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_merchant" }),

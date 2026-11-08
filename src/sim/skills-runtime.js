@@ -1,12 +1,12 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw7fvyhu";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7fvyhu";
-import { T, skillT } from "../data/tuning.js?v=mw7fvyhu";
-import { damage, applyAura, steamAt, obsidianAt, stun } from "./combat.js?v=mw7fvyhu";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7fvyhu";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7fvyhu";
+import { ENEMIES } from "./enemies.js?v=mw7fxxao";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7fxxao";
+import { T, skillT } from "../data/tuning.js?v=mw7fxxao";
+import { damage, applyAura, steamAt, obsidianAt, stun } from "./combat.js?v=mw7fxxao";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7fxxao";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7fxxao";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -115,6 +115,17 @@ export function cast(w, id) {
       const z = { id: w.nextId++, skill: id, elem: sk.elem, x, y, st, t: 0, life: st.life ?? 0, tickT: 0 };
       w.events.push({ type: "zone", skill: id, elem: sk.elem, x, y, r: st.radius, life: st.life ?? 0.6, plain: !!st.plain });
       if (!st.life) zoneHit(w, z); else w.zones.push(z);
+      return true;
+    }
+    case "strike": {
+      const first = pickTarget(w); if (!first) return false;
+      const n = st.count ?? 1, rest = inView(w).filter((e) => e !== first).sort((a, b) => a.x - b.x), hit = [first, ...rest].slice(0, n);
+      const extra = st.also?.find((m) => !(sk.also ?? []).includes(m)) ?? null;
+      for (const e of hit) {
+        w.events.push({ type: "cross", skill: id, elem: sk.elem, x: e.x, y: e.y, h: ENEMIES[e.type].cy, lvl: w.skills[id]?.level ?? 1, basic: !!sk.basic, mark: extra, plain: !!st.plain });
+        damage(w, e, st.dmg, sk.elem, carry(st));
+        perks(w, st);
+      }
       return true;
     }
     case "volley": {
