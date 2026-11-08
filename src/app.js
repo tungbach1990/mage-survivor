@@ -1,23 +1,23 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw80eoce";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw80eoce";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw80eoce";
-import { createRenderer , PW, PH } from "./view.js?v=mw80eoce";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw80eoce";
-import { ENEMIES } from "./sim/enemies.js?v=mw80eoce";
-import { SKILLS, stats } from "./data/skills.js?v=mw80eoce";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw80eoce";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw80eoce";
-import { CHAPTERS } from "./data/chapters.js?v=mw80eoce";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw80eoce";
-import { PASSIVES, passiveCost } from "./data/passives.js?v=mw80eoce";
-import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mw80eoce";
-import { liveRefresh } from "./meta/live.js?v=mw80eoce";
-import { WTYPES, STARTER, btbaOf } from "./data/weapons.js?v=mw80eoce";
-import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw80eoce";
-import { dressHero } from "./render/dress.js?v=mw80eoce";
+import { loadAssets, browserLoad } from "./assets.js?v=mw80mson";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw80mson";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw80mson";
+import { createRenderer , PW, PH } from "./view.js?v=mw80mson";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw80mson";
+import { ENEMIES } from "./sim/enemies.js?v=mw80mson";
+import { SKILLS, stats } from "./data/skills.js?v=mw80mson";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw80mson";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw80mson";
+import { CHAPTERS } from "./data/chapters.js?v=mw80mson";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw80mson";
+import { PASSIVES, passiveCost } from "./data/passives.js?v=mw80mson";
+import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mw80mson";
+import { liveRefresh } from "./meta/live.js?v=mw80mson";
+import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mw80mson";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw80mson";
+import { dressHero } from "./render/dress.js?v=mw80mson";
 // an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
 const iconCache = new Map();
 function itemIcon(it) {
@@ -37,11 +37,11 @@ function drawPreview(cls) {
     g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
   } catch { /* no canvas */ }
 }
-import { ENVS } from "./data/environments.js?v=mw80eoce";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw80eoce";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw80eoce";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw80eoce";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, weaponOf, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw80eoce";
+import { ENVS } from "./data/environments.js?v=mw80mson";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw80mson";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw80mson";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw80mson";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, weaponOf, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw80mson";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -120,15 +120,17 @@ function drawSetup() {
     if (open) el.onclick = () => { pick.cls = c; drawSetup() };
     st.appendChild(el);
   }
-  $("start-hint").textContent = CLASSES[pick.cls].blurb;
+  $("start-hint").textContent = `${CLASSES[pick.cls].blurb} · Đòn đánh thường: ${basicNow(pick.cls)}`;
 }
+/** The basic attack a class makes with what it holds now (bare hands: a punch). */
+function basicNow(c) { const it = pc(P, c).gear.weapon, t = it ? it.wtype ?? STARTER[c] : null; return `${SKILLS[basicIdOf(c, t)].name} (${t ? WTYPES[t].name : "tay không"})` }
 function drawClasses() {
   const box = $("class-list");
   box.innerHTML = "";
   for (const c of CLASS_IDS) {
     const open = classOpen(P, c), d = document.createElement("div"), sk = Object.values(SKILLS).filter((s) => s.cls.includes(c) && !s.basic && s.elem !== "chaos");
     d.className = `tile cls-card ${open ? "on" : "locked"}`;
-    d.innerHTML = `${heroImg(c)}<b>${CLASSES[c].name}</b><small>${CLASSES[c].blurb}</small><small>Đòn đánh thường: ${SKILLS[`basic_${c}`].name} · ${sk.length} skill · ${{ arcane: "10 nguyên tố", martial: "10 dấu võ thuật", both: "nguyên tố + võ thuật" }[CLASSES[c].school]}</small>`;
+    d.innerHTML = `${heroImg(c)}<b>${CLASSES[c].name}</b><small>${CLASSES[c].blurb}</small><small>Đòn đánh thường: ${basicNow(c)} · vũ khí: ${wtypesOf(c).map((t) => WTYPES[t].name).join(", ")} · ${sk.length} skill · ${{ arcane: "10 nguyên tố", martial: "10 dấu võ thuật", both: "nguyên tố + võ thuật" }[CLASSES[c].school]}</small>`;
     if (!open) { const b = document.createElement("button"); b.textContent = `Mở 💎 ${CLASSES[c].cost}`; b.disabled = P.crystals < CLASSES[c].cost; b.onclick = () => { if (unlockClass(P, c)) { persist(); go("classes") } }; d.appendChild(b) }
     box.appendChild(d);
   }
@@ -136,7 +138,7 @@ function drawClasses() {
 $("go").onclick = () => startRun();
 
 // the class the hall's pages are showing (talents, marks, gear): a bar of the classes the player has
-let viewCls = P.lastClass ?? "mage", bagAll = false;
+let viewCls = P.lastClass ?? "mage", bagAll = false, bagKind = "all";
 function classBar(page) {
   const bar = $(`${page}-classbar`);
   bar.innerHTML = "";
@@ -283,7 +285,12 @@ function drawGear() {
   const filt = $("bag-filter");
   filt.innerHTML = "";
   for (const [all, label] of [[false, `Đồ ${CLASSES[viewCls].name}`], [true, "Tất cả"]]) { const b = document.createElement("button"); b.textContent = label; b.className = bagAll === all ? "on" : ""; b.onclick = () => { bagAll = all; go("gear") }; filt.appendChild(b) }
-  const bag = $("bag"), list = P.bag.filter((it) => bagAll || it.cls === viewCls);
+  const kinds = [["all", "Mọi món"], ["gear", "Trang bị"], ...wtypesOf(viewCls).map((t) => [t, WTYPES[t].name])];
+  const kb = document.createElement("div"); kb.className = "row wrap kind-filter";
+  for (const [k, label] of kinds) { const b = document.createElement("button"); b.textContent = label; b.className = bagKind === k ? "on" : ""; b.onclick = () => { bagKind = k; go("gear") }; kb.appendChild(b) }
+  filt.appendChild(kb);
+  const kindOk = (it) => bagKind === "all" || (bagKind === "gear" ? it.slot !== "weapon" : it.slot === "weapon" && (it.wtype ?? STARTER[it.cls]) === bagKind);
+  const bag = $("bag"), list = P.bag.filter((it) => (bagAll || it.cls === viewCls) && kindOk(it));
   bag.innerHTML = list.length ? "" : "<p class='hint'>Hạ boss bằng nghề này để nhận đồ của nó.</p>";
   for (const it of list) {
     const mine = it.cls === viewCls;

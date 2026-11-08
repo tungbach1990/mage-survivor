@@ -38,4 +38,4 @@ export const WEAPON_KINDS = {
 };
 // how hard each type hits: per-blow, against the class's own starter (the same damage per second for the
 // one-target types; the wide ones a little less a blow; bare hands well under)
-export const WTYPE_DMG = { fist: 0.55, dagger: 0.9, sword: 1, twohand: 0.85, spear: 0.95, axe: 1.15, mace: 1, staff: 1, bow: 1, cart: 1 };
+export const WTYPE_DMG = { fist: 0.55, dagger: 1.2, sword: 1.15, twohand: 1.0, spear: 0.9, axe: 1.25, mace: 1.3, staff: 1, bow: 1.3, cart: 1 };

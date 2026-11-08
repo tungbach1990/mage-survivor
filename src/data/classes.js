@@ -3,8 +3,8 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw80eoce";
-import { STARTER, WTYPES, WTYPE_DMG, wtypesOf, btbaOf, basicIdOf } from "./weapons.js?v=mw80eoce";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw80mson";
+import { STARTER, WTYPES, WTYPE_DMG, wtypesOf, btbaOf, basicIdOf } from "./weapons.js?v=mw80mson";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8
@@ -83,7 +83,9 @@ export const SHARED = { holylance: ["mage", "acolyte"], smite: ["mage", "acolyte
 for (const cls of Object.keys(STARTER)) {
   CLASS_SKILLS[`basic_${cls}`].wtype = STARTER[cls];
   const own = CLASS_SKILLS[`basic_${cls}`], ownBt = btbaOf(cls, STARTER[cls]);
-  const per = (t) => (l) => own.stats(l).dmg * WTYPE_DMG[t] * (btbaOf(cls, t) / ownBt);
+  // a class that strikes from afar with its own weapon, given one for the wall, hits harder with it (it waits for them)
+  const reach = (t) => (own.kind !== "melee" && t !== "fist" && t !== "bow" ? 1.7 : 1);
+  const per = (t) => (l) => own.stats(l).dmg * WTYPE_DMG[t] * reach(t) * (btbaOf(cls, t) / ownBt);
   const cd = (t) => (l) => btbaOf(cls, t) * (1 - 0.45 * (l - 1) / 7);
   const MELEE = {
     fist:    { reach: 26, width: 22, targets: () => 1, desc: "Tay không: đấm con quái sát tường. Tháo vũ khí thì đánh thế này." },

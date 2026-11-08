@@ -260,3 +260,5 @@ h1 { font-size: 28px; }
 .char-bag { display: grid; gap: 4px; margin-top: 8px; }
 
 .wline { display: block; color: #ffd28a; font-size: 11px; } .wline b { color: #ffe286; }
+
+.kind-filter { gap: 4px; margin-top: 4px; } .kind-filter button { padding: 2px 8px; font-size: 11px; }
