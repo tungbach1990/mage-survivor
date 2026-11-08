@@ -2,11 +2,13 @@
 // (its silhouette and colors, the shape pixelfx's status effects wrap). Loaded by the browser (Image) or by
 // Node (a PNG decoder passed in), into the same { w, h, px: Uint32Array ABGR } pictures.
 
+/** The weapon types each class has its own picture holding (its starter type is its plain picture). */
+export const HERO_WEAPONS = { mage: ["fist", "dagger"], swordman: ["fist", "dagger", "twohand", "spear", "axe", "mace"], archer: ["fist", "dagger"], thief: ["fist", "sword", "bow"], acolyte: ["fist", "mace"], merchant: ["fist", "dagger", "sword", "axe", "mace"] };
 export const FRAMES = {
   mage: ["idle0", "idle1", "focus", "cast", "throw", "hurt"],
   monster: ["walk0", "walk1", "walk2", "walk3", "atk0", "atk1", "hurt"],
 };
-import { ENEMIES } from "./sim/enemies.js?v=mw7pwjdj";
+import { ENEMIES } from "./sim/enemies.js?v=mw800jqu";
 export const MONSTERS = ["slime", "goblin", "wolf", "skeleton", "orc", "golem", "bat", "shaman"];
 export const ICONS = ["fireball", "firebolt", "iceball", "icebolt", "lightball", "lightbolt", "nova", "meteor"];
 
@@ -16,6 +18,7 @@ const FILES = {
   wall_0: "sprites/wall_0.png", wall_1: "sprites/wall_1.png", wall_2: "sprites/wall_2.png",
   mage: "anims/mage.png",
   ...Object.fromEntries(["swordman", "archer", "thief", "acolyte", "merchant"].map((c) => [c, `anims/${c}.png`])),
+  ...Object.fromEntries(Object.entries(HERO_WEAPONS).flatMap(([c, ts]) => ts.map((t) => [`${c}_${t}`, `anims/${c}_${t}.png`]))),
   sum_spirit: "anims/sum_spirit.png", sum_golem: "anims/sum_golem.png", sum_beast: "anims/sum_beast.png",
   ...Object.fromEntries(MONSTERS.map((m) => [m, `anims/${m}.png`])),
 };
@@ -34,6 +37,9 @@ export async function loadAssets(load, base = "assets/") {
   // the heroes: one strip per class, the same six poses as the mage
   A.heroes = { mage: A.mage };
   for (const c of ["swordman", "archer", "thief", "acolyte", "merchant"]) A.heroes[c] = strip(pics[c], FRAMES.mage.length);
+// the heroes holding other weapons (and bare-handed): A.armed[class][type]
+A.armed = {};
+for (const [c, ts] of Object.entries(HERO_WEAPONS)) { A.armed[c] = {}; for (const t of ts) if (pics[`${c}_${t}`]) A.armed[c][t] = strip(pics[`${c}_${t}`], FRAMES.mage.length) }
   // kinds that wear another's picture
   for (const [type, def] of Object.entries(ENEMIES)) if (def.sprite && !A.monsters[type]) A.monsters[type] = A.monsters[def.sprite];
   A.summons = {};

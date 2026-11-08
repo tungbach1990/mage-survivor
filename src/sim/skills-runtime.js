@@ -1,12 +1,14 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw7pwjdj";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7pwjdj";
-import { T, skillT } from "../data/tuning.js?v=mw7pwjdj";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw7pwjdj";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7pwjdj";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7pwjdj";
+import { ENEMIES } from "./enemies.js?v=mw800jqu";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw800jqu";
+import { T, skillT } from "../data/tuning.js?v=mw800jqu";
+import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mw800jqu";
+import { schoolOf } from "../data/elements.js?v=mw800jqu";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw800jqu";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw800jqu";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw800jqu";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -22,6 +24,21 @@ export function skillStats(w, id) {
   // the class tree's signature numbers
   const m = w.mods ?? {}, kind = SKILLS[id].kind;
   if (st.dmg && (kind === "melee" || kind === "dash")) st.dmg *= m.meleeDmg ?? 1;
+  // the stats: STR, DEX or INT (and HIT) on the damage; INT on healing; the basic attack at its ASPD
+  const D = w.derived;
+  if (D) {
+    if (st.dmg) st.dmg *= statDmg(D, schoolOf(SKILLS[id].elem), kind);
+    // the weapon: a basic attack by its attack; a martial blow partly by it (bare hands weaker); a staff lifts spells
+    const atk = w.weapon ? w.weapon.atk : 0, sch = schoolOf(SKILLS[id].elem);
+    if (st.dmg && SKILLS[id].basic && SKILLS[id].wtype !== "fist") st.dmg *= atk || 1;
+    else if (st.dmg && !SKILLS[id].basic && sch === "martial") st.dmg *= 0.6 + 0.4 * atk;
+    else if (st.dmg && !SKILLS[id].basic && w.weapon?.wtype === "staff") st.dmg *= 1 + 0.1 * (atk - 1);
+    if (st.heal) st.heal *= D.healMul;
+    if (SKILLS[id].basic && st.cd) {
+      const lvl = w.skills[id]?.level ?? 1, sm = 0.04 * (lvl - 1) + D.fleeSM + Math.max(0, 1 - (m.cd ?? 1));
+      st.cd = 1 / hitsPerSec(aspdOf(D.btba, D.agi, D.dex, sm));
+    }
+  }
   if (st.reach) st.reach += m.reach ?? 0;
   // a shadow clone's copy of the blow: its share of the damage, free, and at level 8 it blinds
   if (w.mirror) { if (st.dmg) st.dmg *= w.mirror.pct; if (st.heal) st.heal = 0; if (st.gold) st.gold = 0; if (st.mend) st.mend = 0 }
@@ -160,7 +177,7 @@ export function cast(w, id) {
         if (st.push && e.hp > 0 && movable(e)) e.x += st.push * (ENEMIES[e.type].boss ? 0.2 : 1);
         perks(w, st);
       }
-      w.events.push({ type: "melee", skill: id, elem: sk.elem, x: WALL_X + 6, y: y0, reach: st.reach, width: st.width, n: hit.length, repeat: st.repeat ?? 1, lvl: w.skills[id]?.level ?? 1, basic: !!sk.basic, plain: !!st.plain, mark: st.also?.find((m) => !(sk.also ?? []).includes(m)) ?? null });
+      w.events.push({ type: "melee", skill: id, wtype: sk.wtype, elem: sk.elem, x: WALL_X + 6, y: y0, reach: st.reach, width: st.width, n: hit.length, repeat: st.repeat ?? 1, lvl: w.skills[id]?.level ?? 1, basic: !!sk.basic, plain: !!st.plain, mark: st.also?.find((m) => !(sk.also ?? []).includes(m)) ?? null });
       if (st.wave) { const e = pickTarget(w); if (e) shoot(w, id, { ...st, speed: 220, pierce: 5, dmg: st.dmg * 0.8 }, ...aimAt(e, 220)) }
       return true;
     }

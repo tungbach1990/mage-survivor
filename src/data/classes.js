@@ -3,7 +3,8 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7pwjdj";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw800jqu";
+import { STARTER, WTYPES, WTYPE_DMG, wtypesOf, btbaOf, basicIdOf } from "./weapons.js?v=mw800jqu";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8
@@ -78,13 +79,38 @@ export const CLASS_SKILLS = {
 // skills the other classes share with the Mage's book (they keep the Mage's numbers)
 export const SHARED = { holylance: ["mage", "acolyte"], smite: ["mage", "acolyte"], angel: ["mage", "acolyte"], stonegolem: ["mage", "merchant"] };
 
+// every class's basic attack with each weapon type it may hold (its own type's is the one above), and bare hands
+for (const cls of Object.keys(STARTER)) {
+  CLASS_SKILLS[`basic_${cls}`].wtype = STARTER[cls];
+  const own = CLASS_SKILLS[`basic_${cls}`], ownBt = btbaOf(cls, STARTER[cls]);
+  const per = (t) => (l) => own.stats(l).dmg * WTYPE_DMG[t] * (btbaOf(cls, t) / ownBt);
+  const cd = (t) => (l) => btbaOf(cls, t) * (1 - 0.45 * (l - 1) / 7);
+  const MELEE = {
+    fist:    { reach: 26, width: 22, targets: () => 1, desc: "Tay không: đấm con quái sát tường. Tháo vũ khí thì đánh thế này." },
+    dagger:  { reach: 26, width: 22, targets: (l) => (l >= 4 ? 2 : 1), desc: "Dao găm: đâm nhanh. Cấp 4: 2 con." },
+    sword:   { reach: 30, width: 26, targets: (l) => (l >= 4 ? 3 : 2), desc: "Kiếm: chém 2 con sát tường. Cấp 4: 3 con." },
+    twohand: { reach: 34, width: 64, targets: (l) => (l >= 4 ? 4 : 3), desc: "Kiếm 2 tay: chém rộng 3 con, chậm. Cấp 4: 4 con." },
+    spear:   { reach: 46, width: 18, targets: (l) => (l >= 4 ? 3 : 2), desc: "Giáo: đâm xa một hàng 2 con. Cấp 4: 3 con." },
+    axe:     { reach: 30, width: 24, targets: (l) => (l >= 4 ? 2 : 1), desc: "Rìu: bổ mạnh, chậm. Cấp 4: 2 con." },
+    mace:    { reach: 28, width: 24, targets: (l) => (l >= 4 ? 2 : 1), desc: "Chùy: nện choáng. Cấp 4: 2 con." },
+  };
+  for (const t of ["fist", ...wtypesOf(cls)]) {
+    if (t === STARTER[cls]) continue;
+    const id = basicIdOf(cls, t), W = WTYPES[t];
+    let kind, stats, desc;
+    if (MELEE[t]) { const m = MELEE[t]; kind = "melee"; desc = m.desc; stats = (l) => ({ cd: cd(t)(l), dmg: per(t)(l), reach: m.reach, width: m.width, targets: m.targets(l) }) }
+    else if (t === "bow") { kind = "bolt"; desc = "Cung: bắn tên. Cấp 4: 2 mũi. Cấp 8: xuyên 3 con."; stats = (l) => ({ cd: cd(t)(l), dmg: per(t)(l), speed: 330, count: l >= 4 ? 2 : 1, pierce: l >= 8 ? 3 : 1 }) }
+    else continue;   // staff and cart belong to their own classes
+    CLASS_SKILLS[id] = { name: W.blow, elem: t === "fist" ? "daze" : W.mark, kind, cls: [cls], desc, icon: t === "fist" ? "icon_basic" : own.icon, stats, basic: true, max: 8, wtype: t };
+  }
+}
 export const CLASSES = {
-  mage:     { early: 0.9, mid: 1.85, power: 1.48, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
-  swordman: { early: 0.91, mid: 0.88, chaosPow: 0.8, power: 2.68, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
-  archer:   { early: 2.35, mid: 1.3, power: 1.45, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
-  thief:    { early: 1.71, mid: 1.25, chaosPow: 0.95, power: 2.6, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
-  acolyte:  { early: 1.15, mid: 0.62, chaosAt: 11, chaosCd: 1.5, chaosPow: 0.6, power: 3.2, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
-  merchant: { early: 1.71, mid: 1.12, power: 2.15, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
+  mage:     { early: 3.25, mid: 1.85, power: 1.48, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
+  swordman: { early: 0.75, mid: 0.88, chaosPow: 0.8, power: 2.68, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
+  archer:   { early: 2.9, mid: 1.3, power: 1.45, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
+  thief:    { early: 2.8, mid: 1.25, chaosPow: 0.95, power: 2.6, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
+  acolyte:  { early: 1.31, mid: 0.62, chaosAt: 11, chaosCd: 1.5, chaosPow: 0.6, power: 3.2, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
+  merchant: { early: 1.8, mid: 1.12, power: 2.15, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
 };
 export const CLASS_IDS = Object.keys(CLASSES);
 /** The marks a class gathers toward awakening and CHAOS (Chaos Seed sows these). */

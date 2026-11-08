@@ -1,24 +1,24 @@
 // How each skill looks: which pixelfx effect draws its shot, its blast or its zone, in which palette.
 // `fit` lets one effect play many parts (a fireball recolored is a venom dart, a void bolt, a mana missile).
 
-import * as fireball from "../../lib/pixelfx/fx/fire/fireball.js?v=mw7pwjdj";
-import * as tracer from "../../lib/pixelfx/fx/projectiles/bullet-tracer.js?v=mw7pwjdj";
-import * as iceLance from "../../lib/pixelfx/fx/ice/ice-lance.js?v=mw7pwjdj";
-import * as energyDisc from "../../lib/pixelfx/fx/projectiles/energy-disc.js?v=mw7pwjdj";
-import * as ballLightning from "../../lib/pixelfx/fx/lightning/ball-lightning.js?v=mw7pwjdj";
-import * as tornado from "../../lib/pixelfx/fx/nature/tornado.js?v=mw7pwjdj";
-import * as voidOrb from "../../lib/pixelfx/fx/shadow/void-orb.js?v=mw7pwjdj";
-import * as plasma from "../../lib/pixelfx/fx/explosions/plasma-explosion.js?v=mw7pwjdj";
-import * as snowBurst from "../../lib/pixelfx/fx/ice/snowflake-burst.js?v=mw7pwjdj";
-import * as waveCrash from "../../lib/pixelfx/fx/water/wave-crash.js?v=mw7pwjdj";
-import * as earthSpike from "../../lib/pixelfx/fx/nature/earth-spike.js?v=mw7pwjdj";
-import * as quake from "../../lib/pixelfx/fx/nature/quake.js?v=mw7pwjdj";
-import * as poisonCloud from "../../lib/pixelfx/fx/nature/poison-cloud.js?v=mw7pwjdj";
-import * as smite from "../../lib/pixelfx/fx/holy/smite.js?v=mw7pwjdj";
-import * as grasping from "../../lib/pixelfx/fx/shadow/grasping-hands.js?v=mw7pwjdj";
-import * as runeCircle from "../../lib/pixelfx/fx/arcane/rune-circle.js?v=mw7pwjdj";
-import { ELEM } from "../data/elements.js?v=mw7pwjdj";
-import * as swordWave from "../fx/sword-wave.js?v=mw7pwjdj";
+import * as fireball from "../../lib/pixelfx/fx/fire/fireball.js?v=mw800jqu";
+import * as tracer from "../../lib/pixelfx/fx/projectiles/bullet-tracer.js?v=mw800jqu";
+import * as iceLance from "../../lib/pixelfx/fx/ice/ice-lance.js?v=mw800jqu";
+import * as energyDisc from "../../lib/pixelfx/fx/projectiles/energy-disc.js?v=mw800jqu";
+import * as ballLightning from "../../lib/pixelfx/fx/lightning/ball-lightning.js?v=mw800jqu";
+import * as tornado from "../../lib/pixelfx/fx/nature/tornado.js?v=mw800jqu";
+import * as voidOrb from "../../lib/pixelfx/fx/shadow/void-orb.js?v=mw800jqu";
+import * as plasma from "../../lib/pixelfx/fx/explosions/plasma-explosion.js?v=mw800jqu";
+import * as snowBurst from "../../lib/pixelfx/fx/ice/snowflake-burst.js?v=mw800jqu";
+import * as waveCrash from "../../lib/pixelfx/fx/water/wave-crash.js?v=mw800jqu";
+import * as earthSpike from "../../lib/pixelfx/fx/nature/earth-spike.js?v=mw800jqu";
+import * as quake from "../../lib/pixelfx/fx/nature/quake.js?v=mw800jqu";
+import * as poisonCloud from "../../lib/pixelfx/fx/nature/poison-cloud.js?v=mw800jqu";
+import * as smite from "../../lib/pixelfx/fx/holy/smite.js?v=mw800jqu";
+import * as grasping from "../../lib/pixelfx/fx/shadow/grasping-hands.js?v=mw800jqu";
+import * as runeCircle from "../../lib/pixelfx/fx/arcane/rune-circle.js?v=mw800jqu";
+import { ELEM } from "../data/elements.js?v=mw800jqu";
+import * as swordWave from "../fx/sword-wave.js?v=mw800jqu";
 
 const R = (el) => ELEM[el].ramp;
 const ramp9 = (el) => [...R(el), "#ffffff"];   // the fireball wants nine steps
@@ -27,6 +27,7 @@ const TRAIL = [["#1c1c20", "#2a2a30", "#3a3a42", "#4a4a52", "#5a5a62"], ["#20202
 
 // shot: { mod, opts(angle, id) , dy } ; blast: { mod, opts, life, fade } ; zone: { mod, opts, life, cache }
 export const LOOKS = {
+  basic_thief_bow: null,
   firebolt:  { shot: { mod: tracer, opts: (a, id) => ({ angle: a, length: 26, speed: 260, palette: R("fire"), light: 0.55, seed: id }) } },
   fireball:  { shot: { mod: fireball, opts: (a, id) => ({ angle: a, radius: 3.5, speed: 110, light: 0.5, seed: id % 9 }) }, blast: "fire" },
   icebolt:   { shot: { mod: iceLance, opts: (a, id) => ({ angle: a, length: 18, light: 0.5, seed: id }) } },
@@ -79,3 +80,6 @@ export function blastOf(elem) {
   const r = R(elem ?? "arcane");
   return { mod: plasma, opts: { palette: [r[0], r[1], r[2], r[3], r[4], r[6], "#ffffff"], accent: [r[0], r[2], r[4], r[5], r[6]] }, life: 1, fade: 0.4 };
 }
+
+// borrowed looks: a class's basic attack with another class's weapon draws like that class's
+LOOKS.basic_thief_bow = LOOKS.basic_archer;

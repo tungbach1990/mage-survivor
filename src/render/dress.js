@@ -2,8 +2,8 @@
 // take their item's material; gloves cover the hands; a cloak hangs behind; an off-hand piece sits in the back
 // hand; an amulet at the neck, a ring at the hand; the weapon's head takes its material. Cached per class and look.
 
-import { MATERIALS, RARITY_GEM } from "../data/gear.js?v=mw7pwjdj";
-import { GRADES, gradeOf } from "../data/loot.js?v=mw7pwjdj";
+import { MATERIALS, RARITY_GEM } from "../data/gear.js?v=mw800jqu";
+import { GRADES, gradeOf } from "../data/loot.js?v=mw800jqu";
 
 // the heroes' poses (as game/art.px.js draws them), in frame order idle0 idle1 focus cast throw hurt
 const POSES = [
@@ -24,10 +24,11 @@ const unpack = (c) => [c & 255, (c >>> 8) & 255, (c >>> 16) & 255];
 const lum = ([r, g, b]) => r * 0.3 + g * 0.59 + b * 0.11;
 const tone = (ramp, l) => ramp[l < 55 ? 0 : l < 95 ? 1 : l < 150 ? 2 : l < 205 ? 3 : 4];
 
-const cache = new Map();
+const cache = new Map(), STRIP_ID = new Map();
 /** The class's strip dressed in `look` ({ slot: { mat, rarity } }); the bare strip when nothing is worn. */
 export function dressHero(strip, cls, look) {
-  const key = cls + "|" + Object.entries(look ?? {}).map(([s, l]) => s + ":" + l.mat + ":" + l.rarity).sort().join(",");
+  if (!STRIP_ID.has(strip)) STRIP_ID.set(strip, STRIP_ID.size + 1);
+  const key = cls + "|" + STRIP_ID.get(strip) + "|" + Object.entries(look ?? {}).map(([s, l]) => s + ":" + l.mat + ":" + l.rarity).sort().join(",");
   if (!look || !Object.keys(look).length) return strip;
   if (cache.has(key)) return cache.get(key);
   const src = strip.pic, W = src.w, H = src.h, fw = strip.fw, px = new Uint32Array(src.px);

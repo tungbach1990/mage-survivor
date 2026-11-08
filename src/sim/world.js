@@ -5,23 +5,27 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7pwjdj";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7pwjdj";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7pwjdj";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7pwjdj";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7pwjdj";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7pwjdj";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7pwjdj";
-import { T, typeT } from "../data/tuning.js?v=mw7pwjdj";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7pwjdj";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7pwjdj";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7pwjdj";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw7pwjdj";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7pwjdj";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7pwjdj";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7pwjdj";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7pwjdj";
-import { updateBlackHoles } from "./chaos.js?v=mw7pwjdj";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw800jqu";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw800jqu";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw800jqu";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw800jqu";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw800jqu";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw800jqu";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw800jqu";
+import { T, typeT } from "../data/tuning.js?v=mw800jqu";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw800jqu";
+import { derive, castOf } from "../data/stats.js?v=mw800jqu";
+import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mw800jqu";
+import { mageXpNext } from "../data/meta.js?v=mw800jqu";
+import { schoolOf } from "../data/elements.js?v=mw800jqu";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw800jqu";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw800jqu";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw800jqu";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw800jqu";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw800jqu";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw800jqu";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw800jqu";
+import { updateBlackHoles } from "./chaos.js?v=mw800jqu";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
@@ -40,11 +44,16 @@ export const DEFAULT_MODS = () => ({ dmg: 1, cd: 1, area: 1, auraDur: 1, reactDm
 export function createWorld(seed = 1, opts = {}) {
   const mods = { ...DEFAULT_MODS(), ...(opts.mods ?? {}) };
   mods.elem = { ...(opts.mods?.elem ?? {}) }; mods.imbue = { ...(opts.mods?.imbue ?? {}) };
-  const wallMax = Math.round((150 + mods.wallMax) * (1 + (mods.wallMaxPct ?? 0)));
+  const derived = opts.stats ? derive(opts.stats, opts.acctLevel ?? 1, CLASSES[opts.cls] ? opts.cls : "mage") : null;
+  const wallMax = baseWallMax(mods, derived);
   const cls = CLASSES[opts.cls] ? opts.cls : "mage";
-  const start = opts.skills ?? { [`basic_${cls}`]: opts.basicLevel ?? 1 };
+  // what's held: given (a profile), else the class's own type; bare hands punch
+  const weapon = "weapon" in opts ? opts.weapon : { wtype: STARTER[cls], atk: 1 };
+  if (derived) derived.btba = btbaOf(cls, weapon?.wtype ?? "fist");
+  const start = opts.skills ?? { [basicIdOf(cls, weapon?.wtype)]: opts.basicLevel ?? 1 };
   const w = {
-    t: 0, rng: new Rng(seed), nextId: 1, seed, cls, look: opts.look ?? {}, schoolMarks: marksOf(cls), chaosAt: CLASSES[cls].chaosAt ?? 10, chaosCd: CLASSES[cls].chaosCd ?? 1, chaosPow: CLASSES[cls].chaosPow ?? 1, novice: opts.novice ?? 0, imbue: new Set(), pm: { dmg: 1, wallTaken: 1, gold: 1 },
+    t: 0, rng: new Rng(seed), nextId: 1, seed, cls, look: opts.look ?? {}, derived, weapon, baseMods: snapMods(mods), cast: null, busyUntil: 0, regenT: 6,
+    acct: { level: opts.acctLevel ?? 1, xp: opts.acctXp ?? 0, levels: 0, gained: 0 }, schoolMarks: marksOf(cls), chaosAt: CLASSES[cls].chaosAt ?? 10, chaosCd: CLASSES[cls].chaosCd ?? 1, chaosPow: CLASSES[cls].chaosPow ?? 1, novice: opts.novice ?? 0, imbue: new Set(), pm: { dmg: 1, wallTaken: 1, gold: 1 },
     chapter: opts.endless ? ENDLESS.base : opts.chapter ?? 1, endless: !!opts.endless,
     mods, unlocked: new Set(opts.unlocked ?? MARKS), chaosUnlocked: opts.chaosUnlocked ?? true,
     wall: { hp: wallMax, max: wallMax },
@@ -67,6 +76,15 @@ export function createWorld(seed = 1, opts = {}) {
   return w;
 }
 
+/** The wall's health before cards: the base, the tree's bonuses, VIT. */
+export const baseWallMax = (mods, d) => Math.round((150 + mods.wallMax) * (1 + (mods.wallMaxPct ?? 0)) * (d?.wallHpMul ?? 1));
+export const snapMods = (m) => ({ ...m, elem: { ...m.elem }, imbue: { ...m.imbue } });
+/** Account xp earned in the run (the hall's level): a level up is an event the app and the bot act on. */
+export function acctGain(w, n) {
+  if (!w.acct || !(n > 0)) return;
+  w.acct.xp += n; w.acct.gained += n;
+  while (w.acct.xp >= mageXpNext(w.acct.level)) { w.acct.xp -= mageXpNext(w.acct.level); w.acct.level++; w.acct.levels++; w.events.push({ type: "acctLevel", level: w.acct.level }) }
+}
 export const raining = (w) => w.weather.kind === "rain";
 export const chapterOf = (w) => CHAPTERS[Math.min(5, w.chapter) - 1];
 export const totalWaves = (w) => (w.endless ? Infinity : WAVES.length);
@@ -202,27 +220,50 @@ function mirrorCast(w, id) {
     m.atk = 0.25;
   }
 }
+/** Use a skill now (its cooldown set by how it went). */
+function fireSkill(w, id) {
+  const s = w.skills[id], sk = SKILLS[id], st = skillStats(w, id);
+  let fired;
+  if (sk.passive === "nova") fired = nova(w);
+  else if (sk.kind === "weather") fired = startWeather(w, id);
+  else if (sk.kind === "summon" || sk.kind === "clone") fired = summon(w, id, st);
+  else if (sk.kind === "heal") { fired = w.wall.hp < w.wall.max; if (fired) { w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.heal); w.events.push({ type: "mend", n: st.heal }) } }
+  else if (sk.kind === "passive") { s.cd = 1; return false }
+  else if (st.gold && w.gold < st.gold) { s.cd = 0.3; return false }   // can't pay: wait for gold
+  else { fired = cast(w, id); if (fired) mirrorCast(w, id) }
+  if (fired) {
+    s.cd = st.cd;
+    if (st.gold) w.gold -= st.gold;
+    if (sk.kind === "weather") { w.mage.pose = "throw"; w.mage.t = 0.6 } else { w.mage.pose = "cast"; w.mage.t = 0.25 }
+  } else s.cd = 0.2;
+  return fired;
+}
 function updateSkills(w, dt) {
-  const cdMul = chapterOf(w).cdMul ?? 1;
+  const cdMul = chapterOf(w).cdMul ?? 1, d = w.derived;
+  // the cast under way: when it's done the skill goes off, and the after-cast delay starts
+  if (d && w.cast) {
+    w.cast.t -= dt;
+    if (w.cast.t <= 0) { const { id, delay } = w.cast; w.cast = null; w.events.push({ type: "castEnd", id }); if (w.skills[id] && fireSkill(w, id)) w.busyUntil = w.t + delay; else if (w.skills[id]) w.skills[id].cd = 0.2 }
+  }
+  let pick = null;
   for (const [id, s] of Object.entries(w.skills)) {
     const sk = SKILLS[id];
     if (sk.passive === "chaosseed") continue;
+    if (d && w.cast?.id === id) continue;
     s.cd -= dt / cdMul;
-    if (s.cd > 0) continue;
-    const st = skillStats(w, id);
-    let fired;
-    if (sk.passive === "nova") fired = nova(w);
-    else if (sk.kind === "weather") fired = startWeather(w, id);
-    else if (sk.kind === "summon" || sk.kind === "clone") fired = summon(w, id, st);
-    else if (sk.kind === "heal") { fired = w.wall.hp < w.wall.max; if (fired) { w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.heal); w.events.push({ type: "mend", n: st.heal }) } }
-    else if (sk.kind === "passive") { s.cd = 1; continue }
-    else if (st.gold && w.gold < st.gold) { s.cd = 0.3; continue }   // can't pay: wait for gold
-    else { fired = cast(w, id); if (fired) mirrorCast(w, id) }
-    if (fired) {
-      s.cd = st.cd;
-      if (st.gold) w.gold -= st.gold;
-      if (sk.kind === "weather") { w.mage.pose = "throw"; w.mage.t = 0.6 } else { w.mage.pose = "cast"; w.mage.t = 0.25 }
-    } else s.cd = 0.2;
+    if (s.cd > 0) { s.ready = null; continue }
+    const [ct, cdl] = castOf(sk, schoolOf(sk.elem));
+    // the basic attack: at its attack speed, not while casting; passives as they come; with no stats, all at once
+    if (!d || sk.basic || sk.kind === "passive" || (sk.passive && sk.passive !== "nova") || (ct === 0 && cdl === 0)) { if (sk.basic && d && w.cast) continue; fireSkill(w, id); continue }
+    s.ready ??= w.t;
+    if (!pick || s.ready < w.skills[pick].ready) pick = id;
+  }
+  // one skill at a time: the longest waiting starts, once nothing is being cast and the delay has passed
+  if (pick && !w.cast && w.t >= w.busyUntil) {
+    const sk = SKILLS[pick], st = skillStats(w, pick), [c, delay] = castOf(sk, schoolOf(sk.elem)), ct = c * d.castMul;
+    if (st.gold && w.gold < st.gold) w.skills[pick].cd = 0.3;
+    else if (ct > 0.02) { w.cast = { id: pick, t: ct, total: ct, delay, elem: sk.elem }; w.events.push({ type: "castStart", id: pick, t: ct, elem: sk.elem }); w.mage.pose = "cast"; w.mage.t = ct }
+    else if (fireSkill(w, pick)) w.busyUntil = w.t + delay;
   }
 }
 
@@ -404,7 +445,7 @@ function collect(w, l) {
   if (l.kind === "xp") w.xp = (w.xp ?? 0) + l.v;
   else if (l.kind === "crystal") w.run.crystals = (w.run.crystals ?? 0) + l.v;
   else if (l.kind === "gear") (w.run.gear ??= []).push({ grade: l.grade, level: l.level });
-  w.events.push({ type: "pickup", kind: l.kind, v: l.v, grade: l.grade });
+  w.events.push({ type: "pickup", kind: l.kind, v: l.v, grade: l.grade, level: l.level });
 }
 function gainXp(w) {
   while (w.xp >= xpNext(w.level)) { w.xp -= xpNext(w.level); w.level++; w.levelsDue++; w.events.push({ type: "levelUp", level: w.level }) }
@@ -476,8 +517,8 @@ export function step(w, dt) {
       if (e.atkT >= def.rate) {
         e.atkT -= def.rate;
         // blinded, it may miss; disarmed or sickened, it hits softer
-        if ((e.auras.has("blind") && w.rng.chance(ENVS[w.env]?.blindMiss ?? AURA.blind)) || (w.mods.dodge && w.rng.chance(w.mods.dodge))) { w.events.push({ type: "miss", x: e.x - def.half, y: e.y, h: def.cy }); continue }
-        const hit = def.dmg * e.dmgMul * fury(w) * (e.auras.has("dark") && !e.immune?.has("curse") ? AURA.curse.wall : 1) * (e.auras.has("disarm") ? AURA.disarm : 1) * (e.status.weak > 0 ? 0.5 : 1) * (b ? 1 : w.pm.wallTaken);
+        if ((e.auras.has("blind") && w.rng.chance(ENVS[w.env]?.blindMiss ?? AURA.blind)) || (w.mods.dodge && w.rng.chance(w.mods.dodge)) || (!b && w.derived?.pdodge && w.rng.chance(w.derived.pdodge))) { w.events.push({ type: "miss", x: e.x - def.half, y: e.y, h: def.cy }); continue }
+        let hit = def.dmg * e.dmgMul * fury(w) * (e.auras.has("dark") && !e.immune?.has("curse") ? AURA.curse.wall : 1) * (e.auras.has("disarm") ? AURA.disarm : 1) * (e.status.weak > 0 ? 0.5 : 1) * (b ? 1 : w.pm.wallTaken);
         if (def.bomber) {   // it goes off on whatever it reached, and is gone
           if (b) hitMinion(w, b, e, hit * 2); else w.wall.hp = Math.max(0, w.wall.hp - hit);
           e.hp = 0;
@@ -485,6 +526,7 @@ export function step(w, dt) {
           continue;
         }
         if (b) { hitMinion(w, b, e, hit * (def.boss ? 4 : 1.5)); continue }   // a boss smashes through
+        if (w.derived && !b) { if (def.ranged) hit *= 1 - w.derived.mdef; hit = Math.max(hit * 0.3, hit - w.derived.softDef) }
         if (def.ranged) w.events.push({ type: "missile", x: e.x - def.half, y: e.y, h: def.cy, x2: WALL_X, y2: e.y, kind: e.type });
         w.wall.hp = Math.max(0, w.wall.hp - hit);
         if (w.mods.thorns) damage(w, e, w.mods.thorns, "earth", { reaction: true, quiet: true });
@@ -504,6 +546,7 @@ export function step(w, dt) {
   // a wall that falls has fallen: nothing mends it back in the same moment
   if (w.wall.hp <= 0) { w.wall.hp = 0; w.phase = "lost"; w.events.push({ type: "lost" }); return }
   if (w.mods.regen) w.wall.hp = Math.min(w.wall.max, w.wall.hp + w.mods.regen * dt);
+  if (w.derived?.regen && (w.regenT -= dt) <= 0) { w.regenT = 6; healWall(w, w.derived.regen) }
 
   updateSkills(w, dt);
   updateShots(w, dt);
@@ -527,6 +570,7 @@ export function step(w, dt) {
     w.weather.gap = 0;
     w.grounds = []; w.drops = []; w.zones = []; w.wells = []; w.timers = []; w.minions = [];
     w.run.waves++;
+    acctGain(w, 10 + (((w.wave + 1) % 5 === 0) ? 50 : 0));
     if (!w.endless && (w.wave + 1) % 5 === 0) w.run.bosses++;
     if (w.endless && (w.wave + 1) % ENDLESS.bossEvery === 0) w.run.bosses++;
     w.events.push({ type: "waveClear", n: w.wave + 1 });
@@ -551,7 +595,7 @@ export function summary(w) {
     gear: [...(w.run.gear ?? []), ...air.filter((l) => l.kind === "gear").map((l) => ({ grade: l.grade, level: l.level }))],
     cls: w.cls, chapter: w.chapter, endless: w.endless, won: w.phase === "won", waves: w.run.waves, bosses: w.run.bosses, elites: w.run.elites,
     kills: w.kills, level: w.level, counts: { ...w.counts }, discovered: [...new Set(w.run.discovered)],
-    dmgSrc: { ...(w.dmgSrc ?? {}) },
+    dmgSrc: { ...(w.dmgSrc ?? {}) }, acct: w.acct ? { ...w.acct } : null, gearClaimed: w.run.gearClaimed ?? 0,
     awakened: [...w.awakened], chaos: w.counts.chaos ?? 0, skills: Object.keys(w.skills), wallLeft: w.wall.hp / w.wall.max,
   };
 }

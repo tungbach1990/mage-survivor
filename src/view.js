@@ -3,39 +3,39 @@
 // (labels, tier sigils, beams, wells), the black hole bending the picture round it, and every pixelfx effect.
 // The browser puts the bytes on a canvas; Node writes them to PNGs.
 
-import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7pwjdj";
-import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7pwjdj";
-import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7pwjdj";
-import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7pwjdj";
-import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7pwjdj";
-import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7pwjdj";
-import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7pwjdj";
-import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7pwjdj";
-import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7pwjdj";
-import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7pwjdj";
-import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7pwjdj";
-import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7pwjdj";
-import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7pwjdj";
-import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7pwjdj";
-import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7pwjdj";
-import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7pwjdj";
-import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7pwjdj";
-import * as rainCloud from "./fx/rain-cloud.js?v=mw7pwjdj";
-import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7pwjdj";
-import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7pwjdj";
-import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7pwjdj";
-import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7pwjdj";
-import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7pwjdj";
-import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7pwjdj";
+import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw800jqu";
+import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw800jqu";
+import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw800jqu";
+import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw800jqu";
+import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw800jqu";
+import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw800jqu";
+import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw800jqu";
+import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw800jqu";
+import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw800jqu";
+import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw800jqu";
+import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw800jqu";
+import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw800jqu";
+import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw800jqu";
+import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw800jqu";
+import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw800jqu";
+import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw800jqu";
+import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw800jqu";
+import * as rainCloud from "./fx/rain-cloud.js?v=mw800jqu";
+import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw800jqu";
+import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw800jqu";
+import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw800jqu";
+import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw800jqu";
+import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw800jqu";
+import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw800jqu";
 // the archer's falcon: pixelfx's bird in a falcon's browns, a cream breast
 const FALCON = { palette: ["#1a0e08", "#3a2414", "#5c3a1e", "#84562c", "#ae7a44", "#d8ac72", "#fff0d0"], breast: ["#5a3a1e", "#b48a5a", "#e8d0a4", "#fff4dc"] };
-import { LOOKS, blastOf } from "./render/looks.js?v=mw7pwjdj";
-import { dressHero, gearGlow } from "./render/dress.js?v=mw7pwjdj";
-import { RARITY_GEM } from "./data/gear.js?v=mw7pwjdj";
-import { GRADE as LOOT_GRADE, GLOW, hueRGB } from "./data/loot.js?v=mw7pwjdj";
-import { FRAMES } from "./assets.js?v=mw7pwjdj";
-import { ENEMIES } from "./sim/enemies.js?v=mw7pwjdj";
-import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7pwjdj";
+import { LOOKS, blastOf } from "./render/looks.js?v=mw800jqu";
+import { dressHero, gearGlow } from "./render/dress.js?v=mw800jqu";
+import { RARITY_GEM } from "./data/gear.js?v=mw800jqu";
+import { GRADE as LOOT_GRADE, GLOW, hueRGB } from "./data/loot.js?v=mw800jqu";
+import { FRAMES } from "./assets.js?v=mw800jqu";
+import { ENEMIES } from "./sim/enemies.js?v=mw800jqu";
+import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw800jqu";
 
 // ---- the screen stands up: 180 x 320. A field point (x: distance from the wall's side, y: across the lanes)
 // lands at (SX, SY): its lanes (y 76..172) across the screen, its depth up it (the wall at y 250, the spawn at
@@ -51,10 +51,10 @@ export const toScreen = (x, y, h = 0) => [SX(y), SY(x) - h];
 const rot = (vx, vy) => [vy * KX, -vx];
 const HERO = toScreen(MAGE_FEET[0], MAGE_FEET[1]);
 const WALL_Y = SY(WALL_X);   // the wall's outer face
-import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7pwjdj";
-import { REACTION_BY_ID } from "./data/reactions.js?v=mw7pwjdj";
-import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7pwjdj";
-import { BLACK_HOLE } from "./sim/chaos.js?v=mw7pwjdj";
+import { ELEM, ELEMENTS } from "./data/elements.js?v=mw800jqu";
+import { REACTION_BY_ID } from "./data/reactions.js?v=mw800jqu";
+import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw800jqu";
+import { BLACK_HOLE } from "./sim/chaos.js?v=mw800jqu";
 
 const MAX_LABELS = 6;
 const CLOUDS = {
@@ -277,7 +277,7 @@ export function createRenderer(A) {
       case "summon": rings.push({ x: ev.x, y: ev.y, r: 14, t: 0, life: 0.45, col: COL[ev.elems[0]] }); if (ev.elems[1]) rings.push({ x: ev.x, y: ev.y, r: 20, t: 0, life: 0.55, col: COL[ev.elems[1]] }); add(poof, { x: ev.x, y: ev.y, light: 0.5, seed: rng.int(0, 99) }, { life: 0.8, fade: 0.3 }); break;
       case "melee": {
         // a swing at the gate: a slash (a spin for the wide ones, a flurry of daggers), in the mark's colour
-        const mod = ev.repeat > 1 ? daggerFlurry : ev.width >= 60 ? spinSlash : swordSlash;
+        const mod = ev.wtype === "fist" || ev.wtype === "axe" || ev.wtype === "mace" ? bluntHit : ev.repeat > 1 || ev.wtype === "dagger" ? daggerFlurry : ev.width >= 60 ? spinSlash : swordSlash;
         if (ev.plain) { swings.push({ x: ev.x, y: ev.y, t: 0, w: ev.width, n: ev.repeat }); break }
         if (ev.basic) {
           // a basic swing: a plain steel arc at first; sparks, light and its colour as it levels
@@ -803,8 +803,10 @@ export function createRenderer(A) {
       }
     }
   }
+  // the hero's picture for what it holds: its own (the starter type), another weapon's, or bare hands
+  const heroPic = (w) => { const t = w.weapon ? w.weapon.wtype : "fist"; return A.armed?.[w.cls]?.[t] ?? A.heroes?.[w.cls] ?? A.mage };
   function drawClone(m, w) {
-    const [cx, cy] = toScreen(m.x, m.y), s = dressHero(A.heroes?.[w.cls] ?? A.mage, w.cls, w.look), p = s.pic, fw = s.fw;
+    const [cx, cy] = toScreen(m.x, m.y), s = dressHero(heroPic(w), w.cls, w.look), p = s.pic, fw = s.fw;
     const pose = m.atk > 0 ? 3 : Math.floor(clock * 2 + m.id) % 2, fade = m.life < 1.5 ? m.life / 1.5 : 1;
     const x0 = Math.round(cx) - 23, y0 = Math.round(cy) - 56;
     for (let y = 0; y < p.h; y++) for (let x = 0; x < fw; x++) {
@@ -1000,7 +1002,7 @@ export function createRenderer(A) {
     for (let y = 0; y < wall.h; y++) for (let x = 0; x < wall.w; x++) { const c = wall.px[y * wall.w + x], Y = WALL_Y + y; if (c >>> 24 > 127 && Y < H) pic[Y * W + x] = c | 0xff000000 }
     darken(HERO[0], HERO[1], 9, 2, 0.72);
     const pose = { idle: Math.floor(clock / 0.35) % 2 ? "idle1" : "idle0", cast: "cast", focus: "focus", throw: "throw", hurt: "hurt" }[w.mage.pose] ?? "idle0";
-    const heroStrip = dressHero(A.heroes?.[w.cls] ?? A.mage, w.cls, w.look), hf = FRAMES.mage.indexOf(pose), hx = Math.round(HERO[0]) - 23, hy = Math.round(HERO[1]) - 56;
+    const heroStrip = dressHero(heroPic(w), w.cls, w.look), hf = FRAMES.mage.indexOf(pose), hx = Math.round(HERO[0]) - 23, hy = Math.round(HERO[1]) - 56;
     const glow = gearGlow(w.look);
     if (glow.best) {
       const col = glow.best === "rainbow" ? hueRGB((clock * 0.4) % 1) : LOOT_GRADE[glow.best].color, k = GLOW[glow.best] * (0.8 + 0.2 * Math.sin(clock * 4));
@@ -1008,6 +1010,9 @@ export function createRenderer(A) {
       outline(heroStrip, hf, hx - 1, hy, col, k * 0.5); outline(heroStrip, hf, hx + 1, hy, col, k * 0.5); outline(heroStrip, hf, hx, hy - 1, col, k * 0.5);
     }
     blit(heroStrip, hf, hx, hy);
+    // the cast under way: a bar over the head filling in the spell's colour; the after-cast delay a faint line
+    if (w.cast) { const u = 1 - w.cast.t / w.cast.total, bx = Math.round(HERO[0]) - 12, by = Math.round(HERO[1]) - 62, col = COL[w.cast.elem] ?? [200, 200, 255]; for (let i = -1; i <= 24; i++) for (let j = -1; j <= 3; j++) put(bx + i, by + j, [16, 12, 22], 0.85); for (let i = 0; i < Math.round(24 * u); i++) for (let j = 0; j < 3; j++) put(bx + i, by + j, j ? col : [255, 255, 255], 1) }
+    else if (w.busyUntil > w.t) { const bx = Math.round(HERO[0]) - 12, by = Math.round(HERO[1]) - 61; for (let i = 0; i < 24; i++) put(bx + i, by, [180, 180, 200], 0.35) }
     glow.motes.forEach((g, k) => {
       const u = (clock * 0.6 + k * 0.29) % 1, x = HERO[0] + Math.sin(k * 2.4 + clock) * 12, y = HERO[1] - 4 - u * 44;
       put(x, y, g === "rainbow" ? hueRGB((clock + k * 0.15) % 1) : LOOT_GRADE[g].color, 0.9 * (1 - u));

@@ -1,14 +1,16 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw7pwjdj";
-import { speedFactor } from "./status.js?v=mw7pwjdj";
-import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw7pwjdj";
-import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw7pwjdj";
-import { PASSIVES, passiveCost } from "../data/passives.js?v=mw7pwjdj";
-import { talentCost } from "../data/meta.js?v=mw7pwjdj";
-import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw7pwjdj";
-import { CLASS_IDS } from "../data/classes.js?v=mw7pwjdj";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw800jqu";
+import { speedFactor } from "./status.js?v=mw800jqu";
+import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw800jqu";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw800jqu";
+import { PASSIVES, passiveCost } from "../data/passives.js?v=mw800jqu";
+import { autoStats, claimGear, itemScore, equip } from "../meta/profile.js?v=mw800jqu";
+import { liveRefresh } from "../meta/live.js?v=mw800jqu";
+import { talentCost } from "../data/meta.js?v=mw800jqu";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw800jqu";
+import { CLASS_IDS } from "../data/classes.js?v=mw800jqu";
 
 const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
 
@@ -21,11 +23,12 @@ const STAGE = { early: [0.25, 4, 3], half: [0.5, 6, 6], most: [0.75, 8, 12], ful
 export function presetProfile(kind) {
   const p = freshProfile();
   p.classes = [...CLASS_IDS];
-  if (kind === "fresh") return p;
+  if (kind === "fresh") { for (const c of CLASS_IDS) autoStats(p, c); return p }
   // "k1000": each class has had 1000 crystals spent on it, the cheapest talent or passive level first; the
   // account at level 4 (the runs that earned them)
   if (kind === "k1000") {
     p.mageLevel = 4;
+    for (const c of CLASS_IDS) autoStats(p, c);
     for (const c of CLASS_IDS) {
       const pc = p.perClass[c];
       let left = 1000;
@@ -53,6 +56,7 @@ export function presetProfile(kind) {
     pc.marks = kind === "full" ? [...MARKS] : [...new Set([...START_MARKS[c], ...own])].slice(0, nMarks);
     if (kind === "full" || kind === "most") pc.gear = Object.fromEntries(["weapon", "offhand", "head", "body", "cloak", "gloves", "boots", "belt", "ring", "amulet"].map((s, i) => [s, { ...rollItem(11 * (i + 1), 5, 0, { cls: c, marks: pc.marks }), slot: s }]));
   }
+  for (const c of CLASS_IDS) autoStats(p, c);
   return p;
 }
 
@@ -63,7 +67,17 @@ export function playRun({ profile = "fresh", chapter = 1, seed = 1, cls = "mage"
   let bossTime = 0, bossHeld = 0, unstop = 0, bossMove = 0, bossWalk = 0;
   for (let i = 0; i < 60 * 60 * maxMinutes && w.phase !== "won" && w.phase !== "lost"; i++) {
     step(w, 1 / 60);
-    for (const ev of drain(w)) if (ev.type === "unstoppable") unstop++;
+    let changed = false;
+    for (const ev of drain(w)) {
+      if (ev.type === "unstoppable") unstop++;
+      // the account levels up: the new points spent; a boss's gear: worn if it's better
+      if (ev.type === "acctLevel") { p.mageLevel = ev.level; autoStats(p, cls); changed = true }
+      if (ev.type === "pickup" && ev.kind === "gear") {
+        const it = claimGear(p, cls, { grade: ev.grade, level: ev.level ?? w.chapter }, seed); w.run.gearClaimed = (w.run.gearClaimed ?? 0) + 1;
+        if (p.bag.includes(it) && itemScore(it) > itemScore(p.perClass[cls].gear[it.slot])) { equip(p, cls, it.id); changed = true }
+      }
+    }
+    if (changed) liveRefresh(w, p);
     const boss = w.enemies.find((e) => e.boss && e.hp > 0);
     if (boss) {
       bossTime += 1 / 60;

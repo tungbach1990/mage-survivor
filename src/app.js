@@ -1,20 +1,23 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw7pwjdj";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw7pwjdj";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw7pwjdj";
-import { createRenderer , PW, PH } from "./view.js?v=mw7pwjdj";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw7pwjdj";
-import { ENEMIES } from "./sim/enemies.js?v=mw7pwjdj";
-import { SKILLS, stats } from "./data/skills.js?v=mw7pwjdj";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw7pwjdj";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw7pwjdj";
-import { CHAPTERS } from "./data/chapters.js?v=mw7pwjdj";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw7pwjdj";
-import { PASSIVES, passiveCost } from "./data/passives.js?v=mw7pwjdj";
-import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw7pwjdj";
-import { dressHero } from "./render/dress.js?v=mw7pwjdj";
+import { loadAssets, browserLoad } from "./assets.js?v=mw800jqu";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw800jqu";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw800jqu";
+import { createRenderer , PW, PH } from "./view.js?v=mw800jqu";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw800jqu";
+import { ENEMIES } from "./sim/enemies.js?v=mw800jqu";
+import { SKILLS, stats } from "./data/skills.js?v=mw800jqu";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw800jqu";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw800jqu";
+import { CHAPTERS } from "./data/chapters.js?v=mw800jqu";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw800jqu";
+import { PASSIVES, passiveCost } from "./data/passives.js?v=mw800jqu";
+import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mw800jqu";
+import { liveRefresh } from "./meta/live.js?v=mw800jqu";
+import { WTYPES, STARTER, btbaOf } from "./data/weapons.js?v=mw800jqu";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw800jqu";
+import { dressHero } from "./render/dress.js?v=mw800jqu";
 // an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
 const iconCache = new Map();
 function itemIcon(it) {
@@ -29,16 +32,16 @@ function itemIcon(it) {
 function drawPreview(cls) {
   const cv = $("gear-preview"); if (!cv?.getContext) return;
   try {
-    const s = dressHero(A.heroes?.[cls] ?? A.mage, cls, lookOf(pc(P, cls).gear)), p = s.pic, g = cv.getContext("2d"), im = g.createImageData(s.fw, p.h);
+    const wt = pc(P, cls).gear.weapon ? pc(P, cls).gear.weapon.wtype : "fist", s = dressHero(A.armed?.[cls]?.[wt] ?? A.heroes?.[cls] ?? A.mage, cls, lookOf(pc(P, cls).gear)), p = s.pic, g = cv.getContext("2d"), im = g.createImageData(s.fw, p.h);
     for (let y = 0; y < p.h; y++) for (let x = 0; x < s.fw; x++) { const v = p.px[y * p.w + x], i = (y * s.fw + x) * 4; im.data[i] = v & 255; im.data[i + 1] = (v >>> 8) & 255; im.data[i + 2] = (v >>> 16) & 255; im.data[i + 3] = v >>> 24 }
     g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
   } catch { /* no canvas */ }
 }
-import { ENVS } from "./data/environments.js?v=mw7pwjdj";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw7pwjdj";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw7pwjdj";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw7pwjdj";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw7pwjdj";
+import { ENVS } from "./data/environments.js?v=mw800jqu";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw800jqu";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw800jqu";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw800jqu";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, weaponOf, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw800jqu";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -73,18 +76,19 @@ let w = null, r = null, running = false, paused = false, acc = 0, last = 0, show
 let pick = { chapter: Math.min(5, P.best.chapter + 1), endless: false, cls: P.lastClass ?? "mage" }, codexSchool = "arcane";
 
 // ======================= the hall =======================
-const PAGES = ["menu", "setup", "classes", "passives", "talents", "elements", "gear", "codex", "achievements", "settings", "admin"];
+const PAGES = ["menu", "setup", "classes", "stats", "passives", "talents", "elements", "gear", "codex", "achievements", "settings", "admin"];
 function go(page) {
   if (page === "quit") return finishRun(false);
   for (const p of PAGES) $(p).hidden = p !== page;
   $("summary").hidden = true;
   for (const el of document.querySelectorAll(".crys")) el.textContent = `💎 ${P.crystals}`;
   if (page === "admin") mountAdmin($("admin"), { store: localStorage, onBack: () => go("menu") });
-  ({ menu: drawMenu, setup: drawSetup, classes: drawClasses, passives: drawPassives, talents: drawTalents, elements: drawElements, gear: drawGear, codex: drawCodex, achievements: drawAchievements })[page]?.();
+  ({ menu: drawMenu, setup: drawSetup, classes: drawClasses, stats: drawStats, passives: drawPassives, talents: drawTalents, elements: drawElements, gear: drawGear, codex: drawCodex, achievements: drawAchievements })[page]?.();
 }
 document.addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go) });
 
 function drawMenu() {
+  $("stats-dot").hidden = !CLASS_IDS.some((c) => classOpen(P, c) && statPointsLeft(P, c) >= 2);
   const next = mageXpNext(P.mageLevel);
   $("profile-line").innerHTML = `Tài khoản cấp <b>${P.mageLevel}</b> (${P.mageXp}/${next}) · 💎 <b>${P.crystals}</b> · Chương cao nhất: <b>${P.best.chapter}</b>${P.best.endless ? ` · Vô tận: <b>${P.best.endless}</b>` : ""} · Codex ${P.codex.length}/${CODEX.length}${cloudState === "off" ? "" : ` · ${{ loading: "☁ đang tải…", saving: "☁ đang lưu…", saved: "☁ đã lưu lên Telegram", error: "☁ lỗi lưu đám mây (vẫn lưu trên máy)" }[cloudState]}`}${tuned() ? ` · <b style="color:#ffb060">⚙ cấu hình cân bằng tùy chỉnh</b>` : ""}`;
 }
@@ -145,6 +149,67 @@ function classBar(page) {
   }
 }
 // the passives: five per class, the first its own (level 1 from the start), each to level 10
+// ---------- stats: the same panel in the hall and in a run ----------
+function statPanel(box, cls, after) {
+  const T = statTotals(P, cls), mine = pc(P, cls).stats, d = derive(T, P.mageLevel, cls), left = statPointsLeft(P, cls);
+  const aspd = aspdOf(d.btba, d.agi, d.dex, d.fleeSM), pct = (x) => `${Math.round(x * 1000) / 10}%`;
+  box.innerHTML = `<p>Tài khoản cấp <b>${P.mageLevel}</b> · điểm còn <b class="pts">${left}</b></p>`;
+  const grid = document.createElement("div"); grid.className = "stat-grid";
+  for (const s of STAT_IDS) {
+    const row = document.createElement("div"), x = mine[s] ?? 1, bonus = T[s] - x, cost = statCost(x);
+    row.className = "stat-row";
+    row.innerHTML = `<b>${STAT_NAMES[s]}</b><span class="sv">${x}${bonus ? ` <i>+${bonus}</i>` : ""}</span><small>${STAT_TEXT[s]}</small>`;
+    const b = document.createElement("button"); b.textContent = `+ (${cost})`; b.disabled = x >= 99 || left < cost;
+    b.onclick = () => { if (raiseStat(P, cls, s)) { persist(); after() } };
+    row.appendChild(b); grid.appendChild(row);
+  }
+  box.appendChild(grid);
+  const sub = document.createElement("div"); sub.className = "tile stat-sub";
+  sub.innerHTML = `<small>ATK cận chiến <b>${d.atkMelee}</b> · ATK tầm xa <b>${d.atkRanged}</b> · MATK <b>${d.matk[0]}~${d.matk[1]}</b></small>
+    <small>HIT <b>${d.hit}</b> (+${pct(d.hitDmg - 1)} sát thương) · FLEE <b>${d.flee}</b> (+${pct(d.fleeSM)} tốc đánh)</small>
+    <small>ASPD <b>${aspd.toFixed(1)}</b> (${hitsPerSec(aspd).toFixed(2)} đòn/giây) · niệm <b>${pct(d.castMul)}</b> thời gian gốc</small>
+    <small>Chí mạng <b>${pct(d.crit)}</b> (đòn thường) · né hoàn hảo <b>${pct(d.pdodge)}</b></small>
+    <small>Máu tường <b>+${pct(d.wallHpMul - 1)}</b> · giảm <b>${d.softDef.toFixed(1)}</b>/đòn · hồi <b>${d.regen}</b>/6 giây · kháng đòn tầm xa <b>${pct(d.mdef)}</b></small>`;
+  box.appendChild(sub);
+}
+function drawStats() {
+  classBar("stats");
+  const box = $("stat-box");
+  statPanel(box, viewCls, () => go("stats"));
+  const cost = resetCost(P, viewCls), b = document.createElement("button");
+  b.className = "danger"; b.textContent = cost ? `Tẩy điểm 💎 ${cost}` : "Tẩy điểm (miễn phí lần đầu)";
+  b.disabled = P.crystals < cost;
+  b.onclick = () => { if (confirm(`Tẩy toàn bộ điểm chỉ số của ${CLASSES[viewCls].name}?`) && resetStats(P, viewCls)) { persist(); go("stats") } };
+  box.appendChild(b);
+}
+// ---------- the character panel in a run: stats and gear, changed on the spot ----------
+let charTab = "stats";
+function openChar() {
+  if (!running || demo || !w || w.phase === "lost" || w.phase === "won") return;
+  paused = true; $("charpanel").hidden = false; drawChar();
+}
+function closeChar() { $("charpanel").hidden = true; if ($("pause").hidden && $("cards").hidden) paused = false }
+function afterLive() { if (w && !demo) { liveRefresh(w, P); buildSlots() } drawChar() }
+function drawChar() {
+  const tabs = $("char-tabs"), body = $("char-body"), cls = w.cls;
+  tabs.innerHTML = "";
+  for (const [id, label] of [["stats", "Chỉ số"], ["gear", "Trang bị"]]) { const b = document.createElement("button"); b.textContent = label; b.className = charTab === id ? "on" : ""; b.onclick = () => { charTab = id; drawChar() }; tabs.appendChild(b) }
+  body.innerHTML = "";
+  if (charTab === "stats") return statPanel(body, cls, afterLive);
+  const gear = pc(P, cls).gear, slots = document.createElement("div"), bag = document.createElement("div");
+  slots.className = "char-slots"; bag.className = "char-bag";
+  for (const s of Object.keys(SLOTS)) {
+    const it = gear[s];
+    if (it) slots.appendChild(itemTile(it, [["Tháo", () => unequip(P, cls, s)]], false, afterLive));
+    else { const d = document.createElement("div"); d.className = "tile item empty"; d.innerHTML = `<b>${slotName(s, cls)}</b><small>${s === "weapon" ? "Tay không: đấm" : "Trống"}</small>`; slots.appendChild(d) }
+  }
+  const list = P.bag.filter((it) => it.cls === cls).sort((a, b) => (b.fresh ? 1 : 0) - (a.fresh ? 1 : 0));
+  bag.innerHTML = list.length ? "<h3>Túi đồ</h3>" : "<p class='hint'>Chưa có đồ cho nghề này: hạ boss đợt 5, 8, 10.</p>";
+  for (const it of list) bag.appendChild(itemTile(it, [["Trang bị", () => { equip(P, cls, it.id); it.fresh = false }]], false, afterLive));
+  body.append(slots, bag);
+}
+$("char-btn").onclick = openChar;
+$("char-close").onclick = closeChar;
 function drawPassives() {
   classBar("passives");
   const box = $("passive-list"), mine = pc(P, viewCls).passives ?? {};
@@ -196,12 +261,13 @@ function drawElements() {
   const ok = chaosUnlocked(P, viewCls), need = { arcane: "đủ 10 nguyên tố", martial: "đủ 10 dấu võ thuật", both: "10 dấu bất kỳ" }[homeSchool(viewCls)];
   $("chaos-note").innerHTML = `<b style="color:#ff8ac8">✺ CHAOS</b> · ${ok ? `Đã mở cho ${CLASSES[viewCls].name}: thức tỉnh đủ 10 dấu trong lượt để nhận Chaos Seed` : `${CLASSES[viewCls].name} cần mở ${need}`} · Dấu khác trường phái giá ×1,5 và đi vào trận qua trang bị tẩm dấu.`;
 }
-function itemTile(it, actions, dim = false) {
+function itemTile(it, actions, dim = false, after = () => go("gear")) {
   const d = document.createElement("div");
   d.className = `tile item ${dim ? "locked" : ""}`;
   const ic = itemIcon(it), mat = MATERIALS[kindOf(it)[1]]?.name ?? "";
-  d.innerHTML = `<div class="item-head">${ic ? `<img class="item-icon rar-b-${it.rarity}" src="${ic}" alt="">` : ""}<div><b class="rar-${it.rarity}">${itemName(it)}</b><small>${SLOT_NAMES[it.slot]} · ${mat} · ${CLASSES[it.cls]?.name ?? ""} · Chương ${it.chapter}</small></div></div><ul>${it.affixes.map((a) => `<li>${affixText(a)}</li>`).join("")}${it.legendary ? `<li class="rar-legendary">★ ${{ bh: "Hố Đen bán kính +50%", hexa: "Sát thương tầng +60%", slot: "+1 ô skill", aura: "Dấu kéo dài gấp rưỡi", resonance: "Sát thương phản ứng +50%", imbue2: "Tỉ lệ tẩm dấu ×2" }[it.legendary]}</li>` : ""}</ul>`;
-  for (const [label, fn] of actions) { const b = document.createElement("button"); b.textContent = label; b.onclick = () => { fn(); persist(); go("gear") }; d.appendChild(b) }
+  const wt = it.slot === "weapon" ? WTYPES[it.wtype ?? STARTER[it.cls]] : null, wline = wt ? `<small class="wline">${wt.name} · ${wt.two ? "2 tay" : "1 tay"} · ATK ×${weaponOf(it).atk.toFixed(2)} · đòn thường: <b>${wt.cls.includes(it.cls) && it.wtype !== STARTER[it.cls] ? wt.blow : SKILLS[`basic_${it.cls}`].name}</b> · ${btbaOf(it.cls, it.wtype ?? STARTER[it.cls]).toFixed(2)} giây/đòn gốc${it.starter ? " · khởi điểm" : ""}</small>` : "";
+  d.innerHTML = `<div class="item-head">${ic ? `<img class="item-icon rar-b-${it.rarity}" src="${ic}" alt="">` : ""}<div><b class="rar-${it.rarity}">${it.fresh ? "🆕 " : ""}${itemName(it)}</b><small>${SLOT_NAMES[it.slot]} · ${mat} · ${CLASSES[it.cls]?.name ?? ""} · Chương ${it.chapter}</small>${wline}</div></div><ul>${it.affixes.map((a) => `<li>${affixText(a)}</li>`).join("")}${it.legendary ? `<li class="rar-legendary">★ ${{ bh: "Hố Đen bán kính +50%", hexa: "Sát thương tầng +60%", slot: "+1 ô skill", aura: "Dấu kéo dài gấp rưỡi", resonance: "Sát thương phản ứng +50%", imbue2: "Tỉ lệ tẩm dấu ×2" }[it.legendary]}</li>` : ""}</ul>`;
+  for (const [label, fn] of actions) { const b = document.createElement("button"); b.textContent = label; b.onclick = () => { fn(); persist(); after() }; d.appendChild(b) }
   return d;
 }
 function drawGear() {
@@ -211,7 +277,7 @@ function drawGear() {
   for (const s of Object.keys(SLOTS)) {
     const it = gear[s];
     if (it) slots.appendChild(itemTile(it, [["Tháo", () => unequip(P, viewCls, s)]]));
-    else { const d = document.createElement("div"); d.className = "tile item empty"; d.innerHTML = `<b>${slotName(s, viewCls)}</b><small>Trống</small>`; slots.appendChild(d) }
+    else { const d = document.createElement("div"); d.className = "tile item empty"; d.innerHTML = `<b>${slotName(s, viewCls)}</b><small>${s === "weapon" ? "Tay không: đấm" : "Trống"}</small>`; slots.appendChild(d) }
   }
   drawPreview(viewCls);
   const filt = $("bag-filter");
@@ -368,6 +434,8 @@ function handle(events) {
     else if (ev.type === "cards") showCards();
     else if (ev.type === "card") { buildSlots(); if (ev.card.kind === "fuse") banner(`HỢP THỂ: ${SKILLS[ev.card.id].name.toUpperCase()}`) }
     else if (ev.type === "levelUp") toast(`⬆ Cấp ${ev.level}`);
+    else if (ev.type === "acctLevel") { const before = statPointsLeft(P, w.cls); P.mageLevel = Math.max(P.mageLevel, ev.level); P.mageXp = w.acct.xp; persist(); liveRefresh(w, P); toast(`★ Tài khoản lên cấp ${ev.level} · +${statPointsLeft(P, w.cls) - before} điểm chỉ số (🧍)`, 4000) }
+    else if (ev.type === "pickup" && ev.kind === "gear") { const it = claimGear(P, w.cls, { grade: ev.grade, level: ev.level ?? w.chapter }, w.seed); w.run.gearClaimed = (w.run.gearClaimed ?? 0) + 1; persist(); toast(`🎁 ${itemName(it)} — mở 🧍 để mặc`, 4000) }
     else if (ev.type === "won") finishRun(true);
     else if (ev.type === "lost") finishRun(false);
     else if (ev.type === "weatherStart") banner({ rain: "MƯA!", lava: "MƯA DUNG NHAM!", thunder: "MƯA SÉT!" }[ev.kind]);
@@ -444,6 +512,7 @@ function hud() {
   set(b, "hidden", !wx);
   if (wx) { set(b, "class", `badge ${wx}`); set(b, "text", WEATHER_TEXT[wx]) }
   set($("fps"), "hidden", !showFps);
+  set($("char-dot"), "hidden", !(statPointsLeft(P, w.cls) >= 2 || P.bag.some((it) => it.fresh && it.cls === w.cls)));
 }
 // the damage report: who did the work this run (skills, combos and tiers, the black hole, damage over time)
 const fmt = (n) => (n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "k" : String(Math.round(n)));
@@ -510,6 +579,7 @@ function pickCard(i) {
 addEventListener("keydown", (e) => {
   if (e.code === "KeyP") togglePause()
   else if (e.code === "KeyF") showFps = !showFps;
+  else if (e.code === "KeyC" && !demo) { $("charpanel").hidden ? openChar() : closeChar() }
   else if (e.code === "KeyR" && w?.phase === "cards" && !demo) { if (reroll(w)) { drain(w); showCards() } }
   else if (/^Digit[1-4]$/.test(e.code)) pickCard(+e.code.slice(5) - 1);
 });

@@ -244,3 +244,19 @@ h1 { font-size: 28px; }
 @keyframes rainbow { to { background-position: 200% 0 } }
 .rar-b-white { border-color: #ececf2 } .rar-b-green { border-color: #60de6e } .rar-b-blue { border-color: #50a0ff } .rar-b-yellow { border-color: #ffd63c; box-shadow: 0 0 4px #ffd63c }
 .rar-b-purple { border-color: #be6eff; box-shadow: 0 0 5px #be6eff } .rar-b-red { border-color: #ff4646; box-shadow: 0 0 6px #ff4646 } .rar-b-rainbow { border-color: #ffffff; box-shadow: 0 0 8px #ff96e6, 0 0 3px #50a0ff }
+
+/* stats and the character panel */
+.dot { display: inline-block; width: 7px; height: 7px; margin-left: 3px; border-radius: 50%; background: #ff5a5a; box-shadow: 0 0 4px #ff5a5a; vertical-align: top; }
+#char-btn { order: 5; pointer-events: auto; padding: 2px 8px; font-size: 16px; }
+#charpanel { justify-content: flex-start; overflow-y: auto; }
+#char-body { width: 100%; max-width: 520px; }
+.stat-grid { display: grid; gap: 4px; }
+.stat-row { display: grid; grid-template-columns: 42px 56px 1fr auto; align-items: center; gap: 6px; text-align: left; background: #1a1228; border: 1px solid #3a2e4e; border-radius: 6px; padding: 4px 6px; }
+.stat-row b { color: #ffe286; } .stat-row .sv { font: 700 14px monospace; } .stat-row .sv i { color: #8ae0ff; font-style: normal; font-size: 12px; }
+.stat-row small { color: #bfb0d4; font-size: 11px; } .stat-row button { padding: 3px 8px; font-size: 12px; }
+.stat-sub { text-align: left; margin-top: 6px; } .stat-sub small { display: block; font-size: 11px; margin: 2px 0; } .stat-sub b { color: #ffe286; }
+.pts { color: #8ae0ff; }
+.char-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; } .char-slots .tile.item ul, .char-bag .tile.item ul { font-size: 11px; }
+.char-bag { display: grid; gap: 4px; margin-top: 8px; }
+
+.wline { display: block; color: #ffd28a; font-size: 11px; } .wline b { color: #ffe286; }

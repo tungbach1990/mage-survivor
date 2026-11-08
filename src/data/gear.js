@@ -43,10 +43,11 @@ export const WEAPONS = {
   acolyte:  [["Chùy gỗ", "leather"], ["Chùy bạc", "iron"], ["Chùy vàng", "gold"], ["Chùy thánh", "crystal"]],
   merchant: [["Xe gỗ", "leather"], ["Xe sắt", "iron"], ["Xe vàng", "gold"], ["Xe rồng", "ember"]],
 };
-export const kindsOf = (slot, cls) => (slot === "weapon" ? WEAPONS[cls] ?? WEAPONS.mage : VARIANTS[slot] ?? []);
+export const kindsOf = (slot, cls, wtype) => (slot === "weapon" ? WEAPON_KINDS[wtype ?? STARTER[cls] ?? "staff"] ?? WEAPONS.mage : VARIANTS[slot] ?? []);
 /** An item's kind: [name, material] (older items without one get a kind from their id). */
 export function kindOf(it) {
-  const list = kindsOf(it.slot, it.cls);
+  if (it.starter) return [STARTER_NAME[it.cls] ?? "Vũ khí", WEAPON_KINDS[it.wtype]?.[0]?.[1] ?? "leather"];
+  const list = kindsOf(it.slot, it.cls, it.wtype);
   if (!list.length) return [SLOT_NAMES[it.slot] ?? it.slot, "leather"];
   let v = it.variant;
   if (v == null) { let h = 0; for (const c of String(it.id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; v = h }
@@ -54,10 +55,11 @@ export function kindOf(it) {
 }
 
 // what the hero wears, for the view: { slot: { mat, rarity } }
-export const lookOf = (gear) => Object.fromEntries(Object.entries(gear ?? {}).filter(([, it]) => it).map(([s, it]) => [s, { mat: kindOf(it)[1], rarity: it.rarity }]));
+export const lookOf = (gear) => Object.fromEntries(Object.entries(gear ?? {}).filter(([, it]) => it).map(([s, it]) => [s, { mat: kindOf(it)[1], rarity: it.rarity, ...(s === "weapon" ? { wtype: it.wtype } : {}) }]));
 
 // ---- icons: 12 x 12; "#" the material's mid tone, "+" its light, "-" its dark, "o" ink, "*" a gem in the rarity's colour
-import { GRADE, gradeOf } from "./loot.js?v=mw7pwjdj";
+import { GRADE, gradeOf } from "./loot.js?v=mw800jqu";
+import { STARTER, STARTER_NAME, WEAPON_KINDS, wtypesOf } from "./weapons.js?v=mw800jqu";
 export const RARITY_GEM = new Proxy({}, { get: (_, k) => GRADE[gradeOf(k)].color });
 const I = (s) => s.trim().split("\n").map((r) => r.trim());
 export const ICONS = {
@@ -139,6 +141,32 @@ export const ICONS = {
     ..ooo..ooo..
     ............
     ............`),
+  spear: I(`
+    ..........o+
+    .........o+o
+    ........o#o.
+    .......oo-..
+    ......o#o...
+    .....o#o....
+    ....o#o.....
+    ...o#o......
+    ..o#o.......
+    .o#o........
+    o-o.........
+    oo..........`),
+  axe: I(`
+    ....ooo.....
+    ...o+++o....
+    ..o+###oo...
+    ..o+#*#o-o..
+    ..o+###oo...
+    ...o--oo....
+    ....o-o.....
+    ...o#o......
+    ..o#o.......
+    .o#o........
+    o-o.........
+    oo..........`),
   offhand: I(`
     ...oooooo...
     ..o++++++o..
@@ -258,9 +286,10 @@ export const ICONS = {
     ............`),
 };
 const WEAPON_ICON = { mage: "staff", swordman: "sword", archer: "bow", thief: "dagger", acolyte: "mace", merchant: "cart" };
+const WTYPE_ICON = { dagger: "dagger", sword: "sword", twohand: "sword", spear: "spear", axe: "axe", mace: "mace", staff: "staff", bow: "bow", cart: "cart" };
 /** An item's icon as RGBA bytes (12 x 12). */
 export function iconPixels(it) {
-  const tpl = ICONS[it.slot === "weapon" ? WEAPON_ICON[it.cls] ?? "sword" : it.slot] ?? ICONS.ring;
+  const tpl = ICONS[it.slot === "weapon" ? WTYPE_ICON[it.wtype] ?? WEAPON_ICON[it.cls] ?? "sword" : it.slot] ?? ICONS.ring;
   const m = MATERIALS[kindOf(it)[1]] ?? MATERIALS.iron, gem = RARITY_GEM[it.rarity] ?? RARITY_GEM.common;
   const px = new Uint8ClampedArray(12 * 12 * 4);
   tpl.forEach((row, y) => [...row].forEach((ch, x) => {

@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>Mage Survivor Defense</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <link rel="stylesheet" href="ui.css?v=mw7pwjdj">
+  <link rel="stylesheet" href="ui.css?v=mw800jqu">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>(function(){var B="mw7pwjdj";try{fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(v){if(v&&v.build&&v.build!==B){var u=location.pathname+"?v="+v.build+location.hash;if(sessionStorage.getItem("reloadTo")!==v.build){sessionStorage.setItem("reloadTo",v.build);location.replace(u)}}}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B="mw800jqu";try{fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(v){if(v&&v.build&&v.build!==B){var u=location.pathname+"?v="+v.build+location.hash;if(sessionStorage.getItem("reloadTo")!==v.build){sessionStorage.setItem("reloadTo",v.build);location.replace(u)}}}).catch(function(){})}catch(e){}})();</script>
 </head>
 <body>
   <div id="stage">
@@ -20,6 +20,7 @@
         <div id="weather" class="badge" hidden></div>
         <div id="wave"></div>
         <div id="fps" hidden></div>
+        <button id="char-btn" title="Nhân vật: chỉ số và trang bị (C)">🧍<i id="char-dot" class="dot" hidden></i></button>
         <button id="pause-btn" title="Tạm dừng (P)">⏸</button>
       </div>
       <div id="xp"><span id="lvl">Lv 1</span><div class="track"><div id="xp-fill" class="fill"></div></div></div>
@@ -38,6 +39,7 @@
       <p class="hint">Chạm vào thẻ (hoặc phím 1–4) · <span id="reroll-hint"></span></p>
       <button id="reroll-btn" hidden></button>
     </div>
+    <div id="charpanel" class="overlay" hidden><div id="char-tabs" class="row adm-tabs"></div><div id="char-body"></div><button id="char-close" class="big">▶ Tiếp tục</button></div>
     <div id="pause" class="overlay" hidden><h1>Tạm dừng</h1><button id="resume" class="big">▶ Chơi tiếp</button><button data-go="quit">Bỏ lượt (vẫn nhận thưởng)</button></div>
 
     <div id="summary" class="overlay" hidden>
@@ -52,6 +54,7 @@
       <div id="profile-line"></div>
       <div class="menu-grid">
         <button data-go="setup" class="big">▶ Chơi</button>
+        <button data-go="stats">Chỉ số<i id="stats-dot" class="dot" hidden></i></button>
         <button data-go="passives">Nội tại</button>
         <button data-go="talents">Nâng cấp</button>
         <button data-go="classes">Nghề</button>
@@ -74,6 +77,7 @@
       <div class="row"><button data-go="menu">← Sảnh</button><button id="go" class="big">Bắt đầu</button></div>
     </div>
 
+    <div id="stats" class="page" hidden><h2>Chỉ số <span class="crys"></span></h2><div id="stats-classbar" class="row adm-tabs classbar"></div><div id="stat-box"></div><button data-go="menu">← Sảnh</button></div>
     <div id="passives" class="page" hidden><h2>Nội tại <span class="crys"></span></h2><div id="passives-classbar" class="row adm-tabs classbar"></div><p class="hint">Mỗi nghề 5 nội tại, tối đa cấp 10. ★ là nội tại đặc trưng, có sẵn cấp 1.</p><div id="passive-list" class="cols"></div><button data-go="menu">← Sảnh</button></div>
     <div id="talents" class="page" hidden><h2>Nâng cấp vĩnh viễn <span class="crys"></span></h2><div id="talents-classbar" class="row adm-tabs classbar"></div><div id="talent-list" class="cols"></div><button data-go="menu">← Sảnh</button></div>
     <div id="elements" class="page" hidden><h2>Nguyên tố & dấu <span class="crys"></span></h2><div id="elements-classbar" class="row adm-tabs classbar"></div><h3>Nguyên tố</h3><div id="elem-list" class="row wrap"></div><h3>Dấu võ thuật</h3><div id="mark-list" class="row wrap"></div><p id="chaos-note" class="hint"></p><button data-go="menu">← Sảnh</button></div>
@@ -92,6 +96,6 @@
     <div id="loading" class="overlay"><p>Đang tải…</p></div>
   </div>
   <p id="rotate">↻ Xoay ngang điện thoại để chơi rộng hơn</p>
-  <script type="module" src="src/app.js?v=mw7pwjdj"></script>
+  <script type="module" src="src/app.js?v=mw800jqu"></script>
 </body>
 </html>
