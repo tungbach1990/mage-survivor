@@ -17,8 +17,10 @@ export const GRADE = {
 export const LEGACY_GRADE = { common: "white", rare: "blue", epic: "purple", legendary: "red" };
 export const gradeOf = (r) => (GRADE[r] ? r : LEGACY_GRADE[r] ?? "white");
 export const gradeIndex = (r) => GRADES.indexOf(gradeOf(r));
-/** How strong an item's lines are: 1 for a white of level 1, +12% a grade, a level is two grades. */
-export const itemPower = (level, grade) => 1 + 0.12 * ((Math.max(1, level) - 1) * 2 + gradeIndex(grade));
+/** How strong an item's numbers are against a white of the same level: +20% a grade; a level is two grades
+ * (+40%), so a white of level 2 is a blue of level 1. */
+export const GRADE_STEP = 0.2, LEVEL_STEP = 2 * GRADE_STEP;
+export const itemPower = (level, grade) => (1 + LEVEL_STEP * (Math.max(1, level) - 1)) * (1 + GRADE_STEP * gradeIndex(grade));
 
 /** A grade, rolled: luck (the gear's own) and the boss's bonus lift the rarer ones. */
 export function rollGrade(next, bonus = 0) {
@@ -39,8 +41,8 @@ export const GLOW = { white: 0.12, green: 0.22, blue: 0.32, yellow: 0.42, purple
 export const hueRGB = (h) => { const f = (n) => { const k = (n + h * 6) % 6; return Math.round(255 * (1 - Math.max(0, Math.min(k, 4 - k, 1)))) }; return [f(5), f(3), f(1)] };
 
 // ---- an item's base numbers (Ragnarok's weapon ATK and armour DEF, its accessories' stat points; MU's base and
-// options): +50% a level, +8% a grade. The rolled lines come on top.
-export const baseMul = (level, grade) => (1 + 0.5 * (Math.max(1, level) - 1)) * (1 + 0.08 * gradeIndex(grade));
+// options): +40% a level, +20% a grade over a white. The rolled lines come on top.
+export const baseMul = (level, grade) => itemPower(level, grade);
 export const WEAPON_ATK = { dagger: 30, sword: 40, twohand: 55, spear: 48, axe: 58, mace: 42, staff: 32, bow: 38, cart: 45 };
 export const ARMOUR = { body: { def: 6, hp: 12 }, head: { def: 3 }, offhand: { def: 5 }, cloak: { def: 3 }, gloves: { def: 2 }, boots: { def: 3 }, belt: { def: 2, hp: 8 } };
 export const RING_STATS = ["str", "agi", "dex", "luk"], AMULET_STATS = ["int", "vit"];
@@ -53,7 +55,7 @@ export function baseOf(it, starterType = "staff") {
   if (ARMOUR[it.slot]) { const a = ARMOUR[it.slot]; return { def: Math.round(a.def * k), ...(a.hp ? { hp: Math.round(a.hp * k) } : {}) } }
   if (it.slot === "ring" || it.slot === "amulet") {
     const list = it.slot === "ring" ? RING_STATS : AMULET_STATS, stat = list[(it.variant ?? hashId(it.id)) % list.length];
-    return { stat, v: Math.max(1, Math.round((1 + (it.level ?? it.chapter ?? 1)) * (1 + 0.15 * gradeIndex(it.rarity)))) };
+    return { stat, v: Math.max(1, Math.round(2 * itemPower(it.level ?? it.chapter ?? 1, it.rarity))) };
   }
   return null;
 }
