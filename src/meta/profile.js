@@ -3,19 +3,19 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw810yu6";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw810yu6";
-import { SKILLS } from "../data/skills.js?v=mw810yu6";
-import { CODEX } from "../data/reactions.js?v=mw810yu6";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw810yu6";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw810yu6";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw810yu6";
-import { GRADE, gradeOf, rollGrade, itemPower } from "../data/loot.js?v=mw810yu6";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw810yu6";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw810yu6";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw810yu6";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw810yu6";
-import { GEAR_SCALE } from "../data/meta.js?v=mw810yu6";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw81k6jb";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw81k6jb";
+import { SKILLS } from "../data/skills.js?v=mw81k6jb";
+import { CODEX } from "../data/reactions.js?v=mw81k6jb";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw81k6jb";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw81k6jb";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw81k6jb";
+import { GRADE, gradeOf, rollGrade, itemPower, baseOf, baseMul } from "../data/loot.js?v=mw81k6jb";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw81k6jb";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw81k6jb";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw81k6jb";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw81k6jb";
+import { GEAR_SCALE } from "../data/meta.js?v=mw81k6jb";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
@@ -77,6 +77,7 @@ export function profileMods(p, cls = p.lastClass ?? "mage") {
   const m = { ...DEFAULT_MODS(), elem: {}, imbue: {} }, c = pc(p, cls);
   for (const t of TALENT_TREES[cls]) { const l = c.talents[t.id] ?? 0; if (l) t.mod(m, l) }
   applyPassives(m, cls, c.passives);
+  for (const it of Object.values(c.gear)) { const b = baseOf(it, STARTER[cls]); if (b?.def) m.def = (m.def ?? 0) + b.def; if (b?.hp) m.wallMax += b.hp }
   const seen = new Set();
   for (const it of Object.values(c.gear)) if (it) { applyItem(m, it, seen.has(it.legendary)); if (it.legendary) seen.add(it.legendary) }
   return m;
@@ -121,9 +122,14 @@ export function buyPassive(p, cls, id) {
   return true;
 }
 /** What a held weapon brings to a run: its type and its attack (a starter's is 1). */
-export const weaponOf = (it) => (it ? { wtype: it.wtype ?? STARTER[it.cls], atk: itemPower(it.level ?? it.chapter ?? 1, it.rarity) } : null);
+export const weaponOf = (it) => (it ? { wtype: it.wtype ?? STARTER[it.cls], atk: baseOf(it, STARTER[it.cls]).mul, atkValue: baseOf(it, STARTER[it.cls]).atk } : null);
 // ---------- stats ----------
-export const statTotals = (p, cls) => totalsOf(pc(p, cls).stats ?? freshStats(), cls, p.mageLevel);
+/** The stats: the points spent, the class's bonus, and what the rings and amulets add. */
+export function statTotals(p, cls) {
+  const t = totalsOf(pc(p, cls).stats ?? freshStats(), cls, p.mageLevel);
+  for (const it of Object.values(pc(p, cls).gear ?? {})) { const b = baseOf(it); if (b?.stat) t[b.stat] += b.v }
+  return t;
+}
 export const statPointsLeft = (p, cls) => pointsAt(p.mageLevel) - spentOn(pc(p, cls).stats ?? freshStats());
 /** Raise a stat by one, if the points are there (and it's under 99). */
 export function raiseStat(p, cls, id) {
@@ -165,7 +171,7 @@ export function claimGear(p, cls, g, seed = 0) {
   return it;
 }
 /** How good a piece is, roughly (to compare with what's worn). */
-export const itemScore = (it) => (it ? itemPower(it.level ?? it.chapter ?? 1, it.rarity) * (GRADE[gradeOf(it.rarity)].affixes + (it.legendary ? 1 : 0)) : 0);
+export const itemScore = (it) => (it ? baseMul(it.level ?? it.chapter ?? 1, it.rarity) * (2 + GRADE[gradeOf(it.rarity)].affixes + (it.legendary ? 1 : 0)) : 0);
 export function buyTalent(p, cls, id) {
   const t = TALENT_TREES[cls]?.find((x) => x.id === id), c = pc(p, cls), l = c.talents[id] ?? 0;
   if (!t || l >= t.max) return false;

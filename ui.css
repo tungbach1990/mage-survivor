@@ -262,3 +262,7 @@ h1 { font-size: 28px; }
 .wline { display: block; color: #ffd28a; font-size: 11px; } .wline b { color: #ffe286; }
 
 .kind-filter { gap: 4px; margin-top: 4px; } .kind-filter button { padding: 2px 8px; font-size: 11px; }
+
+/* an item's base numbers */
+.tile.item .base { margin: 4px 0 2px; font-size: 14px; color: #f4ecff; } .tile.item .base b { color: #ffe286; font-size: 16px; }
+.up { color: #6ee07a; font-weight: 700; } .down { color: #ff6a6a; font-weight: 700; }

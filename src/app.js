@@ -1,23 +1,24 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw810yu6";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw810yu6";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw810yu6";
-import { createRenderer , PW, PH } from "./view.js?v=mw810yu6";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw810yu6";
-import { ENEMIES } from "./sim/enemies.js?v=mw810yu6";
-import { SKILLS, stats } from "./data/skills.js?v=mw810yu6";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw810yu6";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw810yu6";
-import { CHAPTERS } from "./data/chapters.js?v=mw810yu6";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw810yu6";
-import { PASSIVES, passiveCost } from "./data/passives.js?v=mw810yu6";
-import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mw810yu6";
-import { liveRefresh } from "./meta/live.js?v=mw810yu6";
-import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mw810yu6";
-import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw810yu6";
-import { dressHero } from "./render/dress.js?v=mw810yu6";
+import { loadAssets, browserLoad } from "./assets.js?v=mw81k6jb";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw81k6jb";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw81k6jb";
+import { createRenderer , PW, PH } from "./view.js?v=mw81k6jb";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw81k6jb";
+import { ENEMIES } from "./sim/enemies.js?v=mw81k6jb";
+import { SKILLS, stats } from "./data/skills.js?v=mw81k6jb";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw81k6jb";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw81k6jb";
+import { CHAPTERS } from "./data/chapters.js?v=mw81k6jb";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw81k6jb";
+import { PASSIVES, passiveCost } from "./data/passives.js?v=mw81k6jb";
+import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mw81k6jb";
+import { liveRefresh } from "./meta/live.js?v=mw81k6jb";
+import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mw81k6jb";
+import { baseOf } from "./data/loot.js?v=mw81k6jb";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw81k6jb";
+import { dressHero } from "./render/dress.js?v=mw81k6jb";
 // an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
 const iconCache = new Map();
 function itemIcon(it) {
@@ -37,11 +38,11 @@ function drawPreview(cls) {
     g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
   } catch { /* no canvas */ }
 }
-import { ENVS } from "./data/environments.js?v=mw810yu6";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw810yu6";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw810yu6";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw810yu6";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, weaponOf, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw810yu6";
+import { ENVS } from "./data/environments.js?v=mw81k6jb";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw81k6jb";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw81k6jb";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw81k6jb";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, weaponOf, profileMods, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw81k6jb";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -171,7 +172,7 @@ function statPanel(box, cls, after) {
     <small>HIT <b>${d.hit}</b> (+${pct(d.hitDmg - 1)} sát thương) · FLEE <b>${d.flee}</b> (+${pct(d.fleeSM)} tốc đánh)</small>
     <small>ASPD <b>${aspd.toFixed(1)}</b> (${hitsPerSec(aspd).toFixed(2)} đòn/giây) · niệm <b>${pct(d.castMul)}</b> thời gian gốc</small>
     <small>Chí mạng <b>${pct(d.crit)}</b> (đòn thường) · né hoàn hảo <b>${pct(d.pdodge)}</b></small>
-    <small>Máu tường <b>+${pct(d.wallHpMul - 1)}</b> · giảm <b>${d.softDef.toFixed(1)}</b>/đòn · hồi <b>${d.regen}</b>/6 giây · kháng đòn tầm xa <b>${pct(d.mdef)}</b></small>`;
+    <small>DEF trang bị <b>${profileMods(P, cls).def ?? 0}</b> (tường nhận ${pct(100 / (100 + (profileMods(P, cls).def ?? 0)))} sát thương) · máu tường <b>+${pct(d.wallHpMul - 1)}</b> · giảm <b>${d.softDef.toFixed(1)}</b>/đòn · hồi <b>${d.regen}</b>/6 giây · kháng đòn tầm xa <b>${pct(d.mdef)}</b></small>`;
   box.appendChild(sub);
 }
 function drawStats() {
@@ -267,8 +268,11 @@ function itemTile(it, actions, dim = false, after = () => go("gear")) {
   const d = document.createElement("div");
   d.className = `tile item ${dim ? "locked" : ""}`;
   const ic = itemIcon(it), mat = MATERIALS[kindOf(it)[1]]?.name ?? "";
-  const wt = it.slot === "weapon" ? WTYPES[it.wtype ?? STARTER[it.cls]] : null, wline = wt ? `<small class="wline">${wt.name} · ${wt.two ? "2 tay" : "1 tay"} · ATK ×${weaponOf(it).atk.toFixed(2)} · đòn thường: <b>${wt.cls.includes(it.cls) && it.wtype !== STARTER[it.cls] ? wt.blow : SKILLS[`basic_${it.cls}`].name}</b> · ${btbaOf(it.cls, it.wtype ?? STARTER[it.cls]).toFixed(2)} giây/đòn gốc${it.starter ? " · khởi điểm" : ""}</small>` : "";
-  d.innerHTML = `<div class="item-head">${ic ? `<img class="item-icon rar-b-${it.rarity}" src="${ic}" alt="">` : ""}<div><b class="rar-${it.rarity}">${it.fresh ? "🆕 " : ""}${itemName(it)}</b><small>${SLOT_NAMES[it.slot]} · ${mat} · ${CLASSES[it.cls]?.name ?? ""} · Chương ${it.chapter}</small>${wline}</div></div><ul>${it.affixes.map((a) => `<li>${affixText(a)}</li>`).join("")}${it.legendary ? `<li class="rar-legendary">★ ${{ bh: "Hố Đen bán kính +50%", hexa: "Sát thương tầng +60%", slot: "+1 ô skill", aura: "Dấu kéo dài gấp rưỡi", resonance: "Sát thương phản ứng +50%", imbue2: "Tỉ lệ tẩm dấu ×2" }[it.legendary]}</li>` : ""}</ul>`;
+  const B = baseOf(it, STARTER[it.cls]), worn = pc(P, it.cls)?.gear?.[it.slot], WB = worn && worn !== it ? baseOf(worn, STARTER[it.cls]) : null;
+  const cmp = (a, b) => (b == null ? "" : a > b ? ` <span class="up">▲${a - b}</span>` : a < b ? ` <span class="down">▼${b - a}</span>` : "");
+  const baseLine = !B ? "" : B.atk != null ? `<div class="base">⚔ ATK <b>${B.atk}</b>${cmp(B.atk, WB?.atk)}</div>` : B.def != null ? `<div class="base">🛡 DEF <b>${B.def}</b>${cmp(B.def, WB?.def)}${B.hp ? ` · ❤ máu tường <b>+${B.hp}</b>${cmp(B.hp, WB?.hp)}` : ""}</div>` : `<div class="base">✦ <b>+${B.v} ${B.stat.toUpperCase()}</b>${WB?.stat === B.stat ? cmp(B.v, WB.v) : ""}</div>`;
+  const wt = it.slot === "weapon" ? WTYPES[it.wtype ?? STARTER[it.cls]] : null, wline = wt ? `<small class="wline">${wt.name} · ${wt.two ? "2 tay" : "1 tay"} · đòn thường: <b>${wt.cls.includes(it.cls) && it.wtype !== STARTER[it.cls] ? wt.blow : SKILLS[`basic_${it.cls}`].name}</b> · ${btbaOf(it.cls, it.wtype ?? STARTER[it.cls]).toFixed(2)} giây/đòn gốc${it.starter ? " · khởi điểm" : ""}</small>` : "";
+  d.innerHTML = `<div class="item-head">${ic ? `<img class="item-icon rar-b-${it.rarity}" src="${ic}" alt="">` : ""}<div><b class="rar-${it.rarity}">${it.fresh ? "🆕 " : ""}${itemName(it)}</b><small>${SLOT_NAMES[it.slot]} · ${mat} · ${CLASSES[it.cls]?.name ?? ""} · Chương ${it.chapter}</small>${wline}</div></div>${baseLine}<ul>${it.affixes.map((a) => `<li>${affixText(a)}</li>`).join("")}${it.legendary ? `<li class="rar-legendary">★ ${{ bh: "Hố Đen bán kính +50%", hexa: "Sát thương tầng +60%", slot: "+1 ô skill", aura: "Dấu kéo dài gấp rưỡi", resonance: "Sát thương phản ứng +50%", imbue2: "Tỉ lệ tẩm dấu ×2" }[it.legendary]}</li>` : ""}</ul>`;
   for (const [label, fn] of actions) { const b = document.createElement("button"); b.textContent = label; b.onclick = () => { fn(); persist(); after() }; d.appendChild(b) }
   return d;
 }
