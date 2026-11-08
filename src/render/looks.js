@@ -1,24 +1,24 @@
 // How each skill looks: which pixelfx effect draws its shot, its blast or its zone, in which palette.
 // `fit` lets one effect play many parts (a fireball recolored is a venom dart, a void bolt, a mana missile).
 
-import * as fireball from "../../lib/pixelfx/fx/fire/fireball.js?v=mw800jqu";
-import * as tracer from "../../lib/pixelfx/fx/projectiles/bullet-tracer.js?v=mw800jqu";
-import * as iceLance from "../../lib/pixelfx/fx/ice/ice-lance.js?v=mw800jqu";
-import * as energyDisc from "../../lib/pixelfx/fx/projectiles/energy-disc.js?v=mw800jqu";
-import * as ballLightning from "../../lib/pixelfx/fx/lightning/ball-lightning.js?v=mw800jqu";
-import * as tornado from "../../lib/pixelfx/fx/nature/tornado.js?v=mw800jqu";
-import * as voidOrb from "../../lib/pixelfx/fx/shadow/void-orb.js?v=mw800jqu";
-import * as plasma from "../../lib/pixelfx/fx/explosions/plasma-explosion.js?v=mw800jqu";
-import * as snowBurst from "../../lib/pixelfx/fx/ice/snowflake-burst.js?v=mw800jqu";
-import * as waveCrash from "../../lib/pixelfx/fx/water/wave-crash.js?v=mw800jqu";
-import * as earthSpike from "../../lib/pixelfx/fx/nature/earth-spike.js?v=mw800jqu";
-import * as quake from "../../lib/pixelfx/fx/nature/quake.js?v=mw800jqu";
-import * as poisonCloud from "../../lib/pixelfx/fx/nature/poison-cloud.js?v=mw800jqu";
-import * as smite from "../../lib/pixelfx/fx/holy/smite.js?v=mw800jqu";
-import * as grasping from "../../lib/pixelfx/fx/shadow/grasping-hands.js?v=mw800jqu";
-import * as runeCircle from "../../lib/pixelfx/fx/arcane/rune-circle.js?v=mw800jqu";
-import { ELEM } from "../data/elements.js?v=mw800jqu";
-import * as swordWave from "../fx/sword-wave.js?v=mw800jqu";
+import * as fireball from "../../lib/pixelfx/fx/fire/fireball.js?v=mw80eoce";
+import * as tracer from "../../lib/pixelfx/fx/projectiles/bullet-tracer.js?v=mw80eoce";
+import * as iceLance from "../../lib/pixelfx/fx/ice/ice-lance.js?v=mw80eoce";
+import * as energyDisc from "../../lib/pixelfx/fx/projectiles/energy-disc.js?v=mw80eoce";
+import * as ballLightning from "../../lib/pixelfx/fx/lightning/ball-lightning.js?v=mw80eoce";
+import * as tornado from "../../lib/pixelfx/fx/nature/tornado.js?v=mw80eoce";
+import * as voidOrb from "../../lib/pixelfx/fx/shadow/void-orb.js?v=mw80eoce";
+import * as plasma from "../../lib/pixelfx/fx/explosions/plasma-explosion.js?v=mw80eoce";
+import * as snowBurst from "../../lib/pixelfx/fx/ice/snowflake-burst.js?v=mw80eoce";
+import * as waveCrash from "../../lib/pixelfx/fx/water/wave-crash.js?v=mw80eoce";
+import * as earthSpike from "../../lib/pixelfx/fx/nature/earth-spike.js?v=mw80eoce";
+import * as quake from "../../lib/pixelfx/fx/nature/quake.js?v=mw80eoce";
+import * as poisonCloud from "../../lib/pixelfx/fx/nature/poison-cloud.js?v=mw80eoce";
+import * as smite from "../../lib/pixelfx/fx/holy/smite.js?v=mw80eoce";
+import * as grasping from "../../lib/pixelfx/fx/shadow/grasping-hands.js?v=mw80eoce";
+import * as runeCircle from "../../lib/pixelfx/fx/arcane/rune-circle.js?v=mw80eoce";
+import { ELEM } from "../data/elements.js?v=mw80eoce";
+import * as swordWave from "../fx/sword-wave.js?v=mw80eoce";
 
 const R = (el) => ELEM[el].ramp;
 const ramp9 = (el) => [...R(el), "#ffffff"];   // the fireball wants nine steps

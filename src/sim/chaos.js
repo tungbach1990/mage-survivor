@@ -2,11 +2,11 @@
 // tightening spiral (2.2 s), collapses (0.3 s) and blows (0.4 s): half a monster's life and more, a tenth of a
 // boss's, and every survivor is left carrying all ten auras.
 
-import { ENEMIES } from "./enemies.js?v=mw800jqu";
-import { ELEMENTS } from "../data/elements.js?v=mw800jqu";
-import { alive, inBlast } from "./field.js?v=mw800jqu";
-import { damage, applyAura } from "./combat.js?v=mw800jqu";
-import { reactT } from "../data/tuning.js?v=mw800jqu";
+import { ENEMIES } from "./enemies.js?v=mw80eoce";
+import { ELEMENTS } from "../data/elements.js?v=mw80eoce";
+import { alive, inBlast } from "./field.js?v=mw80eoce";
+import { damage, applyAura } from "./combat.js?v=mw80eoce";
+import { reactT } from "../data/tuning.js?v=mw80eoce";
 
 export const BLACK_HOLE = { rift: 0.6, pull: 2.2, collapse: 0.3, blast: 0.4, radius: 60, reach: 110, pullSpeed: [20, 140], bossPull: 0.3, dmgFrac: 0.5, dmgFlat: 200, bossFrac: 0.1 };
 const PHASES = ["rift", "pull", "collapse", "blast"];

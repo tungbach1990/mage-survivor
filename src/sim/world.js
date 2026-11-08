@@ -5,27 +5,27 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw800jqu";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw800jqu";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw800jqu";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw800jqu";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw800jqu";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw800jqu";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw800jqu";
-import { T, typeT } from "../data/tuning.js?v=mw800jqu";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw800jqu";
-import { derive, castOf } from "../data/stats.js?v=mw800jqu";
-import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mw800jqu";
-import { mageXpNext } from "../data/meta.js?v=mw800jqu";
-import { schoolOf } from "../data/elements.js?v=mw800jqu";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw800jqu";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw800jqu";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw800jqu";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw800jqu";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw800jqu";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw800jqu";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw800jqu";
-import { updateBlackHoles } from "./chaos.js?v=mw800jqu";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw80eoce";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw80eoce";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw80eoce";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw80eoce";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw80eoce";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw80eoce";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw80eoce";
+import { T, typeT } from "../data/tuning.js?v=mw80eoce";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw80eoce";
+import { derive, castOf } from "../data/stats.js?v=mw80eoce";
+import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mw80eoce";
+import { mageXpNext } from "../data/meta.js?v=mw80eoce";
+import { schoolOf } from "../data/elements.js?v=mw80eoce";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw80eoce";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw80eoce";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw80eoce";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw80eoce";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw80eoce";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw80eoce";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw80eoce";
+import { updateBlackHoles } from "./chaos.js?v=mw80eoce";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
@@ -253,8 +253,8 @@ function updateSkills(w, dt) {
     s.cd -= dt / cdMul;
     if (s.cd > 0) { s.ready = null; continue }
     const [ct, cdl] = castOf(sk, schoolOf(sk.elem));
-    // the basic attack: at its attack speed, not while casting; passives as they come; with no stats, all at once
-    if (!d || sk.basic || sk.kind === "passive" || (sk.passive && sk.passive !== "nova") || (ct === 0 && cdl === 0)) { if (sk.basic && d && w.cast) continue; fireSkill(w, id); continue }
+    // the basic attack: at its attack speed, casting or not; passives as they come; with no stats, all at once
+    if (!d || sk.basic || sk.kind === "passive" || (sk.passive && sk.passive !== "nova") || (ct === 0 && cdl === 0)) { fireSkill(w, id); continue }
     s.ready ??= w.t;
     if (!pick || s.ready < w.skills[pick].ready) pick = id;
   }
