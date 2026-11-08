@@ -3,38 +3,38 @@
 // (labels, tier sigils, beams, wells), the black hole bending the picture round it, and every pixelfx effect.
 // The browser puts the bytes on a canvas; Node writes them to PNGs.
 
-import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7os72i";
-import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7os72i";
-import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7os72i";
-import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7os72i";
-import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7os72i";
-import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7os72i";
-import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7os72i";
-import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7os72i";
-import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7os72i";
-import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7os72i";
-import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7os72i";
-import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7os72i";
-import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7os72i";
-import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7os72i";
-import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7os72i";
-import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7os72i";
-import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7os72i";
-import * as rainCloud from "./fx/rain-cloud.js?v=mw7os72i";
-import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7os72i";
-import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7os72i";
-import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7os72i";
-import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7os72i";
-import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7os72i";
-import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7os72i";
+import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7owxdc";
+import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7owxdc";
+import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7owxdc";
+import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7owxdc";
+import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7owxdc";
+import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7owxdc";
+import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7owxdc";
+import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7owxdc";
+import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7owxdc";
+import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7owxdc";
+import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7owxdc";
+import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7owxdc";
+import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7owxdc";
+import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7owxdc";
+import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7owxdc";
+import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7owxdc";
+import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7owxdc";
+import * as rainCloud from "./fx/rain-cloud.js?v=mw7owxdc";
+import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7owxdc";
+import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7owxdc";
+import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7owxdc";
+import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7owxdc";
+import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7owxdc";
+import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7owxdc";
 // the archer's falcon: pixelfx's bird in a falcon's browns, a cream breast
 const FALCON = { palette: ["#1a0e08", "#3a2414", "#5c3a1e", "#84562c", "#ae7a44", "#d8ac72", "#fff0d0"], breast: ["#5a3a1e", "#b48a5a", "#e8d0a4", "#fff4dc"] };
-import { LOOKS, blastOf } from "./render/looks.js?v=mw7os72i";
-import { dressHero, gearGlow } from "./render/dress.js?v=mw7os72i";
-import { RARITY_GEM } from "./data/gear.js?v=mw7os72i";
-import { FRAMES } from "./assets.js?v=mw7os72i";
-import { ENEMIES } from "./sim/enemies.js?v=mw7os72i";
-import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7os72i";
+import { LOOKS, blastOf } from "./render/looks.js?v=mw7owxdc";
+import { dressHero, gearGlow } from "./render/dress.js?v=mw7owxdc";
+import { RARITY_GEM } from "./data/gear.js?v=mw7owxdc";
+import { FRAMES } from "./assets.js?v=mw7owxdc";
+import { ENEMIES } from "./sim/enemies.js?v=mw7owxdc";
+import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7owxdc";
 
 // ---- the screen stands up: 180 x 320. A field point (x: distance from the wall's side, y: across the lanes)
 // lands at (SX, SY): its lanes (y 76..172) across the screen, its depth up it (the wall at y 250, the spawn at
@@ -50,10 +50,10 @@ export const toScreen = (x, y, h = 0) => [SX(y), SY(x) - h];
 const rot = (vx, vy) => [vy * KX, -vx];
 const HERO = toScreen(MAGE_FEET[0], MAGE_FEET[1]);
 const WALL_Y = SY(WALL_X);   // the wall's outer face
-import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7os72i";
-import { REACTION_BY_ID } from "./data/reactions.js?v=mw7os72i";
-import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7os72i";
-import { BLACK_HOLE } from "./sim/chaos.js?v=mw7os72i";
+import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7owxdc";
+import { REACTION_BY_ID } from "./data/reactions.js?v=mw7owxdc";
+import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7owxdc";
+import { BLACK_HOLE } from "./sim/chaos.js?v=mw7owxdc";
 
 const MAX_LABELS = 6;
 const CLOUDS = {
@@ -115,6 +115,8 @@ export function createRenderer(A) {
   let volleys = [];
   // plain basic attacks (levels 1-2, nothing imbued): a grey swing, a grey flick where a shot lands
   let swings = [], flicks = [];
+  // a shadow clone's blows: smoke from it to where each lands
+  let smokeTrails = [];
   // Holy Light: crosses set straight on the monsters
   let crosses = [];
   let shake = 0, shakeT = 0, numbers = 0, clock = 0, rainK = 0, lavaK = 0, flash = 0, flashCol = [236, 226, 255], space = 0;
@@ -124,7 +126,11 @@ export function createRenderer(A) {
   let env = "clear", envK = 0, blinks = [];
   const WATER = [74, 106, 154], WATER_RIM = [154, 196, 240];
 
+  // while drawing a shadow clone's blow: its effects in smoke grey, dimmer
+  let curMirror = false;
+  const SMOKE = ["#1e1c24", "#34323c", "#4c4a56", "#686672", "#86848e", "#a6a4ae", "#c8c6d0"];
   function add(mod, o, extra = {}) {
+    if (curMirror) { if (o.palette) o.palette = SMOKE; if (o.sparks) o.sparks = SMOKE; if (o.light != null) o.light *= 0.45 }
     if (!Number.isFinite(o.x) || !Number.isFinite(o.y)) return null;
     if (fxs.length >= Q.fx && !extra.must) {
       const i = fxs.findIndex((f) => f.kind === "deco");
@@ -173,6 +179,11 @@ export function createRenderer(A) {
     return ev;
   }
   function onEvent(ev) {
+    curMirror = !!ev.mirror;
+    if (curMirror && ev.cx != null && ev.x != null && ev.y != null && ev.type !== "shot" && ev.type !== "dmg" && ev.type !== "shotEnd") {
+      const [sx, sy] = toScreen(ev.cx, ev.cy, 30), [tx, ty] = toScreen(ev.x, ev.y, ev.h ?? 0);
+      smokeTrails.push({ x: sx, y: sy, x2: tx, y2: ty, t: 0 });
+    }
     ev = screenEvent(ev);
     switch (ev.type) {
       case "shot": {
@@ -318,6 +329,8 @@ export function createRenderer(A) {
     updateFalcons(w);
     clock += dt;
     for (const ev of events) onEvent(ev);
+    curMirror = false;
+    for (const s of smokeTrails) s.t += dt; smokeTrails = smokeTrails.filter((s) => s.t < 0.35);
     syncOverlays(w);
     const byId = new Map(w.enemies.map((e) => [e.id, e]));
     const shots = new Map(w.shots.map((s) => [s.id, s]));
@@ -730,6 +743,11 @@ export function createRenderer(A) {
       for (let a = -1.1; a <= 1.1; a += 0.06) put(s.x + Math.sin(a) * r * 1.2, s.y - 6 - Math.cos(a) * r * 0.7, G, 0.8 * k);
     }
     for (const c of crosses) drawCross(c);
+    for (const s of smokeTrails) {
+      const k = 1 - s.t / 0.35, n = Math.max(2, Math.ceil(Math.hypot(s.x2 - s.x, s.y2 - s.y) / 3));
+      for (let i = 0; i <= n; i++) { const u = i / n, wob = Math.sin(u * 9 + s.t * 20) * 2; put(s.x + (s.x2 - s.x) * u + wob, s.y + (s.y2 - s.y) * u, [150, 148, 160], 0.45 * k * (0.4 + 0.6 * u)) }
+      for (let a = 0; a < 10; a++) put(s.x2 + Math.cos(a * 0.63) * (3 + s.t * 14), s.y2 + Math.sin(a * 0.63) * (2 + s.t * 8), [170, 168, 180], 0.5 * k);
+    }
     for (const f of flicks) { const k = 1 - f.t / 0.12; put(f.x, f.y, G, k); put(f.x - 1, f.y - 1, D, k * 0.7); put(f.x + 1, f.y + 1, D, k * 0.7) }
   }
   function drawCross(c) {
