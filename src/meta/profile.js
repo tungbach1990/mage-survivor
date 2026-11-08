@@ -3,15 +3,15 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7b1r78";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7b1r78";
-import { SKILLS } from "../data/skills.js?v=mw7b1r78";
-import { CODEX } from "../data/reactions.js?v=mw7b1r78";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7b1r78";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7b1r78";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw7b1r78";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7b1r78";
-import { GEAR_SCALE } from "../data/meta.js?v=mw7b1r78";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7fvyhu";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7fvyhu";
+import { SKILLS } from "../data/skills.js?v=mw7fvyhu";
+import { CODEX } from "../data/reactions.js?v=mw7fvyhu";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7fvyhu";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7fvyhu";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw7fvyhu";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7fvyhu";
+import { GEAR_SCALE } from "../data/meta.js?v=mw7fvyhu";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
@@ -160,7 +160,7 @@ export function rollItem(seed, chapter, luck = 0, { cls = "mage", marks = MARKS 
     affixes.push({ id: a[0], v: Math.round((lo + (hi - lo) * r.next()) * (a[4]?.imbue ? 1 : 1 + 0.15 * (chapter - 1))) });
   }
   const slot = slots[Math.floor(r.next() * slots.length)], variant = Math.floor(r.next() * kindsOf(slot, cls).length);
-  for (const a of affixes) if (!AFFIXES.find((x) => x[0] === a.id)?.[4]?.imbue) a.v = Math.max(1, Math.round(a.v * GEAR_SCALE));
+  for (const a of affixes) a.v = Math.max(1, Math.round(a.v * GEAR_SCALE));
   return { id: `i${seed}`, cls, slot, variant, rarity, affixes, legendary: rarity === "legendary" ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter };
 }
 
