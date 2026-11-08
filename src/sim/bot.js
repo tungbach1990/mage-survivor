@@ -1,12 +1,12 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw7ac2wa";
-import { speedFactor } from "./status.js?v=mw7ac2wa";
-import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw7ac2wa";
-import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw7ac2wa";
-import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw7ac2wa";
-import { CLASS_IDS } from "../data/classes.js?v=mw7ac2wa";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw7b1r78";
+import { speedFactor } from "./status.js?v=mw7b1r78";
+import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw7b1r78";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw7b1r78";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw7b1r78";
+import { CLASS_IDS } from "../data/classes.js?v=mw7b1r78";
 
 const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
 
@@ -28,7 +28,7 @@ export function presetProfile(kind) {
     // what a player would open first: the marks its own book uses most (the Acolyte: light and water)
     const own = home === "arcane" ? ELEMENTS : home === "martial" ? MARTIAL : ["light", "water", ...MARTIAL, ...ELEMENTS];
     pc.marks = kind === "full" ? [...MARKS] : [...new Set([...START_MARKS[c], ...own])].slice(0, nMarks);
-    if (kind === "full" || kind === "most") pc.gear = Object.fromEntries(["weapon", "cloak", "amulet"].map((s, i) => [s, { ...rollItem(11 * (i + 1), 5, 0, { cls: c, marks: pc.marks }), slot: s }]));
+    if (kind === "full" || kind === "most") pc.gear = Object.fromEntries(["weapon", "offhand", "head", "body", "cloak", "gloves", "boots", "belt", "ring", "amulet"].map((s, i) => [s, { ...rollItem(11 * (i + 1), 5, 0, { cls: c, marks: pc.marks }), slot: s }]));
   }
   return p;
 }

@@ -1,8 +1,8 @@
 // What carries over between runs: per class the talent tree, the marks unlocked and the gear worn; shared, the
 // crystals, the bag, the account level, achievements and daily quests.
 
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mw7ac2wa";
-import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mw7ac2wa";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mw7b1r78";
+import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mw7b1r78";
 const MARTIAL_IDS = new Set([...MARTIAL_PAIRS.map((p) => p[2]), ...MARTIAL_TRIADS.map((t) => t[1])]);
 
 // ---------- talents: one tree per class, 4 branches of 4; cost = base * growth^level ----------
@@ -87,7 +87,8 @@ export const mageXpNext = (level) => Math.round(100 * Math.pow(1.35, level - 1))
 export const MAGE_PERKS = { 3: "Đòn đánh thường bắt đầu ở cấp 2", 5: "Mở ô Bùa hộ mệnh", 8: "Mở Vô tận sớm (khi đã qua chương 3)" };
 
 // ---------- gear: three slots per class; the weapon named for the class ----------
-export const SLOTS = { weapon: "Vũ khí", cloak: "Áo choàng", amulet: "Bùa hộ mệnh" };
+import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mw7b1r78";
+export const SLOTS = Object.fromEntries(SLOT_IDS.map((s) => [s, SLOT_NAMES[s]]));
 export const WEAPON_NAME = { mage: "Gậy phép", swordman: "Kiếm", archer: "Cung", thief: "Dao găm", acolyte: "Chùy", merchant: "Xe đẩy" };
 export const slotName = (slot, cls) => (slot === "weapon" ? WEAPON_NAME[cls] ?? "Vũ khí" : SLOTS[slot] ?? slot);
 
@@ -124,7 +125,9 @@ export const LEGENDARY = [
   ["resonance", "Sát thương phản ứng +50%", (m) => (m.reactDmg *= 1.5)],
   ["imbue2", "Vũ khí nguyên tố: tỉ lệ tẩm dấu ×2", (m) => (m.imbueMul *= 2)],
 ];
-export const BAG_SIZE = 30;
+export const BAG_SIZE = 40;
+/** Ten slots now: each item's lines are worth less than when there were three. */
+export const GEAR_SCALE = 0.45;
 
 // ---------- achievements: [id, name, text, crystals, check(profile)] ----------
 const P = (p) => p.stats;

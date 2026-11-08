@@ -221,3 +221,14 @@ h1 { font-size: 28px; }
 .dmg-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dmg-bar { height: 9px; background: #2a1e34; border-radius: 3px; overflow: hidden; } .dmg-bar i { display: block; height: 100%; }
 .dmg-num { font: 700 11px monospace; color: #d8cce8; white-space: nowrap; }
+
+/* gear: ten slots beside the dressed hero, items with their icons */
+.gear-top { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: start; }
+#gear-preview { width: 92px; height: 116px; image-rendering: pixelated; background: radial-gradient(#3a2c50, #1a1228); border: 2px solid #4a3a5e; border-radius: 8px; }
+#gear-slots { display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; }
+#gear-slots .tile.item { padding: 4px 6px; font-size: 11px; } #gear-slots .tile.item ul { display: none; }
+#gear-slots .tile.item.empty { opacity: .45; }
+.item-head { display: flex; gap: 6px; align-items: center; }
+.item-icon { width: 30px; height: 30px; image-rendering: pixelated; flex: none; border-radius: 5px; border: 2px solid #4a3a5e; background: #1a1228; }
+.rar-b-rare { border-color: #5ab8f4; } .rar-b-epic { border-color: #c08cff; } .rar-b-legendary { border-color: #ffc83a; box-shadow: 0 0 6px #ffc83a; }
+#gear-slots .item-icon { width: 24px; height: 24px; }

@@ -1,22 +1,43 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw7ac2wa";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw7ac2wa";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw7ac2wa";
-import { createRenderer , PW, PH } from "./view.js?v=mw7ac2wa";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw7ac2wa";
-import { ENEMIES } from "./sim/enemies.js?v=mw7ac2wa";
-import { SKILLS, stats } from "./data/skills.js?v=mw7ac2wa";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw7ac2wa";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw7ac2wa";
-import { CHAPTERS } from "./data/chapters.js?v=mw7ac2wa";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw7ac2wa";
-import { ENVS } from "./data/environments.js?v=mw7ac2wa";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw7ac2wa";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw7ac2wa";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw7ac2wa";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw7ac2wa";
+import { loadAssets, browserLoad } from "./assets.js?v=mw7b1r78";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw7b1r78";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw7b1r78";
+import { createRenderer , PW, PH } from "./view.js?v=mw7b1r78";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw7b1r78";
+import { ENEMIES } from "./sim/enemies.js?v=mw7b1r78";
+import { SKILLS, stats } from "./data/skills.js?v=mw7b1r78";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw7b1r78";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw7b1r78";
+import { CHAPTERS } from "./data/chapters.js?v=mw7b1r78";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw7b1r78";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw7b1r78";
+import { dressHero } from "./render/dress.js?v=mw7b1r78";
+// an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
+const iconCache = new Map();
+function itemIcon(it) {
+  const key = [it.slot, it.cls, kindOf(it)[0], it.rarity].join("|");
+  if (iconCache.has(key)) return iconCache.get(key);
+  let url = "";
+  try { const c = document.createElement("canvas"); c.width = c.height = 12; const g = c.getContext("2d"), im = g.createImageData(12, 12); im.data.set(iconPixels(it)); g.putImageData(im, 0, 0); url = c.toDataURL?.() ?? "" } catch { url = "" }
+  iconCache.set(key, url);
+  return url;
+}
+// the hero as dressed now, drawn into a canvas (idle frame)
+function drawPreview(cls) {
+  const cv = $("gear-preview"); if (!cv?.getContext) return;
+  try {
+    const s = dressHero(A.heroes?.[cls] ?? A.mage, cls, lookOf(pc(P, cls).gear)), p = s.pic, g = cv.getContext("2d"), im = g.createImageData(s.fw, p.h);
+    for (let y = 0; y < p.h; y++) for (let x = 0; x < s.fw; x++) { const v = p.px[y * p.w + x], i = (y * s.fw + x) * 4; im.data[i] = v & 255; im.data[i + 1] = (v >>> 8) & 255; im.data[i + 2] = (v >>> 16) & 255; im.data[i + 3] = v >>> 24 }
+    g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
+  } catch { /* no canvas */ }
+}
+import { ENVS } from "./data/environments.js?v=mw7b1r78";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw7b1r78";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw7b1r78";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw7b1r78";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw7b1r78";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -159,7 +180,8 @@ function drawElements() {
 function itemTile(it, actions, dim = false) {
   const d = document.createElement("div");
   d.className = `tile item ${dim ? "locked" : ""}`;
-  d.innerHTML = `<b class="rar-${it.rarity}">${itemName(it)}</b><small>${CLASSES[it.cls]?.name ?? ""} · Chương ${it.chapter}</small><ul>${it.affixes.map((a) => `<li>${affixText(a)}</li>`).join("")}${it.legendary ? `<li class="rar-legendary">★ ${{ bh: "Hố Đen bán kính +50%", hexa: "Sát thương tầng +60%", slot: "+1 ô skill", aura: "Dấu kéo dài gấp rưỡi", resonance: "Sát thương phản ứng +50%", imbue2: "Tỉ lệ tẩm dấu ×2" }[it.legendary]}</li>` : ""}</ul>`;
+  const ic = itemIcon(it), mat = MATERIALS[kindOf(it)[1]]?.name ?? "";
+  d.innerHTML = `<div class="item-head">${ic ? `<img class="item-icon rar-b-${it.rarity}" src="${ic}" alt="">` : ""}<div><b class="rar-${it.rarity}">${itemName(it)}</b><small>${SLOT_NAMES[it.slot]} · ${mat} · ${CLASSES[it.cls]?.name ?? ""} · Chương ${it.chapter}</small></div></div><ul>${it.affixes.map((a) => `<li>${affixText(a)}</li>`).join("")}${it.legendary ? `<li class="rar-legendary">★ ${{ bh: "Hố Đen bán kính +50%", hexa: "Sát thương tầng +60%", slot: "+1 ô skill", aura: "Dấu kéo dài gấp rưỡi", resonance: "Sát thương phản ứng +50%", imbue2: "Tỉ lệ tẩm dấu ×2" }[it.legendary]}</li>` : ""}</ul>`;
   for (const [label, fn] of actions) { const b = document.createElement("button"); b.textContent = label; b.onclick = () => { fn(); persist(); go("gear") }; d.appendChild(b) }
   return d;
 }
@@ -170,8 +192,9 @@ function drawGear() {
   for (const s of Object.keys(SLOTS)) {
     const it = gear[s];
     if (it) slots.appendChild(itemTile(it, [["Tháo", () => unequip(P, viewCls, s)]]));
-    else { const d = document.createElement("div"); d.className = "tile item locked"; d.innerHTML = `<b>${slotName(s, viewCls)}</b><small>${s === "amulet" && P.mageLevel < 5 ? "Mở ở tài khoản cấp 5" : "Trống"}</small>`; slots.appendChild(d) }
+    else { const d = document.createElement("div"); d.className = "tile item empty"; d.innerHTML = `<b>${slotName(s, viewCls)}</b><small>Trống</small>`; slots.appendChild(d) }
   }
+  drawPreview(viewCls);
   const filt = $("bag-filter");
   filt.innerHTML = "";
   for (const [all, label] of [[false, `Đồ ${CLASSES[viewCls].name}`], [true, "Tất cả"]]) { const b = document.createElement("button"); b.textContent = label; b.className = bagAll === all ? "on" : ""; b.onclick = () => { bagAll = all; go("gear") }; filt.appendChild(b) }

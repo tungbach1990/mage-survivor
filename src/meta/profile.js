@@ -3,18 +3,21 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7ac2wa";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7ac2wa";
-import { SKILLS } from "../data/skills.js?v=mw7ac2wa";
-import { CODEX } from "../data/reactions.js?v=mw7ac2wa";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7ac2wa";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7ac2wa";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw7ac2wa";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7b1r78";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7b1r78";
+import { SKILLS } from "../data/skills.js?v=mw7b1r78";
+import { CODEX } from "../data/reactions.js?v=mw7b1r78";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7b1r78";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7b1r78";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw7b1r78";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7b1r78";
+import { GEAR_SCALE } from "../data/meta.js?v=mw7b1r78";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
 
-const freshClass = (cls) => ({ talents: {}, marks: [...START_MARKS[cls]], gear: { weapon: null, cloak: null, amulet: null } });
+const freshGear = () => Object.fromEntries(SLOT_IDS.map((s) => [s, null]));
+const freshClass = (cls) => ({ talents: {}, marks: [...START_MARKS[cls]], gear: freshGear() });
 export function freshProfile() {
   return {
     v: VERSION, crystals: 0, mageXp: 0, mageLevel: 1,
@@ -37,13 +40,13 @@ export function migrate(data) {
   p.classes = [...new Set(["mage", "swordman", ...(d.classes ?? [])])].filter((c) => CLASSES[c]);
   p.perClass = Object.fromEntries(CLASS_IDS.map((c) => {
     const o = d.perClass?.[c];
-    return [c, o ? { talents: { ...o.talents }, marks: [...new Set([...START_MARKS[c], ...(o.marks ?? [])])], gear: { ...freshClass(c).gear, ...o.gear } } : freshClass(c)];
+    return [c, o ? { talents: { ...o.talents }, marks: [...new Set([...START_MARKS[c], ...(o.marks ?? [])])], gear: { ...freshGear(), ...Object.fromEntries(Object.entries(o.gear ?? {}).map(([k, v]) => [k === "staff" ? "weapon" : k, v])) } } : freshClass(c)];
   }));
   if (!d.perClass && (d.talents || d.unlocked || d.gear)) {
     const m = p.perClass.mage;
     m.talents = { ...(d.talents ?? {}) };
     m.marks = [...new Set([...START_MARKS.mage, ...(d.unlocked ?? [])])];
-    m.gear = { weapon: fixItem(d.gear?.staff), cloak: fixItem(d.gear?.cloak), amulet: fixItem(d.gear?.amulet) };
+    m.gear = { ...freshGear(), weapon: fixItem(d.gear?.staff), cloak: fixItem(d.gear?.cloak), amulet: fixItem(d.gear?.amulet) };
   }
   p.bag = (d.bag ?? []).map((it) => fixItem(it));
   delete p.talents; delete p.unlocked; delete p.gear;
@@ -65,7 +68,8 @@ export function profileMods(p, cls = p.lastClass ?? "mage") {
   const m = { ...DEFAULT_MODS(), elem: {}, imbue: {} }, c = pc(p, cls);
   for (const t of TALENT_TREES[cls]) { const l = c.talents[t.id] ?? 0; if (l) t.mod(m, l) }
   m.dmg *= 1 + 0.01 * Math.min(50, p.mageLevel - 1);
-  for (const it of Object.values(c.gear)) if (it) applyItem(m, it);
+  const seen = new Set();
+  for (const it of Object.values(c.gear)) if (it) { applyItem(m, it, seen.has(it.legendary)); if (it.legendary) seen.add(it.legendary) }
   return m;
 }
 /** CHAOS Seed for a class: all ten marks of its own school open (the Acolyte: any ten). */
@@ -91,7 +95,7 @@ export function runOptions(p, { chapter = 1, endless = false, cls = p.lastClass 
   // how new the player is with this class: 1 with an empty tree, 0 with all of it (the class's "novice" factor
   // fades with it)
   const tree = TALENT_TREES[cls], bought = tree.reduce((s, t) => s + (pc(p, cls).talents[t.id] ?? 0), 0), max = tree.reduce((s, t) => s + t.max, 0);
-  return { cls, chapter, endless, mods: profileMods(p, cls), unlocked: marksOpen(p, cls), chaosUnlocked: chaosUnlocked(p, cls), codex: p.codex, basicLevel: basicLevel(p), novice: 1 - bought / max };
+  return { cls, chapter, endless, mods: profileMods(p, cls), unlocked: marksOpen(p, cls), chaosUnlocked: chaosUnlocked(p, cls), codex: p.codex, basicLevel: basicLevel(p), novice: 1 - bought / max, look: lookOf(pc(p, cls).gear) };
 }
 
 // ---------- spending ----------
@@ -114,7 +118,6 @@ export function equip(p, cls, itemId) {
   if (i < 0) return false;
   const it = p.bag[i], c = pc(p, cls);
   if (it.cls !== cls) return false;
-  if (it.slot === "amulet" && p.mageLevel < 5) return false;
   const old = c.gear[it.slot];
   c.gear[it.slot] = it; p.bag.splice(i, 1);
   if (old) p.bag.push(old);
@@ -130,13 +133,13 @@ export function salvage(p, itemId) {
 }
 
 // ---------- gear ----------
-export function applyItem(m, it) {
+export function applyItem(m, it, dupLegendary = false) {
   m.imbue ??= {};
   for (const a of it.affixes) AFFIXES.find((x) => x[0] === a.id)?.[3](m, a.v);
-  if (it.legendary) LEGENDARY.find((x) => x[0] === it.legendary)?.[2](m);
+  if (it.legendary && !dupLegendary) LEGENDARY.find((x) => x[0] === it.legendary)?.[2](m);
 }
 export function affixText(a) { const def = AFFIXES.find((x) => x[0] === a.id); return def ? def[1].replace("{v}", a.v) : a.id }
-export const itemName = (it) => `${slotName(it.slot, it.cls)} ${RARITY[it.rarity].name}`;
+export const itemName = (it) => `${kindOf(it)[0]} ${RARITY[it.rarity].name}`;
 /**
  * A random item for a chapter, from a seed (so tests and drops repeat), for a class: its lines only name marks
  * the class has open, and its imbues only marks of the other school (the Acolyte: either).
@@ -156,8 +159,9 @@ export function rollItem(seed, chapter, luck = 0, { cls = "mage", marks = MARKS 
     const a = pool.splice(Math.floor(r.next() * pool.length), 1)[0], [lo, hi] = a[2];
     affixes.push({ id: a[0], v: Math.round((lo + (hi - lo) * r.next()) * (a[4]?.imbue ? 1 : 1 + 0.15 * (chapter - 1))) });
   }
-  const slot = slots[Math.floor(r.next() * slots.length)];
-  return { id: `i${seed}`, cls, slot, rarity, affixes, legendary: rarity === "legendary" ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter };
+  const slot = slots[Math.floor(r.next() * slots.length)], variant = Math.floor(r.next() * kindsOf(slot, cls).length);
+  for (const a of affixes) if (!AFFIXES.find((x) => x[0] === a.id)?.[4]?.imbue) a.v = Math.max(1, Math.round(a.v * GEAR_SCALE));
+  return { id: `i${seed}`, cls, slot, variant, rarity, affixes, legendary: rarity === "legendary" ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter };
 }
 
 // ---------- quests ----------
@@ -215,7 +219,7 @@ export function settle(p, sum, opts = {}) {
   for (const [k, n] of Object.entries(sum.counts)) p.counts[k] = (p.counts[k] ?? 0) + n;
   for (const k of Object.keys(sum.counts)) if (!p.codex.includes(k) && CODEX.some((c) => c.id === k)) { p.codex.push(k); out.discovered.push(k) }
   // drops for the class played: a boss is sure to drop, each wave has a small chance
-  const drops = sum.bosses + Array.from({ length: sum.waves }, (_, i) => new Rng((opts.seed ?? 1) * 97 + i).next() < 0.05).filter(Boolean).length;
+  const drops = sum.bosses * 2 + Array.from({ length: sum.waves }, (_, i) => new Rng((opts.seed ?? 1) * 97 + i).next() < 0.12).filter(Boolean).length;
   for (let i = 0; i < drops; i++) {
     const it = rollItem(p.itemSeed++ * 7919 + (opts.seed ?? 0), sum.chapter, mods.luck ?? 0, { cls, marks: marksOpen(p, cls) });
     if (it.rarity === "legendary") p.stats.legendaries++;
