@@ -5,30 +5,32 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7klme6";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7klme6";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7klme6";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7klme6";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7klme6";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7klme6";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7klme6";
-import { T, typeT } from "../data/tuning.js?v=mw7klme6";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7klme6";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7klme6";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7klme6";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw7klme6";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7klme6";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7klme6";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7klme6";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7klme6";
-import { updateBlackHoles } from "./chaos.js?v=mw7klme6";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7naca9";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7naca9";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7naca9";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7naca9";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7naca9";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7naca9";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7naca9";
+import { T, typeT } from "../data/tuning.js?v=mw7naca9";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7naca9";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7naca9";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7naca9";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw7naca9";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7naca9";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7naca9";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7naca9";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7naca9";
+import { updateBlackHoles } from "./chaos.js?v=mw7naca9";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
 
 export const DEFAULT_MODS = () => ({ dmg: 1, cd: 1, area: 1, auraDur: 1, reactDmg: 1, tierDmg: 1, crit: 0, focus: 0, bhRadius: 1, elem: {}, slots: 0, choices: 0, xp: 1, regen: 0, thorns: 0, wallMax: 0,
   // the class trees' signature numbers
-  meleeDmg: 1, reach: 0, pierce: 0, boltCd: 1, zoneLife: 1, dotDmg: 1, critMul: 0, gold: 1, goldCost: 1, push: 1, healMul: 1, wallTaken: 1, dodge: 0, weatherDur: 1, sunder: 0, summonHp: 1, imbue: {}, imbueMul: 1 });
+  meleeDmg: 1, reach: 0, pierce: 0, boltCd: 1, zoneLife: 1, dotDmg: 1, critMul: 0, gold: 1, goldCost: 1, push: 1, healMul: 1, wallTaken: 1, dodge: 0, weatherDur: 1, sunder: 0, summonHp: 1, imbue: {}, imbueMul: 1,
+  // the passives' numbers
+  wallMaxPct: 0, summonDmg: 1, farDmg: 0, vsAttack: 0, vsBig: 0, vsUnholy: 0, doubleHit: 0, killGold: 0 });
 
 /**
  * A new run. opts: { cls (the class: mage, swordman, archer, thief, acolyte, merchant), chapter (1-5), endless,
@@ -38,7 +40,7 @@ export const DEFAULT_MODS = () => ({ dmg: 1, cd: 1, area: 1, auraDur: 1, reactDm
 export function createWorld(seed = 1, opts = {}) {
   const mods = { ...DEFAULT_MODS(), ...(opts.mods ?? {}) };
   mods.elem = { ...(opts.mods?.elem ?? {}) }; mods.imbue = { ...(opts.mods?.imbue ?? {}) };
-  const wallMax = 150 + mods.wallMax;
+  const wallMax = Math.round((150 + mods.wallMax) * (1 + (mods.wallMaxPct ?? 0)));
   const cls = CLASSES[opts.cls] ? opts.cls : "mage";
   const start = opts.skills ?? { [`basic_${cls}`]: opts.basicLevel ?? 1 };
   const w = {

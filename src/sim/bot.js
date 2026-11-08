@@ -1,12 +1,13 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw7klme6";
-import { speedFactor } from "./status.js?v=mw7klme6";
-import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw7klme6";
-import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw7klme6";
-import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw7klme6";
-import { CLASS_IDS } from "../data/classes.js?v=mw7klme6";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw7naca9";
+import { speedFactor } from "./status.js?v=mw7naca9";
+import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw7naca9";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw7naca9";
+import { PASSIVES } from "../data/passives.js?v=mw7naca9";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw7naca9";
+import { CLASS_IDS } from "../data/classes.js?v=mw7naca9";
 
 const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
 
@@ -25,6 +26,7 @@ export function presetProfile(kind) {
   for (const c of CLASS_IDS) {
     const pc = p.perClass[c], home = homeSchool(c);
     for (const t of TALENT_TREES[c]) pc.talents[t.id] = Math.round(t.max * frac);
+    for (const ps of PASSIVES[c]) pc.passives[ps.id] = Math.max(ps.sig ? 1 : 0, Math.round(10 * frac * 0.8));
     // what a player would open first: the marks its own book uses most (the Acolyte: light and water)
     const own = home === "arcane" ? ELEMENTS : home === "martial" ? MARTIAL : ["light", "water", ...MARTIAL, ...ELEMENTS];
     pc.marks = kind === "full" ? [...MARKS] : [...new Set([...START_MARKS[c], ...own])].slice(0, nMarks);

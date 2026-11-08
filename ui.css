@@ -232,3 +232,7 @@ h1 { font-size: 28px; }
 .item-icon { width: 30px; height: 30px; image-rendering: pixelated; flex: none; border-radius: 5px; border: 2px solid #4a3a5e; background: #1a1228; }
 .rar-b-rare { border-color: #5ab8f4; } .rar-b-epic { border-color: #c08cff; } .rar-b-legendary { border-color: #ffc83a; box-shadow: 0 0 6px #ffc83a; }
 #gear-slots .item-icon { width: 24px; height: 24px; }
+
+/* passives */
+.tile.passive small.next { color: #8ae0ff; }
+.tile.passive.sig { border-color: #c09a3a; }

@@ -6,16 +6,16 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw7klme6";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7klme6";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7klme6";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7klme6";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7klme6";
-import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7klme6";
-import { ENVS } from "../data/environments.js?v=mw7klme6";
-import { T, reactT } from "../data/tuning.js?v=mw7klme6";
+import { ENEMIES } from "./enemies.js?v=mw7naca9";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7naca9";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7naca9";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7naca9";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7naca9";
+import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7naca9";
+import { ENVS } from "../data/environments.js?v=mw7naca9";
+import { T, reactT } from "../data/tuning.js?v=mw7naca9";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw7klme6";
+import { startBlackHole } from "./chaos.js?v=mw7naca9";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
@@ -135,6 +135,15 @@ export function damage(w, e, amount, elem, opts = {}) {
   if (e.resist?.[elem] !== undefined) amount *= e.resist[elem];
   if (e.elite === "armored" && !opts.reaction && elem !== "tier") amount *= 0.5;
   e.lastHit = w.t;
+  // the passives: farther is harder hit (Hawkeye), on those at the wall, on the big ones, on the unholy, twice
+  if (real && !opts.reaction) {
+    const M = w.mods ?? {};
+    if (M.farDmg) amount *= 1 + M.farDmg * Math.max(0, Math.min(1, (e.x - WALL_X) / 250));
+    if (M.vsAttack && e.state === "attack") amount *= 1 + M.vsAttack;
+    if (M.vsBig && (e.elite || def.boss)) amount *= 1 + M.vsBig;
+    if (M.vsUnholy && (kin(e, "dark") || e.type === "skeleton" || e.type === "archer")) amount *= 1 + M.vsUnholy;
+    if (M.doubleHit && w.rng.chance(M.doubleHit)) { amount *= 2; opts = { ...opts, crit: true } }
+  }
   if (real && phys && st.exposed > 0) { st.exposed--; amount *= (env(w).exposeCrit ?? 1.5) + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }   // exposed: this blow is a sure crit
   else if (real && w.mods?.crit && w.rng.chance(w.mods.crit)) { amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }
   // a shield (an elite's, a boss's): reactions (or tiers) break it outright; any other blow wears it down a
@@ -190,7 +199,7 @@ function onDeath(w, e) {
   const def = ENEMIES[e.type];
   // a bounty on its head (or caught alive): twice the gold and the xp
   const bounty = e.auras.has("bounty") || e.status.capture ? env(w).bounty ?? AURA.bounty : 1;
-  w.gold += def.gold * bounty * (w.pm?.gold ?? 1); w.kills++;
+  w.gold += (def.gold * bounty + (w.mods?.killGold ?? 0)) * (w.pm?.gold ?? 1); w.kills++;
   w.xp = (w.xp ?? 0) + (def.xp ?? 1) * (e.elite ? 3 : 1) * (w.mods?.xp ?? 1) * bounty;
   if (e.judgedHit && e.status.judged === false && e.auras.has("light")) healWall(w, 1);
   // poison and plague spread from the dead

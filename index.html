@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>Mage Survivor Defense</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <link rel="stylesheet" href="ui.css?v=mw7klme6">
+  <link rel="stylesheet" href="ui.css?v=mw7naca9">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>(function(){var B="mw7klme6";try{fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(v){if(v&&v.build&&v.build!==B){var u=location.pathname+"?v="+v.build+location.hash;if(sessionStorage.getItem("reloadTo")!==v.build){sessionStorage.setItem("reloadTo",v.build);location.replace(u)}}}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B="mw7naca9";try{fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(v){if(v&&v.build&&v.build!==B){var u=location.pathname+"?v="+v.build+location.hash;if(sessionStorage.getItem("reloadTo")!==v.build){sessionStorage.setItem("reloadTo",v.build);location.replace(u)}}}).catch(function(){})}catch(e){}})();</script>
 </head>
 <body>
   <div id="stage">
@@ -52,6 +52,7 @@
       <div id="profile-line"></div>
       <div class="menu-grid">
         <button data-go="setup" class="big">▶ Chơi</button>
+        <button data-go="passives">Nội tại</button>
         <button data-go="talents">Nâng cấp</button>
         <button data-go="classes">Nghề</button>
         <button data-go="elements">Nguyên tố & dấu</button>
@@ -73,6 +74,7 @@
       <div class="row"><button data-go="menu">← Sảnh</button><button id="go" class="big">Bắt đầu</button></div>
     </div>
 
+    <div id="passives" class="page" hidden><h2>Nội tại <span class="crys"></span></h2><div id="passives-classbar" class="row adm-tabs classbar"></div><p class="hint">Mỗi nghề 5 nội tại, tối đa cấp 10. ★ là nội tại đặc trưng, có sẵn cấp 1.</p><div id="passive-list" class="cols"></div><button data-go="menu">← Sảnh</button></div>
     <div id="talents" class="page" hidden><h2>Nâng cấp vĩnh viễn <span class="crys"></span></h2><div id="talents-classbar" class="row adm-tabs classbar"></div><div id="talent-list" class="cols"></div><button data-go="menu">← Sảnh</button></div>
     <div id="elements" class="page" hidden><h2>Nguyên tố & dấu <span class="crys"></span></h2><div id="elements-classbar" class="row adm-tabs classbar"></div><h3>Nguyên tố</h3><div id="elem-list" class="row wrap"></div><h3>Dấu võ thuật</h3><div id="mark-list" class="row wrap"></div><p id="chaos-note" class="hint"></p><button data-go="menu">← Sảnh</button></div>
     <div id="gear" class="page" hidden><h2>Trang bị <span class="crys"></span></h2><div id="gear-classbar" class="row adm-tabs classbar"></div><div class="gear-top"><canvas id="gear-preview" width="46" height="58"></canvas><div id="gear-slots" class="row"></div></div><h3>Túi đồ (chung)</h3><div id="bag-filter" class="row adm-tabs classbar"></div><div id="bag" class="row wrap"></div><button data-go="menu">← Sảnh</button></div>
@@ -90,6 +92,6 @@
     <div id="loading" class="overlay"><p>Đang tải…</p></div>
   </div>
   <p id="rotate">↻ Xoay ngang điện thoại để chơi rộng hơn</p>
-  <script type="module" src="src/app.js?v=mw7klme6"></script>
+  <script type="module" src="src/app.js?v=mw7naca9"></script>
 </body>
 </html>

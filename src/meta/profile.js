@@ -3,21 +3,22 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7klme6";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7klme6";
-import { SKILLS } from "../data/skills.js?v=mw7klme6";
-import { CODEX } from "../data/reactions.js?v=mw7klme6";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7klme6";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7klme6";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw7klme6";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7klme6";
-import { GEAR_SCALE } from "../data/meta.js?v=mw7klme6";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7naca9";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7naca9";
+import { SKILLS } from "../data/skills.js?v=mw7naca9";
+import { CODEX } from "../data/reactions.js?v=mw7naca9";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7naca9";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7naca9";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw7naca9";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw7naca9";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7naca9";
+import { GEAR_SCALE } from "../data/meta.js?v=mw7naca9";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
 
 const freshGear = () => Object.fromEntries(SLOT_IDS.map((s) => [s, null]));
-const freshClass = (cls) => ({ talents: {}, marks: [...START_MARKS[cls]], gear: freshGear() });
+const freshClass = (cls) => ({ talents: {}, passives: { [SIG_PASSIVE[cls]]: 1 }, marks: [...START_MARKS[cls]], gear: freshGear() });
 export function freshProfile() {
   return {
     v: VERSION, crystals: 0, mageXp: 0, mageLevel: 1,
@@ -40,7 +41,7 @@ export function migrate(data) {
   p.classes = [...new Set(["mage", "swordman", ...(d.classes ?? [])])].filter((c) => CLASSES[c]);
   p.perClass = Object.fromEntries(CLASS_IDS.map((c) => {
     const o = d.perClass?.[c];
-    return [c, o ? { talents: { ...o.talents }, marks: [...new Set([...START_MARKS[c], ...(o.marks ?? [])])], gear: { ...freshGear(), ...Object.fromEntries(Object.entries(o.gear ?? {}).map(([k, v]) => [k === "staff" ? "weapon" : k, v])) } } : freshClass(c)];
+    return [c, o ? { talents: { ...o.talents }, passives: { [SIG_PASSIVE[c]]: 1, ...(o.passives ?? {}) }, marks: [...new Set([...START_MARKS[c], ...(o.marks ?? [])])], gear: { ...freshGear(), ...Object.fromEntries(Object.entries(o.gear ?? {}).map(([k, v]) => [k === "staff" ? "weapon" : k, v])) } } : freshClass(c)];
   }));
   if (!d.perClass && (d.talents || d.unlocked || d.gear)) {
     const m = p.perClass.mage;
@@ -67,6 +68,7 @@ export const marksOpen = (p, cls) => pc(p, cls).marks;
 export function profileMods(p, cls = p.lastClass ?? "mage") {
   const m = { ...DEFAULT_MODS(), elem: {}, imbue: {} }, c = pc(p, cls);
   for (const t of TALENT_TREES[cls]) { const l = c.talents[t.id] ?? 0; if (l) t.mod(m, l) }
+  applyPassives(m, cls, c.passives);
   m.dmg *= 1 + 0.01 * Math.min(50, p.mageLevel - 1);
   const seen = new Set();
   for (const it of Object.values(c.gear)) if (it) { applyItem(m, it, seen.has(it.legendary)); if (it.legendary) seen.add(it.legendary) }
@@ -99,6 +101,17 @@ export function runOptions(p, { chapter = 1, endless = false, cls = p.lastClass 
 }
 
 // ---------- spending ----------
+/** Raise a passive one level (to 10), for crystals. */
+export function buyPassive(p, cls, id) {
+  const def = PASSIVES[cls]?.find((x) => x.id === id), c = pc(p, cls);
+  c.passives ??= { [SIG_PASSIVE[cls]]: 1 };
+  const l = c.passives[id] ?? 0;
+  if (!def || l >= def.max) return false;
+  const cost = passiveCost(def, l);
+  if (p.crystals < cost) return false;
+  p.crystals -= cost; c.passives[id] = l + 1;
+  return true;
+}
 export function buyTalent(p, cls, id) {
   const t = TALENT_TREES[cls]?.find((x) => x.id === id), c = pc(p, cls), l = c.talents[id] ?? 0;
   if (!t || l >= t.max) return false;

@@ -1,12 +1,12 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw7klme6";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7klme6";
-import { T, skillT } from "../data/tuning.js?v=mw7klme6";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw7klme6";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7klme6";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7klme6";
+import { ENEMIES } from "./enemies.js?v=mw7naca9";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7naca9";
+import { T, skillT } from "../data/tuning.js?v=mw7naca9";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw7naca9";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7naca9";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7naca9";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -14,7 +14,7 @@ export const LOCKED_DMG = 2.2;
 export function skillStats(w, id) {
   const st = { ...stats(id, w.skills[id].level) };
   const tu = skillT(id);
-  if (st.dmg) st.dmg *= (tu.dmg ?? 1) * (SKILLS[id].kind === "summon" ? T.summon.dmg : 1) * (w.power ?? 1);
+  if (st.dmg) st.dmg *= (tu.dmg ?? 1) * (SKILLS[id].kind === "summon" ? T.summon.dmg * (w.mods?.summonDmg ?? 1) : 1) * (w.power ?? 1);
   if (st.hp) st.hp *= T.summon.hp;
   if (st.cd) st.cd *= (w.mods?.cd ?? 1) * (tu.cd ?? 1);
   if (st.radius) st.radius *= w.mods?.area ?? 1;
