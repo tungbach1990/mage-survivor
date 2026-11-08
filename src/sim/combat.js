@@ -6,22 +6,23 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw7p9372";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7p9372";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7p9372";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7p9372";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7p9372";
-import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7p9372";
-import { ENVS } from "../data/environments.js?v=mw7p9372";
-import { T, reactT } from "../data/tuning.js?v=mw7p9372";
+import { ENEMIES } from "./enemies.js?v=mw7pwjdj";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7pwjdj";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7pwjdj";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7pwjdj";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7pwjdj";
+import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7pwjdj";
+import { ENVS } from "../data/environments.js?v=mw7pwjdj";
+import { T, reactT } from "../data/tuning.js?v=mw7pwjdj";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw7p9372";
+import { startBlackHole } from "./chaos.js?v=mw7pwjdj";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
 export const isPhys = (elem) => elem === "phys" || schoolOf(elem) === "martial";
 /** The marks this run's class works with (Chaos Seed sows them, the black hole leaves them). */
 export const schoolMarks = (w) => w.schoolMarks ?? ELEMENTS;
+import { rollGrade, crystalPerKill, CRYSTAL, GEAR_DROP, ENDLESS_GEAR } from "../data/loot.js?v=mw7pwjdj";
 export const OVERTIME = 120;
 export const WALL_HEAL_PER_SEC = 0.04;
 /** Mend the wall by n, within this second's budget (returns what it mended). */
@@ -195,12 +196,29 @@ export function damage(w, e, amount, elem, opts = {}) {
   return { react: pair?.id ?? null };
 }
 
+/** What it leaves: its experience, now and then crystals, and a boss of wave 5, 8 or 10 perhaps a piece of gear. */
+function dropLoot(w, e, xp) {
+  const def = ENEMIES[e.type], ch = w.endless ? Math.min(5, 1 + Math.floor(w.wave / 10)) : w.chapter;
+  const at = (kind, v, extra = {}) => { (w.loot ??= []).push({ id: w.nextId++, kind, v, x: e.x + w.rng.range(-4, 4), y: e.y + w.rng.range(-4, 4), t: 0, ...extra }); w.events.push({ type: "drop", kind, x: e.x, y: e.y, grade: extra.grade }) };
+  at("xp", xp);
+  const per = crystalPerKill(ch);
+  if (def.boss) at("crystal", per * CRYSTAL.boss);
+  else if (e.elite) at("crystal", per * CRYSTAL.elite);
+  else if (w.rng.chance(CRYSTAL.chance)) at("crystal", per / CRYSTAL.chance);
+  if (def.boss || e.boss) {
+    const g = w.endless ? ENDLESS_GEAR : GEAR_DROP[w.wave];
+    if (g && !(w.run.gearWaves ??= []).includes(w.wave) && w.rng.chance(g.chance)) {
+      w.run.gearWaves.push(w.wave);
+      at("gear", 1, { grade: rollGrade(() => w.rng.next(), g.bonus + 0.15 * (w.mods?.luck ?? 0)), level: ch });
+    }
+  }
+}
 function onDeath(w, e) {
   const def = ENEMIES[e.type];
   // a bounty on its head (or caught alive): twice the gold and the xp
   const bounty = e.auras.has("bounty") || e.status.capture ? env(w).bounty ?? AURA.bounty : 1;
   w.gold += (def.gold * bounty + (w.mods?.killGold ?? 0)) * (w.pm?.gold ?? 1); w.kills++;
-  w.xp = (w.xp ?? 0) + (def.xp ?? 1) * (e.elite ? 3 : 1) * (w.mods?.xp ?? 1) * bounty;
+  dropLoot(w, e, (def.xp ?? 1) * (e.elite ? 3 : 1) * (w.mods?.xp ?? 1) * bounty);
   if (e.judgedHit && e.status.judged === false && e.auras.has("light")) healWall(w, 1);
   // poison and plague spread from the dead
   const p = e.status.poison;

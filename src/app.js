@@ -1,20 +1,20 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw7p9372";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw7p9372";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw7p9372";
-import { createRenderer , PW, PH } from "./view.js?v=mw7p9372";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw7p9372";
-import { ENEMIES } from "./sim/enemies.js?v=mw7p9372";
-import { SKILLS, stats } from "./data/skills.js?v=mw7p9372";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw7p9372";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw7p9372";
-import { CHAPTERS } from "./data/chapters.js?v=mw7p9372";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw7p9372";
-import { PASSIVES, passiveCost } from "./data/passives.js?v=mw7p9372";
-import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw7p9372";
-import { dressHero } from "./render/dress.js?v=mw7p9372";
+import { loadAssets, browserLoad } from "./assets.js?v=mw7pwjdj";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw7pwjdj";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw7pwjdj";
+import { createRenderer , PW, PH } from "./view.js?v=mw7pwjdj";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw7pwjdj";
+import { ENEMIES } from "./sim/enemies.js?v=mw7pwjdj";
+import { SKILLS, stats } from "./data/skills.js?v=mw7pwjdj";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw7pwjdj";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw7pwjdj";
+import { CHAPTERS } from "./data/chapters.js?v=mw7pwjdj";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw7pwjdj";
+import { PASSIVES, passiveCost } from "./data/passives.js?v=mw7pwjdj";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw7pwjdj";
+import { dressHero } from "./render/dress.js?v=mw7pwjdj";
 // an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
 const iconCache = new Map();
 function itemIcon(it) {
@@ -34,11 +34,11 @@ function drawPreview(cls) {
     g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
   } catch { /* no canvas */ }
 }
-import { ENVS } from "./data/environments.js?v=mw7p9372";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw7p9372";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw7p9372";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw7p9372";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw7p9372";
+import { ENVS } from "./data/environments.js?v=mw7pwjdj";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw7pwjdj";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw7pwjdj";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw7pwjdj";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw7pwjdj";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -317,6 +317,7 @@ function finishRun(won) {
   const items = out.items.map((it) => `<span class="rar-${it.rarity}">${itemName(it)}</span>`).join(", ");
   $("sum-body").innerHTML = `
     <p>${sum.endless ? "Vô tận" : `Chương ${sum.chapter}`} · qua <b>${sum.waves}</b> đợt · hạ <b>${sum.kills}</b> quái · cấp <b>${sum.level}</b> · thức tỉnh <b>${sum.awakened.length}</b>/10 nguyên tố${sum.chaos ? ` · <b style="color:#ff8ac8">${sum.chaos} lần CHAOS</b>` : ""}</p>
+    <p>Nhặt được: 💎 <b>${Math.round(sum.crystals ?? 0)}</b> từ quái · <b>${(sum.gear ?? []).length}</b> trang bị từ boss</p>
     <p>💎 +<b>${out.crystals}</b>${out.mageLevels ? ` · Tài khoản lên <b>${out.mageLevels}</b> cấp` : ""}</p>
     ${out.discovered.length ? `<p>Khám phá mới: ${out.discovered.map((k) => `<b>${REACTION_BY_ID[k]?.label ?? k}</b>`).join(", ")}</p>` : ""}
     ${items ? `<p>Đồ rơi: ${items}</p>` : ""}

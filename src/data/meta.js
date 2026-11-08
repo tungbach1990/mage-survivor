@@ -1,8 +1,8 @@
 // What carries over between runs: per class the talent tree, the marks unlocked and the gear worn; shared, the
 // crystals, the bag, the account level, achievements and daily quests.
 
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mw7p9372";
-import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mw7p9372";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mw7pwjdj";
+import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mw7pwjdj";
 const MARTIAL_IDS = new Set([...MARTIAL_PAIRS.map((p) => p[2]), ...MARTIAL_TRIADS.map((t) => t[1])]);
 
 // ---------- talents: one tree per class, 4 branches of 4; cost = base * growth^level ----------
@@ -87,7 +87,7 @@ export const mageXpNext = (level) => Math.round(100 * Math.pow(1.35, level - 1))
 export const MAGE_PERKS = { 3: "Đòn đánh thường bắt đầu ở cấp 2", 5: "Mở ô Bùa hộ mệnh", 8: "Mở Vô tận sớm (khi đã qua chương 3)" };
 
 // ---------- gear: three slots per class; the weapon named for the class ----------
-import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mw7p9372";
+import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mw7pwjdj";
 export const SLOTS = Object.fromEntries(SLOT_IDS.map((s) => [s, SLOT_NAMES[s]]));
 export const WEAPON_NAME = { mage: "Gậy phép", swordman: "Kiếm", archer: "Cung", thief: "Dao găm", acolyte: "Chùy", merchant: "Xe đẩy" };
 export const slotName = (slot, cls) => (slot === "weapon" ? WEAPON_NAME[cls] ?? "Vũ khí" : SLOTS[slot] ?? slot);
@@ -158,7 +158,7 @@ export const ACHIEVEMENTS = [
   ["elem10", "Thập hệ", "Một nghề mở 10 dấu", 200, (p) => Object.values(p.perClass ?? {}).some((c) => c.marks.length >= 10)],
   ["awaken10", "Thức tỉnh", "Thức tỉnh 10 nguyên tố trong một lượt", 250, (p) => P(p).maxAwakened >= 10],
   ["mage10", "Lão luyện", "Tài khoản cấp 10", 150, (p) => p.mageLevel >= 10],
-  ["legend", "Báu vật", "Nhặt được đồ Huyền thoại", 100, (p) => P(p).legendaries >= 1],
+  ["legend", "Báu vật", "Nhặt được đồ Đỏ hoặc Cầu vồng", 100, (p) => P(p).legendaries >= 1],
   ["flawless", "Không trầy xước", "Qua một chương mà tường còn đầy máu", 120, (p) => P(p).flawless >= 1],
   ["elite100", "Săn tinh anh", "Hạ 100 quái tinh anh", 80, (p) => P(p).elites >= 100],
   ["talent20", "Cây đại thụ", "Tổng 20 cấp nâng cấp", 100, (p) => Object.values(p.perClass ?? {}).reduce((a, c) => a + Object.values(c.talents).reduce((x, y) => x + y, 0), 0) >= 20],

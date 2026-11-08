@@ -1,7 +1,7 @@
 // Ten waves a chapter (the same shapes, tougher each chapter), and Endless: waves made up as they come.
 // Each group: [start s, type, count, gap s]. Bosses on waves 5 (a small one) and 10.
 
-import { ENDLESS } from "../data/chapters.js?v=mw7p9372";
+import { ENDLESS } from "../data/chapters.js?v=mw7pwjdj";
 
 export const WAVES = [
   [[0, "slime", 8, 1.3]],
@@ -11,7 +11,7 @@ export const WAVES = [
   [[0, "slime", 10, 0.9], [4, "orc", 2, 5], [10, "golem", 1, 0, { hp: 0.55, scale: "small", boss: "mini" }]],
   [[0, "wolf", 12, 0.8], [3, "skeleton", 6, 1.5]],
   [[0, "orc", 4, 3], [1, "goblin", 10, 0.9], [8, "skeleton", 4, 1.2]],
-  [[0, "wolf", 14, 0.6], [4, "orc", 4, 2.5]],
+  [[0, "wolf", 11, 0.6], [4, "orc", 3, 2.5], [12, "golem", 1, 0, { hp: 0.7, scale: "small", boss: "mini" }]],
   [[0, "skeleton", 12, 0.9], [3, "orc", 6, 2], [6, "goblin", 8, 0.8]],
   [[0, "slime", 10, 0.6], [2, "wolf", 10, 0.7], [5, "orc", 6, 2], [8, "skeleton", 8, 1], [14, "golem", 1, 0, { hp: 1.3, boss: "chapter" }]],
 ];

@@ -2,7 +2,8 @@
 // take their item's material; gloves cover the hands; a cloak hangs behind; an off-hand piece sits in the back
 // hand; an amulet at the neck, a ring at the hand; the weapon's head takes its material. Cached per class and look.
 
-import { MATERIALS, RARITY_GEM } from "../data/gear.js?v=mw7p9372";
+import { MATERIALS, RARITY_GEM } from "../data/gear.js?v=mw7pwjdj";
+import { GRADES, gradeOf } from "../data/loot.js?v=mw7pwjdj";
 
 // the heroes' poses (as game/art.px.js draws them), in frame order idle0 idle1 focus cast throw hurt
 const POSES = [
@@ -82,7 +83,9 @@ export function dressHero(strip, cls, look) {
 
 /** How grand the hero's gear is: the number of epic and legendary pieces (the view gives them an aura). */
 export const gearGlow = (look) => {
-  let epic = 0, leg = 0;
-  for (const l of Object.values(look ?? {})) { if (l.rarity === "legendary") leg++; else if (l.rarity === "epic") epic++ }
-  return { epic, leg };
+  // the brightest grade worn sets the aura's colour; every piece from blue up adds a mote of its own colour
+  let best = null, bi = -1;
+  const motes = [];
+  for (const l of Object.values(look ?? {})) { const g = gradeOf(l.rarity), i = GRADES.indexOf(g); if (i > bi) { bi = i; best = g } if (i >= 2) motes.push(g) }
+  return { best, motes };
 };

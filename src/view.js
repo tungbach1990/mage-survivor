@@ -3,38 +3,39 @@
 // (labels, tier sigils, beams, wells), the black hole bending the picture round it, and every pixelfx effect.
 // The browser puts the bytes on a canvas; Node writes them to PNGs.
 
-import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7p9372";
-import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7p9372";
-import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7p9372";
-import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7p9372";
-import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7p9372";
-import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7p9372";
-import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7p9372";
-import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7p9372";
-import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7p9372";
-import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7p9372";
-import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7p9372";
-import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7p9372";
-import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7p9372";
-import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7p9372";
-import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7p9372";
-import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7p9372";
-import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7p9372";
-import * as rainCloud from "./fx/rain-cloud.js?v=mw7p9372";
-import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7p9372";
-import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7p9372";
-import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7p9372";
-import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7p9372";
-import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7p9372";
-import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7p9372";
+import { createFrame, clearFrame, createFx, painterFor, hex, Rng, FONTS } from "../lib/pixelfx/core/index.js?v=mw7pwjdj";
+import * as hitSpark from "../lib/pixelfx/fx/impacts/hit-spark.js?v=mw7pwjdj";
+import * as frostNova from "../lib/pixelfx/fx/ice/frost-nova.js?v=mw7pwjdj";
+import * as zapHit from "../lib/pixelfx/fx/lightning/zap-hit.js?v=mw7pwjdj";
+import * as poof from "../lib/pixelfx/fx/spawn/poof.js?v=mw7pwjdj";
+import * as dmgNumber from "../lib/pixelfx/fx/ui/damage-number.js?v=mw7pwjdj";
+import * as burning from "../lib/pixelfx/fx/status/burning.js?v=mw7pwjdj";
+import * as frozen from "../lib/pixelfx/fx/status/frozen.js?v=mw7pwjdj";
+import * as electrified from "../lib/pixelfx/fx/lightning/electrified.js?v=mw7pwjdj";
+import * as slowed from "../lib/pixelfx/fx/status/slowed.js?v=mw7pwjdj";
+import * as poisoned from "../lib/pixelfx/fx/status/poisoned.js?v=mw7pwjdj";
+import * as cursed from "../lib/pixelfx/fx/status/cursed.js?v=mw7pwjdj";
+import * as bluntHit from "../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw7pwjdj";
+import * as eclipse from "../lib/pixelfx/fx/shadow/eclipse.js?v=mw7pwjdj";
+import * as blackHole from "../lib/pixelfx/fx/shadow/black-hole.js?v=mw7pwjdj";
+import * as implosion from "../lib/pixelfx/fx/explosions/implosion.js?v=mw7pwjdj";
+import * as darkExplosion from "../lib/pixelfx/fx/shadow/dark-explosion.js?v=mw7pwjdj";
+import * as rainCloud from "./fx/rain-cloud.js?v=mw7pwjdj";
+import * as swordSlash from "../lib/pixelfx/fx/melee/sword-slash.js?v=mw7pwjdj";
+import * as spinSlash from "../lib/pixelfx/fx/melee/spin-slash.js?v=mw7pwjdj";
+import * as daggerFlurry from "../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw7pwjdj";
+import * as healFx from "../lib/pixelfx/fx/holy/heal.js?v=mw7pwjdj";
+import * as birdFx from "../lib/pixelfx/fx/critters/bird.js?v=mw7pwjdj";
+import * as clawSwipe from "../lib/pixelfx/fx/melee/claw-swipe.js?v=mw7pwjdj";
 // the archer's falcon: pixelfx's bird in a falcon's browns, a cream breast
 const FALCON = { palette: ["#1a0e08", "#3a2414", "#5c3a1e", "#84562c", "#ae7a44", "#d8ac72", "#fff0d0"], breast: ["#5a3a1e", "#b48a5a", "#e8d0a4", "#fff4dc"] };
-import { LOOKS, blastOf } from "./render/looks.js?v=mw7p9372";
-import { dressHero, gearGlow } from "./render/dress.js?v=mw7p9372";
-import { RARITY_GEM } from "./data/gear.js?v=mw7p9372";
-import { FRAMES } from "./assets.js?v=mw7p9372";
-import { ENEMIES } from "./sim/enemies.js?v=mw7p9372";
-import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7p9372";
+import { LOOKS, blastOf } from "./render/looks.js?v=mw7pwjdj";
+import { dressHero, gearGlow } from "./render/dress.js?v=mw7pwjdj";
+import { RARITY_GEM } from "./data/gear.js?v=mw7pwjdj";
+import { GRADE as LOOT_GRADE, GLOW, hueRGB } from "./data/loot.js?v=mw7pwjdj";
+import { FRAMES } from "./assets.js?v=mw7pwjdj";
+import { ENEMIES } from "./sim/enemies.js?v=mw7pwjdj";
+import { WALL_X, MAGE_FEET } from "./sim/field.js?v=mw7pwjdj";
 
 // ---- the screen stands up: 180 x 320. A field point (x: distance from the wall's side, y: across the lanes)
 // lands at (SX, SY): its lanes (y 76..172) across the screen, its depth up it (the wall at y 250, the spawn at
@@ -50,10 +51,10 @@ export const toScreen = (x, y, h = 0) => [SX(y), SY(x) - h];
 const rot = (vx, vy) => [vy * KX, -vx];
 const HERO = toScreen(MAGE_FEET[0], MAGE_FEET[1]);
 const WALL_Y = SY(WALL_X);   // the wall's outer face
-import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7p9372";
-import { REACTION_BY_ID } from "./data/reactions.js?v=mw7p9372";
-import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7p9372";
-import { BLACK_HOLE } from "./sim/chaos.js?v=mw7p9372";
+import { ELEM, ELEMENTS } from "./data/elements.js?v=mw7pwjdj";
+import { REACTION_BY_ID } from "./data/reactions.js?v=mw7pwjdj";
+import { CHAPTERS, ELITES } from "./data/chapters.js?v=mw7pwjdj";
+import { BLACK_HOLE } from "./sim/chaos.js?v=mw7pwjdj";
 
 const MAX_LABELS = 6;
 const CLOUDS = {
@@ -300,6 +301,12 @@ export function createRenderer(A) {
       case "unstoppable": note("UNSTOPPABLE", ev.x, ev.y - 10, [255, 210, 90]); rings.push({ x: ev.x, y: ev.y + 8, r: 18, t: 0, life: 0.5, col: [255, 210, 90] }); break;
       case "volley": for (const [i, a] of ev.arrows.entries()) volleys.push({ go: i * 0.022, x0: ev.x + rng.range(-1, 1), y0: ev.y - 4, up: rng.range(-0.6, 0.6), x: a.x, y: a.y - 8, at: a.t, t: 0, landed: false }); break;
       case "cross": crosses.push({ x: ev.x, y: ev.y, t: 0, g: ev.plain ? -1 : grade(ev.lvl), col: ev.mark ? COL[ev.mark] : null }); break;
+      case "pickup": {
+        const c = ev.kind === "gear" ? (ev.grade === "rainbow" ? [255, 150, 230] : LOOT_GRADE[ev.grade]?.color) : ev.kind === "crystal" ? [120, 210, 255] : [140, 240, 190];
+        rings.push({ x: HERO[0], y: HERO[1] - 24, r: ev.kind === "gear" ? 16 : 6, t: 0, life: 0.3, col: c });
+        if (ev.kind === "gear") note(`${LOOT_GRADE[ev.grade]?.name.toUpperCase()}!`, HERO[0], HERO[1] - 66, c, true);
+        break;
+      }
       case "claw": add(clawSwipe, { x: ev.x, y: ev.y + 6, angle: -Math.PI / 2, palette: NUM.bleed, light: 0.4, seed: rng.int(0, 99) }, { life: 0.5, fade: 0.2 }); spark(ev.x, ev.y, "bleed", 0.35); break;
       case "minionDie": add(poof, { x: ev.x, y: ev.y, light: 0.4, seed: rng.int(0, 99) }, { life: 1, fade: 0.4 }); break;
     }
@@ -743,6 +750,17 @@ export function createRenderer(A) {
       for (let a = -1.1; a <= 1.1; a += 0.06) put(s.x + Math.sin(a) * r * 1.2, s.y - 6 - Math.cos(a) * r * 0.7, G, 0.8 * k);
     }
     for (const c of crosses) drawCross(c);
+    for (const l of w.loot ?? []) {
+      const [lx, ly0] = toScreen(l.x, l.y), pop = l.t < 0.35 ? Math.sin((l.t / 0.35) * Math.PI) * 8 : 0, ly = ly0 - 6 - pop, x = Math.round(lx), y = Math.round(ly);
+      if (l.kind === "xp") { put(x, y, [170, 255, 200], 1); put(x + 1, y, [80, 220, 160], 0.8); put(x, y + 1, [80, 220, 160], 0.8); put(x - 1, y, [60, 180, 140], 0.5); put(x, y - 1, [60, 180, 140], 0.5) }
+      else if (l.kind === "crystal") { for (const [i, j, c] of [[0, -2, [220, 250, 255]], [-1, -1, [120, 210, 255]], [0, -1, [180, 235, 255]], [1, -1, [70, 160, 240]], [-1, 0, [90, 180, 250]], [0, 0, [140, 220, 255]], [1, 0, [50, 130, 220]], [0, 1, [60, 140, 230]]]) put(x + i, y + j, c, 1) }
+      else {
+        const col = l.grade === "rainbow" ? hueRGB((clock * 0.8) % 1) : LOOT_GRADE[l.grade]?.color ?? [255, 255, 255];
+        if (l.t < 1.2) for (let j = 0; j < 40; j++) put(x, y - j, col, 0.5 * (1 - j / 40) * (1 - l.t / 1.2));   // a beam up while it lies there
+        for (let j = -3; j <= 3; j++) for (let i = -3; i <= 3; i++) { const e = Math.abs(i) === 3 || Math.abs(j) === 3; put(x + i, y + j, e ? [30, 20, 36] : j === -1 ? [255, 255, 255] : col, e ? 0.9 : 1) }
+        for (let a = 0; a < 16; a++) put(x + Math.cos(a * 0.39 + clock * 3) * 6, y + Math.sin(a * 0.39 + clock * 3) * 6, col, 0.5);
+      }
+    }
     for (const s of smokeTrails) {
       const k = 1 - s.t / 0.35, n = Math.max(2, Math.ceil(Math.hypot(s.x2 - s.x, s.y2 - s.y) / 3));
       for (let i = 0; i <= n; i++) { const u = i / n, wob = Math.sin(u * 9 + s.t * 20) * 2; put(s.x + (s.x2 - s.x) * u + wob, s.y + (s.y2 - s.y) * u, [150, 148, 160], 0.45 * k * (0.4 + 0.6 * u)) }
@@ -982,13 +1000,18 @@ export function createRenderer(A) {
     for (let y = 0; y < wall.h; y++) for (let x = 0; x < wall.w; x++) { const c = wall.px[y * wall.w + x], Y = WALL_Y + y; if (c >>> 24 > 127 && Y < H) pic[Y * W + x] = c | 0xff000000 }
     darken(HERO[0], HERO[1], 9, 2, 0.72);
     const pose = { idle: Math.floor(clock / 0.35) % 2 ? "idle1" : "idle0", cast: "cast", focus: "focus", throw: "throw", hurt: "hurt" }[w.mage.pose] ?? "idle0";
-    blit(dressHero(A.heroes?.[w.cls] ?? A.mage, w.cls, w.look), FRAMES.mage.indexOf(pose), Math.round(HERO[0]) - 23, Math.round(HERO[1]) - 56);
-    // epic and legendary gear: motes about the hero in their colours
+    const heroStrip = dressHero(A.heroes?.[w.cls] ?? A.mage, w.cls, w.look), hf = FRAMES.mage.indexOf(pose), hx = Math.round(HERO[0]) - 23, hy = Math.round(HERO[1]) - 56;
     const glow = gearGlow(w.look);
-    for (let k = 0; k < glow.epic + glow.leg * 2; k++) {
-      const u = (clock * 0.6 + k * 0.29) % 1, x = HERO[0] + Math.sin(k * 2.4 + clock) * 12, y = HERO[1] - 4 - u * 44;
-      put(x, y, k < glow.leg * 2 ? RARITY_GEM.legendary : RARITY_GEM.epic, 0.9 * (1 - u));
+    if (glow.best) {
+      const col = glow.best === "rainbow" ? hueRGB((clock * 0.4) % 1) : LOOT_GRADE[glow.best].color, k = GLOW[glow.best] * (0.8 + 0.2 * Math.sin(clock * 4));
+      outline(heroStrip, hf, hx, hy, col, k);
+      outline(heroStrip, hf, hx - 1, hy, col, k * 0.5); outline(heroStrip, hf, hx + 1, hy, col, k * 0.5); outline(heroStrip, hf, hx, hy - 1, col, k * 0.5);
     }
+    blit(heroStrip, hf, hx, hy);
+    glow.motes.forEach((g, k) => {
+      const u = (clock * 0.6 + k * 0.29) % 1, x = HERO[0] + Math.sin(k * 2.4 + clock) * 12, y = HERO[1] - 4 - u * 44;
+      put(x, y, g === "rainbow" ? hueRGB((clock + k * 0.15) % 1) : LOOT_GRADE[g].color, 0.9 * (1 - u));
+    });
 
     for (const m of [...w.minions].sort((a, b) => b.x - a.x)) drawMinion(m, w);
     const list = w.enemies.filter((e) => e.hp > 0).sort((a, b) => b.x - a.x);

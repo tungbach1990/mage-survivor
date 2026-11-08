@@ -57,7 +57,8 @@ export function kindOf(it) {
 export const lookOf = (gear) => Object.fromEntries(Object.entries(gear ?? {}).filter(([, it]) => it).map(([s, it]) => [s, { mat: kindOf(it)[1], rarity: it.rarity }]));
 
 // ---- icons: 12 x 12; "#" the material's mid tone, "+" its light, "-" its dark, "o" ink, "*" a gem in the rarity's colour
-export const RARITY_GEM = { common: [200, 200, 208], rare: [90, 184, 244], epic: [192, 140, 255], legendary: [255, 200, 58] };
+import { GRADE, gradeOf } from "./loot.js?v=mw7pwjdj";
+export const RARITY_GEM = new Proxy({}, { get: (_, k) => GRADE[gradeOf(k)].color });
 const I = (s) => s.trim().split("\n").map((r) => r.trim());
 export const ICONS = {
   sword: I(`

@@ -236,3 +236,11 @@ h1 { font-size: 28px; }
 /* passives */
 .tile.passive small.next { color: #8ae0ff; }
 .tile.passive.sig { border-color: #c09a3a; }
+
+/* item grades */
+.rar-white, .rar-common { color: #ececf2 } .rar-green { color: #60de6e } .rar-blue, .rar-rare { color: #50a0ff } .rar-yellow { color: #ffd63c }
+.rar-purple, .rar-epic { color: #be6eff } .rar-red, .rar-legendary { color: #ff4646 }
+.rar-rainbow { background: linear-gradient(90deg, #ff5a5a, #ffd23c, #5ade6e, #50a0ff, #be6eff, #ff5a5a); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: rainbow 2s linear infinite; }
+@keyframes rainbow { to { background-position: 200% 0 } }
+.rar-b-white { border-color: #ececf2 } .rar-b-green { border-color: #60de6e } .rar-b-blue { border-color: #50a0ff } .rar-b-yellow { border-color: #ffd63c; box-shadow: 0 0 4px #ffd63c }
+.rar-b-purple { border-color: #be6eff; box-shadow: 0 0 5px #be6eff } .rar-b-red { border-color: #ff4646; box-shadow: 0 0 6px #ff4646 } .rar-b-rainbow { border-color: #ffffff; box-shadow: 0 0 8px #ff96e6, 0 0 3px #50a0ff }

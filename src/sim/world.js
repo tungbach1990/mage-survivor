@@ -5,23 +5,23 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7p9372";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7p9372";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7p9372";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7p9372";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7p9372";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7p9372";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7p9372";
-import { T, typeT } from "../data/tuning.js?v=mw7p9372";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7p9372";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7p9372";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7p9372";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw7p9372";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7p9372";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7p9372";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7p9372";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7p9372";
-import { updateBlackHoles } from "./chaos.js?v=mw7p9372";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7pwjdj";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7pwjdj";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7pwjdj";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7pwjdj";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7pwjdj";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7pwjdj";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7pwjdj";
+import { T, typeT } from "../data/tuning.js?v=mw7pwjdj";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7pwjdj";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7pwjdj";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7pwjdj";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw7pwjdj";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7pwjdj";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7pwjdj";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7pwjdj";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7pwjdj";
+import { updateBlackHoles } from "./chaos.js?v=mw7pwjdj";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
@@ -387,6 +387,25 @@ export function reroll(w) {
   w.rerolls--; w.cards = drawCards(w); w.events.push({ type: "cards", reason: w.cardReason, reroll: true });
   return true;
 }
+// loot: it pops up off the body, hangs a moment, then flies to the hero, faster and faster
+const HERO_AT = [MAGE_FEET[0], MAGE_FEET[1]];
+function updateLoot(w, dt) {
+  if (!w.loot?.length) return;
+  for (const l of w.loot) {
+    l.t += dt;
+    if (l.t < 0.35) continue;
+    const dx = HERO_AT[0] - l.x, dy = HERO_AT[1] - l.y, d = Math.hypot(dx, dy) || 1, sp = 60 + (l.t - 0.35) * 520;
+    if (d <= sp * dt + 4) { collect(w, l); l.done = true; continue }
+    l.x += (dx / d) * sp * dt; l.y += (dy / d) * sp * dt;
+  }
+  w.loot = w.loot.filter((l) => !l.done);
+}
+function collect(w, l) {
+  if (l.kind === "xp") w.xp = (w.xp ?? 0) + l.v;
+  else if (l.kind === "crystal") w.run.crystals = (w.run.crystals ?? 0) + l.v;
+  else if (l.kind === "gear") (w.run.gear ??= []).push({ grade: l.grade, level: l.level });
+  w.events.push({ type: "pickup", kind: l.kind, v: l.v, grade: l.grade });
+}
 function gainXp(w) {
   while (w.xp >= xpNext(w.level)) { w.xp -= xpNext(w.level); w.level++; w.levelsDue++; w.events.push({ type: "levelUp", level: w.level }) }
 }
@@ -395,6 +414,7 @@ function gainXp(w) {
 export function step(w, dt) {
   if (w.phase === "won" || w.phase === "lost" || w.phase === "cards") return;
   w.t += dt;
+  updateLoot(w, dt);
   if (w.phase === "rest") { w.restT -= dt; if (w.restT <= 0) startWave(w); return }
 
   // spawns
@@ -525,7 +545,10 @@ export function drain(w) {
 
 /** What a run earned, for the profile. */
 export function summary(w) {
+  const air = w.loot ?? [];
   return {
+    crystals: (w.run.crystals ?? 0) + air.filter((l) => l.kind === "crystal").reduce((a, l) => a + l.v, 0),
+    gear: [...(w.run.gear ?? []), ...air.filter((l) => l.kind === "gear").map((l) => ({ grade: l.grade, level: l.level }))],
     cls: w.cls, chapter: w.chapter, endless: w.endless, won: w.phase === "won", waves: w.run.waves, bosses: w.run.bosses, elites: w.run.elites,
     kills: w.kills, level: w.level, counts: { ...w.counts }, discovered: [...new Set(w.run.discovered)],
     dmgSrc: { ...(w.dmgSrc ?? {}) },

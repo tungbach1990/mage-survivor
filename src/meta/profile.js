@@ -3,16 +3,17 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7p9372";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7p9372";
-import { SKILLS } from "../data/skills.js?v=mw7p9372";
-import { CODEX } from "../data/reactions.js?v=mw7p9372";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7p9372";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7p9372";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw7p9372";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw7p9372";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7p9372";
-import { GEAR_SCALE } from "../data/meta.js?v=mw7p9372";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7pwjdj";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf } from "../data/elements.js?v=mw7pwjdj";
+import { SKILLS } from "../data/skills.js?v=mw7pwjdj";
+import { CODEX } from "../data/reactions.js?v=mw7pwjdj";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw7pwjdj";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw7pwjdj";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw7pwjdj";
+import { GRADE, gradeOf, rollGrade, itemPower } from "../data/loot.js?v=mw7pwjdj";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw7pwjdj";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw7pwjdj";
+import { GEAR_SCALE } from "../data/meta.js?v=mw7pwjdj";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
@@ -50,6 +51,8 @@ export function migrate(data) {
     m.gear = { ...freshGear(), weapon: fixItem(d.gear?.staff), cloak: fixItem(d.gear?.cloak), amulet: fixItem(d.gear?.amulet) };
   }
   p.bag = (d.bag ?? []).map((it) => fixItem(it));
+  const regrade = (it) => { if (it) { it.rarity = gradeOf(it.rarity); it.level ??= it.chapter ?? 1 } };
+  p.bag.forEach(regrade); for (const c of Object.values(p.perClass)) Object.values(c.gear).forEach(regrade);
   delete p.talents; delete p.unlocked; delete p.gear;
   p.v = VERSION;
   return p;
@@ -137,7 +140,7 @@ export function equip(p, cls, itemId) {
   return true;
 }
 export function unequip(p, cls, slot) { const c = pc(p, cls); if (!c.gear[slot] || p.bag.length >= BAG_SIZE) return false; p.bag.push(c.gear[slot]); c.gear[slot] = null; return true }
-export const salvageValue = (it) => ({ common: 5, rare: 15, epic: 40, legendary: 120 })[it.rarity];
+export const salvageValue = (it) => Math.round(GRADE[gradeOf(it.rarity)].salvage * (1 + 0.5 * ((it.level ?? it.chapter ?? 1) - 1)));
 export function salvage(p, itemId) {
   const i = p.bag.findIndex((it) => it.id === itemId);
   if (i < 0) return false;
@@ -152,29 +155,27 @@ export function applyItem(m, it, dupLegendary = false) {
   if (it.legendary && !dupLegendary) LEGENDARY.find((x) => x[0] === it.legendary)?.[2](m);
 }
 export function affixText(a) { const def = AFFIXES.find((x) => x[0] === a.id); return def ? def[1].replace("{v}", a.v) : a.id }
-export const itemName = (it) => `${kindOf(it)[0]} ${RARITY[it.rarity].name}`;
+export const itemName = (it) => `${kindOf(it)[0]} ${GRADE[gradeOf(it.rarity)].name} · cấp ${it.level ?? it.chapter ?? 1}`;
 /**
  * A random item for a chapter, from a seed (so tests and drops repeat), for a class: its lines only name marks
  * the class has open, and its imbues only marks of the other school (the Acolyte: either).
  */
-export function rollItem(seed, chapter, luck = 0, { cls = "mage", marks = MARKS } = {}) {
+export function rollItem(seed, chapter, luck = 0, { cls = "mage", marks = MARKS, grade = null } = {}) {
   const r = new Rng(seed), slots = Object.keys(SLOTS), open = new Set(marks);
-  const w = Object.entries(RARITY).map(([k, v]) => [k, v.weight * (k === "common" ? 1 : 1 + 0.25 * (chapter - 1) + 0.15 * luck)]);
-  let x = r.next() * w.reduce((s, [, v]) => s + v, 0), rarity = "common";
-  for (const [k, v] of w) { if (x < v) { rarity = k; break } x -= v }
+  const rarity = grade ?? rollGrade(() => r.next(), 0.15 * luck), level = Math.max(1, Math.min(5, chapter)), power = itemPower(level, rarity);
   const pool = AFFIXES.filter((a) => {
     const o = a[4];
     if (!o) return true;
     if (o.legacy || !open.has(o.mark)) return false;
     return !o.imbue || homeSchool(cls) === "both" || crossSchool(cls, o.mark);
   }), affixes = [];
-  for (let i = 0; i < RARITY[rarity].affixes && pool.length; i++) {
+  for (let i = 0; i < GRADE[rarity].affixes && pool.length; i++) {
     const a = pool.splice(Math.floor(r.next() * pool.length), 1)[0], [lo, hi] = a[2];
-    affixes.push({ id: a[0], v: Math.round((lo + (hi - lo) * r.next()) * (a[4]?.imbue ? 1 : 1 + 0.15 * (chapter - 1))) });
+    affixes.push({ id: a[0], v: Math.round((lo + (hi - lo) * r.next()) * (a[4]?.imbue ? 1 : power)) });
   }
   const slot = slots[Math.floor(r.next() * slots.length)], variant = Math.floor(r.next() * kindsOf(slot, cls).length);
   for (const a of affixes) a.v = Math.max(1, Math.round(a.v * GEAR_SCALE));
-  return { id: `i${seed}`, cls, slot, variant, rarity, affixes, legendary: rarity === "legendary" ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter };
+  return { id: `i${seed}`, cls, slot, variant, rarity, level, affixes, legendary: GRADE[rarity].power ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter: level };
 }
 
 // ---------- quests ----------
@@ -202,7 +203,8 @@ export function crystalsFor(sum, mods = {}) {
   const ch = sum.chapter;
   // every monster slain is worth something (a third of a crystal, more in later chapters), and a run never
   // pays less than 10: a beaten run still buys a little strength
-  const kills = (sum.kills ?? 0) * (1 + 0.5 * (ch - 1)) / 3;
+  // the crystals picked up in the run (older summaries: from the kills)
+  const kills = sum.crystals ?? (sum.kills ?? 0) * (1 + 0.5 * (ch - 1)) / 3;
   return Math.round(Math.max(10, sum.waves * (1 + 0.5 * ch) + kills + sum.bosses * 20 * ch + (sum.won ? 50 * ch : 0)) * (mods.crystalMul ?? 1));
 }
 /**
@@ -231,11 +233,10 @@ export function settle(p, sum, opts = {}) {
   // the codex and reaction totals
   for (const [k, n] of Object.entries(sum.counts)) p.counts[k] = (p.counts[k] ?? 0) + n;
   for (const k of Object.keys(sum.counts)) if (!p.codex.includes(k) && CODEX.some((c) => c.id === k)) { p.codex.push(k); out.discovered.push(k) }
-  // drops for the class played: a boss is sure to drop, each wave has a small chance
-  const drops = sum.bosses * 2 + Array.from({ length: sum.waves }, (_, i) => new Rng((opts.seed ?? 1) * 97 + i).next() < 0.12).filter(Boolean).length;
-  for (let i = 0; i < drops; i++) {
-    const it = rollItem(p.itemSeed++ * 7919 + (opts.seed ?? 0), sum.chapter, mods.luck ?? 0, { cls, marks: marksOpen(p, cls) });
-    if (it.rarity === "legendary") p.stats.legendaries++;
+  // the gear the bosses dropped, of the grade and level they dropped it at
+  for (const g of sum.gear ?? []) {
+    const it = rollItem(p.itemSeed++ * 7919 + (opts.seed ?? 0), g.level ?? sum.chapter, mods.luck ?? 0, { cls, marks: marksOpen(p, cls), grade: g.grade });
+    if (GRADE[it.rarity].power) p.stats.legendaries++;
     if (p.bag.length < BAG_SIZE) p.bag.push(it); else p.crystals += salvageValue(it);
     out.items.push(it);
   }
