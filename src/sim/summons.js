@@ -3,12 +3,12 @@
 // monsters that reach one stop to beat on it instead of the wall (world.js). A fusion alternates its two
 // elements hit by hit, so its own blows set off their reaction.
 
-import { ENEMIES } from "./enemies.js?v=mw7fxxao";
-import { SKILLS } from "../data/skills.js?v=mw7fxxao";
-import { CHAPTERS } from "../data/chapters.js?v=mw7fxxao";
-import { damage, stun, steamAt } from "./combat.js?v=mw7fxxao";
-import { applySlow } from "./status.js?v=mw7fxxao";
-import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mw7fxxao";
+import { ENEMIES } from "./enemies.js?v=mw7j4z1u";
+import { SKILLS } from "../data/skills.js?v=mw7j4z1u";
+import { CHAPTERS } from "../data/chapters.js?v=mw7j4z1u";
+import { damage, stun, steamAt, healWall } from "./combat.js?v=mw7j4z1u";
+import { applySlow } from "./status.js?v=mw7j4z1u";
+import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mw7j4z1u";
 
 const BLOCK = 8;   // how far in front of a golem a monster stops
 
@@ -79,7 +79,7 @@ function strike(w, m, e) {
   w.src = m.skill;
   const st = m.st, elem = m.elems[m.hits++ % m.elems.length];
   const r = damage(w, e, st.dmg, elem, { burn: st.burn, poison: st.poison, stacks: st.stacks, stun: st.stun, freezeAt3: st.freezeAt3, push: st.push, summon: true });
-  if (st.drain) w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.dmg * st.drain);
+  if (st.drain) healWall(w, st.dmg * st.drain);
   if (m.skill === "plague") e.plague = true;
   return r;
 }
@@ -162,7 +162,7 @@ export function updateMinions(w, dt) {
     else if (m.atkT <= 0) m.atkT = 0.1;
     }
     // what each one does on its own
-    if (st.heal) w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.heal * dt);
+    if (st.heal) healWall(w, st.heal * dt);
     if (m.tick <= 0) {
       m.tick = 1;
       if (st.puddle && !w.grounds.some((g) => g.kind === "water" && Math.hypot(g.x - m.x, g.y - m.y) < 8)) addGround(w, "water", m.x + 6, m.y, st.puddle, 3, "summon");

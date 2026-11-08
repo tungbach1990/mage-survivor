@@ -6,16 +6,16 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw7fxxao";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7fxxao";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7fxxao";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7fxxao";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7fxxao";
-import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7fxxao";
-import { ENVS } from "../data/environments.js?v=mw7fxxao";
-import { T, reactT } from "../data/tuning.js?v=mw7fxxao";
+import { ENEMIES } from "./enemies.js?v=mw7j4z1u";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7j4z1u";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7j4z1u";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7j4z1u";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7j4z1u";
+import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7j4z1u";
+import { ENVS } from "../data/environments.js?v=mw7j4z1u";
+import { T, reactT } from "../data/tuning.js?v=mw7j4z1u";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw7fxxao";
+import { startBlackHole } from "./chaos.js?v=mw7j4z1u";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
@@ -23,6 +23,15 @@ export const isPhys = (elem) => elem === "phys" || schoolOf(elem) === "martial";
 /** The marks this run's class works with (Chaos Seed sows them, the black hole leaves them). */
 export const schoolMarks = (w) => w.schoolMarks ?? ELEMENTS;
 export const OVERTIME = 120;
+export const WALL_HEAL_PER_SEC = 0.04;
+/** Mend the wall by n, within this second's budget (returns what it mended). */
+export function healWall(w, n) {
+  const sec = Math.floor(w.t);
+  if (w.healSec !== sec) { w.healSec = sec; w.healLeft = w.wall.max * WALL_HEAL_PER_SEC }
+  const k = Math.max(0, Math.min(n, w.healLeft, w.wall.max - w.wall.hp));
+  w.healLeft -= k; w.wall.hp += k;
+  return k;
+}
 /** How much of a blow that isn't a reaction wears a shield down. */
 export const SHIELD_WEAR = { phys: 0.5, sundered: 0.75, magic: 0.55 };
 /** A wave dragging on past OVERTIME: the monsters grow fiercer, more and more (no endless stalemates). */
@@ -182,7 +191,7 @@ function onDeath(w, e) {
   const bounty = e.auras.has("bounty") || e.status.capture ? env(w).bounty ?? AURA.bounty : 1;
   w.gold += def.gold * bounty * (w.pm?.gold ?? 1); w.kills++;
   w.xp = (w.xp ?? 0) + (def.xp ?? 1) * (e.elite ? 3 : 1) * (w.mods?.xp ?? 1) * bounty;
-  if (e.judgedHit && e.status.judged === false && e.auras.has("light")) w.wall.hp = Math.min(w.wall.max, w.wall.hp + 1);
+  if (e.judgedHit && e.status.judged === false && e.auras.has("light")) healWall(w, 1);
   // poison and plague spread from the dead
   const p = e.status.poison;
   if (p.stacks || e.plague) {
@@ -322,7 +331,7 @@ function api(w) {
     pull: (x, y, r, px) => { for (const o of around(w, x, y, r).filter(movable)) { const d = Math.hypot(x - o.x, y - o.y) || 1, k = Math.min(px, d) * (ENEMIES[o.type].boss ? 0.3 : 1); o.x += ((x - o.x) / d) * k; o.y += ((y - o.y) / d) * k } },
     ground: (kind, x, y, r, life) => { if (kind === "lava" && w.grounds.some((g) => g.kind === "water" && reaches(g, x, y, r))) return steamAt(w, x, y, r); addGround(w, kind, x, y, r, life) },
     well: (x, y, r, k, t) => { addWell(w, x, y, r, k, t); w.events.push({ type: "fx", fx: "well", x, y, r, t, elem: "arcane" }) },
-    heal: (n) => { w.wall.hp = Math.min(w.wall.max, w.wall.hp + n) },
+    heal: (n) => healWall(w, n),
     cdr: (s) => { if ((w.cds.flow ?? 0) > w.t) return; w.cds.flow = w.t + 2; for (const k of Object.values(w.skills)) k.cd = Math.max(0, k.cd - s) },
     cooldown: (key, s) => { if ((w.cds[key] ?? 0) > w.t) return false; w.cds[key] = w.t + s; return true },
     later: (t, fn) => w.timers.push({ t, fn }),

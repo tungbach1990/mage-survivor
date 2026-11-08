@@ -1,12 +1,12 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw7fxxao";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7fxxao";
-import { T, skillT } from "../data/tuning.js?v=mw7fxxao";
-import { damage, applyAura, steamAt, obsidianAt, stun } from "./combat.js?v=mw7fxxao";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7fxxao";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7fxxao";
+import { ENEMIES } from "./enemies.js?v=mw7j4z1u";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7j4z1u";
+import { T, skillT } from "../data/tuning.js?v=mw7j4z1u";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw7j4z1u";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7j4z1u";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7j4z1u";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -46,7 +46,7 @@ export function skillStats(w, id) {
 /** What a hit of this skill carries: its element effect's strength. */
 const carry = (st) => ({ burn: st.burn, poison: st.poison, stun: st.stun, freezeAt3: st.freezeAt3, push: st.push, stacks: st.stacks, also: st.also, plain: st.plain, lockMark: st.locked });
 /** After a blow lands: a basic attack's extras (an Acolyte's light mends the wall, a Merchant's cart drops a coin). */
-function perks(w, st) { if (st.mend) w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.mend); if (st.coin) w.gold += 1 }
+function perks(w, st) { if (st.mend) healWall(w, st.mend); if (st.coin) w.gold += 1 }
 
 function aimAt(e, speed) {
   // lead the target: where it will be when the shot arrives

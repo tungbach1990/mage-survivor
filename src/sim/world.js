@@ -5,23 +5,23 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7fxxao";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7fxxao";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7fxxao";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7fxxao";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7fxxao";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7fxxao";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7fxxao";
-import { T, typeT } from "../data/tuning.js?v=mw7fxxao";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7fxxao";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7fxxao";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7fxxao";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw7fxxao";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7fxxao";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury } from "./combat.js?v=mw7fxxao";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7fxxao";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7fxxao";
-import { updateBlackHoles } from "./chaos.js?v=mw7fxxao";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7j4z1u";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7j4z1u";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7j4z1u";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7j4z1u";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7j4z1u";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7j4z1u";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7j4z1u";
+import { T, typeT } from "../data/tuning.js?v=mw7j4z1u";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7j4z1u";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7j4z1u";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7j4z1u";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw7j4z1u";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7j4z1u";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7j4z1u";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7j4z1u";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7j4z1u";
+import { updateBlackHoles } from "./chaos.js?v=mw7j4z1u";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
@@ -264,7 +264,7 @@ function groundOn(w, e, dt) {
     }
     if (G.poison) applyPoison(e, ENEMIES[e.type], G.poison * w.mods.dmg);
     if (G.dps) damage(w, e, G.dps * 0.5 * w.mods.dmg, G.elem, { quiet: true, reaction: true });
-    if (G.heal) w.wall.hp = Math.min(w.wall.max, w.wall.hp + 0.25);
+    if (G.heal && (g.healAt ?? -1) <= w.t) { g.healAt = w.t + 0.5; healWall(w, 0.5) }
   }
   const E = ENVS[w.env];
   if (tick) {
@@ -412,8 +412,8 @@ export function step(w, dt) {
       e.healT = (e.healT ?? def.healer.every) - dt;
       if (e.healT <= 0) {
         e.healT = def.healer.every;
-        const near = around(w, e.x, e.y, def.healer.radius).filter((o) => o.hp < o.max && !ENEMIES[o.type].boss && !(w.waveT > 120));
-        for (const o of near) o.hp = Math.min(o.max, o.hp + o.max * def.healer.frac);
+        const near = around(w, e.x, e.y, def.healer.radius).filter((o) => o !== e && o.hp < o.max && !ENEMIES[o.type].boss && canRegen(w, o) && (o.healedAt ?? -99) + def.healer.every <= w.t);
+        for (const o of near) { o.healedAt = w.t; o.hp = Math.min(o.max, o.hp + o.max * def.healer.frac) }
         if (near.length) w.events.push({ type: "heal", x: e.x, y: e.y, h: def.cy, r: def.healer.radius, pts: near.map((o) => [o.x, o.y]) });
       }
     }
