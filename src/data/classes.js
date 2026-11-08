@@ -3,7 +3,7 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7oh9k2";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7ojhf9";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8
@@ -52,7 +52,7 @@ export const CLASS_SKILLS = {
   steal: S("thief", "Steal", "bounty", "bolt", "Móc túi: Truy nã + Tước vũ khí, quái chết rơi gấp đôi vàng.", { cd: L(3, 2), dmg: L(12, 28), speed: 320 }, { also: ["disarm"], icon: "icon_steal" }),
   hamstring: S("thief", "Hamstring", "cripple", "bolt", "Cắt gân: Què + Chảy máu.", { cd: L(2.6, 1.8), dmg: L(16, 36), speed: 320 }, { also: ["bleed"], icon: "icon_hamstring" }),
   flurry: S("thief", "Dagger Flurry", "bleed", "melee", "Ba nhát dao liên tiếp vào những con sát tường.", { cd: L(2, 1.4), dmg: L(10, 22), reach: 38, width: 30, targets: 3, repeat: 3 }, { icon: "icon_flurry" }),
-  shadowclone: S("thief", "Shadow Clone", "blind", "clone", "Tạo bản sao khói của chính mình đứng ở cổng thành: lặp lại mọi đòn của bạn (đánh thường và skill) với một phần sát thương (30% → 80% ở cấp 8). Không có máu.", { cd: L(10, 7), max: 1, life: L(12, 20), pct: L(0.3, 0.8) }, { elems: ["blind"], icon: "icon_shadowclone" }),
+  shadowclone: S("thief", "Shadow Clone", "blind", "clone", "Tạo bản sao khói của chính mình đứng ở cổng thành: lặp lại mọi đòn của bạn (đánh thường và skill) với một phần sát thương (30% → 80% ở cấp 8). Không có máu.", { cd: L(16, 12), max: 1, life: L(7, 10), pct: L(0.3, 0.8) }, { elems: ["blind"], icon: "icon_shadowclone" }),
   venomcloud: S("thief", "Venom Cloud", "venom", "zone", "Mây nọc 4 giây ở chỗ đông.", { cd: L(6, 4), dmg: L(3, 7), radius: L(22, 28), life: 4, tick: 0.5 }, { at: "crowd", icon: "icon_venomcloud" }),
 
   // ---------------- Acolyte: light, mending, a mace ----------------
@@ -82,7 +82,7 @@ export const CLASSES = {
   mage:     { early: 0.865, mid: 1.85, power: 1.48, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
   swordman: { early: 0.91, mid: 0.88, chaosPow: 0.8, power: 2.68, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
   archer:   { early: 2.22, mid: 1.3, power: 1.45, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
-  thief:    { early: 1.87, mid: 1.25, chaosPow: 0.95, power: 2.6, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
+  thief:    { early: 1.85, mid: 1.25, chaosPow: 0.95, power: 2.6, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
   acolyte:  { early: 1.15, mid: 0.62, chaosAt: 11, chaosCd: 1.5, chaosPow: 0.6, power: 3.2, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
   merchant: { early: 1.71, mid: 1.12, power: 2.15, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
 };

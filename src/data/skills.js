@@ -7,8 +7,8 @@
 //   passive works on its own (Frost Nova, Chaos Seed)
 // Element effects carried by a hit: burn (dps), poison (dps), stun (s), freezeAt3, push (px).
 
-import { SUMMONS } from "./summons.js?v=mw7oh9k2";
-import { CLASS_SKILLS, SHARED, CLASS_IDS } from "./classes.js?v=mw7oh9k2";
+import { SUMMONS } from "./summons.js?v=mw7ojhf9";
+import { CLASS_SKILLS, SHARED, CLASS_IDS } from "./classes.js?v=mw7ojhf9";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;
 const lv = (spec) => (l) => Object.fromEntries(Object.entries(spec).map(([k, v]) => [k, typeof v === "function" ? v(l) : v]));
@@ -79,7 +79,7 @@ export const MILESTONES = {
   melee:   [["chém thêm 1 con, rộng hơn", (st) => { add(st, "targets", 1); mul(st, "width", 1.25) }], ["+30% sát thương, tầm với +8", (st) => { mul(st, "dmg", 1.3); add(st, "reach", 8) }]],
   dash:    [["hàng lao rộng hơn 30%", (st) => mul(st, "width", 1.3)], ["+30% sát thương, hất lùi mạnh hơn", (st) => { mul(st, "dmg", 1.3); mul(st, "push", 1.5) }]],
   volley:  [["+4 mũi tên", (st) => add(st, "arrows", 4)], ["+6 mũi tên, +20% sát thương", (st) => { add(st, "arrows", 6); mul(st, "dmg", 1.2) }]],
-  clone:   [["thêm 1 bản sao (2 bản sao)", (st) => { st.max = 2 }], ["đòn của bản sao gây thêm Mù", (st) => { st.blind = true }]],
+  clone:   [["bản sao tồn tại lâu hơn 30%", (st) => { st.life *= 1.3 }], ["đòn của bản sao gây thêm Mù", (st) => { st.blind = true }]],
   heal:    [["hồi nhiều hơn 30%", (st) => mul(st, "heal", 1.3)], ["hồi nhiều hơn 30%, hồi chiêu −20%", (st) => { mul(st, "heal", 1.3); mul(st, "cd", 0.8) }]],
   passive: [["hiệu lực mạnh hơn 25%", (st) => boostPassive(st, 1.25)], ["hiệu lực mạnh hơn 25% nữa", (st) => boostPassive(st, 1.25)]],
 };
