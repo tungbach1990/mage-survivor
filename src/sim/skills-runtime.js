@@ -1,14 +1,14 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw80mson";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw80mson";
-import { T, skillT } from "../data/tuning.js?v=mw80mson";
-import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mw80mson";
-import { schoolOf } from "../data/elements.js?v=mw80mson";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw80mson";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw80mson";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw80mson";
+import { ENEMIES } from "./enemies.js?v=mw810yu6";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw810yu6";
+import { T, skillT } from "../data/tuning.js?v=mw810yu6";
+import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mw810yu6";
+import { schoolOf } from "../data/elements.js?v=mw810yu6";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw810yu6";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw810yu6";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw810yu6";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -35,7 +35,7 @@ export function skillStats(w, id) {
     else if (st.dmg && !SKILLS[id].basic && w.weapon?.wtype === "staff") st.dmg *= 1 + 0.1 * (atk - 1);
     if (st.heal) st.heal *= D.healMul;
     if (SKILLS[id].basic && st.cd) {
-      const lvl = w.skills[id]?.level ?? 1, sm = 0.04 * (lvl - 1) + D.fleeSM + Math.max(0, 1 - (m.cd ?? 1));
+      const lvl = w.skills[id]?.level ?? 1, sm = 0.03 * (lvl - 1) + D.fleeSM + Math.max(0, 1 - (m.cd ?? 1)) * 0.5;
       st.cd = 1 / hitsPerSec(aspdOf(D.btba, D.agi, D.dex, sm));
     }
   }

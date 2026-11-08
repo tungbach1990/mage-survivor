@@ -55,16 +55,17 @@ export const BTBA = { mage: 0.75, swordman: 0.7, archer: 0.85, thief: 0.5, acoly
 /** ASPD (capped at 190) for a weapon's BTBA, AGI, DEX and speed modifiers. */
 export function aspdOf(btba, agi, dex, sm = 0) {
   const wd = 50 * btba;
-  return Math.min(190, 200 - (wd - (Math.round((wd * agi) / 25) + Math.round((wd * dex) / 100)) / 10) * (1 - Math.min(0.9, sm)));
+  return Math.min(ASPD_CAP, 200 - (wd - (Math.round((wd * agi) / 25) + Math.round((wd * dex) / 100)) / 10) * (1 - Math.min(SM_CAP, sm)));
 }
+export const ASPD_CAP = 185, SM_CAP = 0.45;
 export const hitsPerSec = (aspd) => 50 / (200 - aspd);
 
 // cast and after-cast delay, by the kind of skill (seconds); elemental schools cast, martial ones mostly don't
-const CAST_ARCANE = { bolt: [0.6, 0.4], ball: [0.9, 0.6], chain: [0.8, 0.5], orb: [1.0, 0.6], zone: [1.5, 0.8], weather: [2.5, 1.0], summon: [2.0, 1.0], strike: [0.6, 0.4], heal: [0, 0.5] };
-const CAST_MARTIAL = { melee: [0, 0.3], bolt: [0, 0.25], dash: [0.3, 0.5], volley: [0, 0.6], zone: [0.5, 0.6], summon: [0.5, 0.6], clone: [0.5, 0.6], ball: [0, 0.4], strike: [0, 0.3], heal: [0, 0.5] };
+const CAST_ARCANE = { bolt: [0.36, 0.3], ball: [0.54, 0.4], chain: [0.48, 0.35], orb: [0.6, 0.4], zone: [0.9, 0.5], weather: [1.5, 0.7], summon: [1.2, 0.7], strike: [0.36, 0.3], heal: [0, 0.4] };
+const CAST_MARTIAL = { melee: [0, 0.5], bolt: [0, 0.45], dash: [0.3, 0.7], volley: [0, 0.8], zone: [0.4, 0.7], summon: [0.4, 0.7], clone: [0.4, 0.7], ball: [0, 0.6], strike: [0, 0.5], heal: [0, 0.5] };
 /** [cast, delay] for a skill (basic attacks and passives: none). */
 export function castOf(sk, school) {
-  if (sk?.passive === "nova") return [0.5, 0.5];
+  if (sk?.passive === "nova") return [0.3, 0.4];
   if (!sk || sk.basic || sk.passive) return [0, 0];
   const t = (school === "martial" ? CAST_MARTIAL : CAST_ARCANE)[sk.kind] ?? [0.5, 0.4];
   return [sk.cast ?? t[0], sk.delay ?? t[1]];
