@@ -1,20 +1,20 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw7ojhf9";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw7ojhf9";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw7ojhf9";
-import { createRenderer , PW, PH } from "./view.js?v=mw7ojhf9";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw7ojhf9";
-import { ENEMIES } from "./sim/enemies.js?v=mw7ojhf9";
-import { SKILLS, stats } from "./data/skills.js?v=mw7ojhf9";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw7ojhf9";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw7ojhf9";
-import { CHAPTERS } from "./data/chapters.js?v=mw7ojhf9";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw7ojhf9";
-import { PASSIVES, passiveCost } from "./data/passives.js?v=mw7ojhf9";
-import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw7ojhf9";
-import { dressHero } from "./render/dress.js?v=mw7ojhf9";
+import { loadAssets, browserLoad } from "./assets.js?v=mw7ok1l1";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw7ok1l1";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw7ok1l1";
+import { createRenderer , PW, PH } from "./view.js?v=mw7ok1l1";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw7ok1l1";
+import { ENEMIES } from "./sim/enemies.js?v=mw7ok1l1";
+import { SKILLS, stats } from "./data/skills.js?v=mw7ok1l1";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw7ok1l1";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw7ok1l1";
+import { CHAPTERS } from "./data/chapters.js?v=mw7ok1l1";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw7ok1l1";
+import { PASSIVES, passiveCost } from "./data/passives.js?v=mw7ok1l1";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw7ok1l1";
+import { dressHero } from "./render/dress.js?v=mw7ok1l1";
 // an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
 const iconCache = new Map();
 function itemIcon(it) {
@@ -34,11 +34,11 @@ function drawPreview(cls) {
     g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
   } catch { /* no canvas */ }
 }
-import { ENVS } from "./data/environments.js?v=mw7ojhf9";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw7ojhf9";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw7ojhf9";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw7ojhf9";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw7ojhf9";
+import { ENVS } from "./data/environments.js?v=mw7ok1l1";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw7ok1l1";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw7ok1l1";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw7ok1l1";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw7ok1l1";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
