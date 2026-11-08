@@ -3,7 +3,7 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7nqz45";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw7oh9k2";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8
@@ -52,7 +52,7 @@ export const CLASS_SKILLS = {
   steal: S("thief", "Steal", "bounty", "bolt", "Móc túi: Truy nã + Tước vũ khí, quái chết rơi gấp đôi vàng.", { cd: L(3, 2), dmg: L(12, 28), speed: 320 }, { also: ["disarm"], icon: "icon_steal" }),
   hamstring: S("thief", "Hamstring", "cripple", "bolt", "Cắt gân: Què + Chảy máu.", { cd: L(2.6, 1.8), dmg: L(16, 36), speed: 320 }, { also: ["bleed"], icon: "icon_hamstring" }),
   flurry: S("thief", "Dagger Flurry", "bleed", "melee", "Ba nhát dao liên tiếp vào những con sát tường.", { cd: L(2, 1.4), dmg: L(10, 22), reach: 38, width: 30, targets: 3, repeat: 3 }, { icon: "icon_flurry" }),
-  shadowclone: S("thief", "Shadow Clone", "blind", "summon", "Phân thân bóng tối: lao vào đâm, Mù + Nọc.", { cd: L(9, 6), max: (l) => (l >= 4 ? 2 : 1), hp: L(70, 140), dmg: L(12, 28), rate: 0.6, speed: 80, life: 14 }, { body: "beast", elems: ["blind", "venom"], icon: "icon_shadowclone" }),
+  shadowclone: S("thief", "Shadow Clone", "blind", "clone", "Tạo bản sao khói của chính mình đứng ở cổng thành: lặp lại mọi đòn của bạn (đánh thường và skill) với một phần sát thương (30% → 80% ở cấp 8). Không có máu.", { cd: L(10, 7), max: 1, life: L(12, 20), pct: L(0.3, 0.8) }, { elems: ["blind"], icon: "icon_shadowclone" }),
   venomcloud: S("thief", "Venom Cloud", "venom", "zone", "Mây nọc 4 giây ở chỗ đông.", { cd: L(6, 4), dmg: L(3, 7), radius: L(22, 28), life: 4, tick: 0.5 }, { at: "crowd", icon: "icon_venomcloud" }),
 
   // ---------------- Acolyte: light, mending, a mace ----------------

@@ -5,23 +5,23 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7nqz45";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7nqz45";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7nqz45";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7nqz45";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7nqz45";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7nqz45";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7nqz45";
-import { T, typeT } from "../data/tuning.js?v=mw7nqz45";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7nqz45";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7nqz45";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7nqz45";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw7nqz45";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7nqz45";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7nqz45";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7nqz45";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7nqz45";
-import { updateBlackHoles } from "./chaos.js?v=mw7nqz45";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw7oh9k2";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw7oh9k2";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw7oh9k2";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw7oh9k2";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw7oh9k2";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw7oh9k2";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw7oh9k2";
+import { T, typeT } from "../data/tuning.js?v=mw7oh9k2";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw7oh9k2";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw7oh9k2";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw7oh9k2";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw7oh9k2";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw7oh9k2";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw7oh9k2";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw7oh9k2";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw7oh9k2";
+import { updateBlackHoles } from "./chaos.js?v=mw7oh9k2";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
@@ -190,6 +190,16 @@ function updateWeather(w, dt) {
 }
 
 // ---------- skills ----------
+/** Each shadow clone repeats the cast from where it stands, at its share of the damage (paying nothing). */
+function mirrorCast(w, id) {
+  if (!w.minions.length || SKILLS[id].kind === "dash") return;
+  for (const m of w.minions) {
+    if (m.body !== "clone" || m.dead || m.life <= 0) continue;
+    w.mirror = { pct: m.st.pct, from: [m.x, m.y], blind: !!m.st.blind };
+    try { cast(w, id) } finally { w.mirror = null }
+    m.atk = 0.25;
+  }
+}
 function updateSkills(w, dt) {
   const cdMul = chapterOf(w).cdMul ?? 1;
   for (const [id, s] of Object.entries(w.skills)) {
@@ -201,11 +211,11 @@ function updateSkills(w, dt) {
     let fired;
     if (sk.passive === "nova") fired = nova(w);
     else if (sk.kind === "weather") fired = startWeather(w, id);
-    else if (sk.kind === "summon") fired = summon(w, id, st);
+    else if (sk.kind === "summon" || sk.kind === "clone") fired = summon(w, id, st);
     else if (sk.kind === "heal") { fired = w.wall.hp < w.wall.max; if (fired) { w.wall.hp = Math.min(w.wall.max, w.wall.hp + st.heal); w.events.push({ type: "mend", n: st.heal }) } }
     else if (sk.kind === "passive") { s.cd = 1; continue }
     else if (st.gold && w.gold < st.gold) { s.cd = 0.3; continue }   // can't pay: wait for gold
-    else fired = cast(w, id);
+    else { fired = cast(w, id); if (fired) mirrorCast(w, id) }
     if (fired) {
       s.cd = st.cd;
       if (st.gold) w.gold -= st.gold;

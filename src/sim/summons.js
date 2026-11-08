@@ -3,15 +3,16 @@
 // monsters that reach one stop to beat on it instead of the wall (world.js). A fusion alternates its two
 // elements hit by hit, so its own blows set off their reaction.
 
-import { ENEMIES } from "./enemies.js?v=mw7nqz45";
-import { SKILLS } from "../data/skills.js?v=mw7nqz45";
-import { CHAPTERS } from "../data/chapters.js?v=mw7nqz45";
-import { damage, stun, steamAt, healWall } from "./combat.js?v=mw7nqz45";
-import { applySlow } from "./status.js?v=mw7nqz45";
-import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mw7nqz45";
+import { ENEMIES } from "./enemies.js?v=mw7oh9k2";
+import { SKILLS } from "../data/skills.js?v=mw7oh9k2";
+import { CHAPTERS } from "../data/chapters.js?v=mw7oh9k2";
+import { damage, stun, steamAt, healWall } from "./combat.js?v=mw7oh9k2";
+import { applySlow } from "./status.js?v=mw7oh9k2";
+import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mw7oh9k2";
 
 const BLOCK = 8;   // how far in front of a golem a monster stops
 
+const MAGE_Y = 118;
 export const minionsOf = (w, id) => w.minions.filter((m) => m.skill === id && m.hp > 0);
 /** A summon's marks: those the class has open; none open, it just hits ("phys": no mark). */
 const elemsOf = (w, sk) => { const e = sk.elems.filter((m) => !w.unlocked || w.unlocked.has(m)); return e.length ? e : ["phys"] };
@@ -56,6 +57,14 @@ function hunt(w, m, dt) {
 export function summon(w, id, st) {
   if (!inView(w).length || minionsOf(w, id).length >= st.max) return false;
   const sk = SKILLS[id];
+  if (sk.kind === "clone") {
+    // a shadow clone: stands on the wall beside the hero, no health; it does nothing of its own (see mirrorCast)
+    const n = minionsOf(w, id).length, y = MAGE_Y + (n % 2 ? 22 : -22);
+    const m = { id: w.nextId++, skill: id, body: "clone", elems: sk.elems, x: WALL_X - 12, y, hp: 1, max: 1, life: st.life, invulnerable: true, atkT: 0, hits: 0, st, flash: 0, atk: 0, tick: 0 };
+    w.minions.push(m);
+    w.events.push({ type: "summon", id: m.id, skill: id, body: "clone", elems: m.elems, x: m.x, y: m.y });
+    return true;
+  }
   if (sk.body === "falcon") {
     // a falcon: no health, it doesn't go away; it hovers over the archer's head between dives
     const n = minionsOf(w, id).length, [px, py] = perch(n);
@@ -154,6 +163,7 @@ export function updateMinions(w, dt) {
     m.life -= dt; m.atkT -= dt; m.flash = Math.max(0, m.flash - dt); m.atk = Math.max(0, m.atk - dt); m.tick -= dt;
     let did = false;
     if (m.body === "falcon") { hunt(w, m, dt); continue }
+    if (m.body === "clone") { if (m.life <= 0) { m.dead = true; w.events.push({ type: "minionDie", id: m.id, x: m.x, y: m.y, body: "clone" }) } continue }
     if (m.hp > 0 && m.life > 0) {
     if (m.body === "spirit") { if (m.atkT <= 0) did = shoot(w, m) }
     else if (m.body === "beast") did = bite(w, m, dt);

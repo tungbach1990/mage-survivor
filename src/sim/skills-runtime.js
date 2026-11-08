@@ -1,12 +1,12 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw7nqz45";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7nqz45";
-import { T, skillT } from "../data/tuning.js?v=mw7nqz45";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw7nqz45";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7nqz45";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7nqz45";
+import { ENEMIES } from "./enemies.js?v=mw7oh9k2";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw7oh9k2";
+import { T, skillT } from "../data/tuning.js?v=mw7oh9k2";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw7oh9k2";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw7oh9k2";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw7oh9k2";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -23,6 +23,8 @@ export function skillStats(w, id) {
   const m = w.mods ?? {}, kind = SKILLS[id].kind;
   if (st.dmg && (kind === "melee" || kind === "dash")) st.dmg *= m.meleeDmg ?? 1;
   if (st.reach) st.reach += m.reach ?? 0;
+  // a shadow clone's copy of the blow: its share of the damage, free, and at level 8 it blinds
+  if (w.mirror) { if (st.dmg) st.dmg *= w.mirror.pct; if (st.heal) st.heal = 0; if (st.gold) st.gold = 0; if (st.mend) st.mend = 0 }
   if (kind === "bolt") { if (m.pierce) st.pierce = (st.pierce ?? 1) + m.pierce; if (st.cd) st.cd *= m.boltCd ?? 1 }
   if (kind === "zone" && st.life) st.life *= m.zoneLife ?? 1;
   if (st.gold) st.gold = Math.max(1, Math.round(st.gold * (m.goldCost ?? 1)));
@@ -40,6 +42,7 @@ export function skillStats(w, id) {
   if (st.locked && st.dmg) st.dmg *= LOCKED_DMG;   // what it lacks in marks it makes up in plain force
   // drawn plain (no colour at all): a low basic attack with nothing on it, or a skill with no mark open
   st.plain = (!!SKILLS[id].basic && w.skills[id].level <= 2 && !imbued.length && !gear.length) || (st.locked && !also.length);
+  if (w.mirror?.blind) also.push("blind");
   if (also.length) st.also = also;
   return st;
 }
@@ -54,7 +57,7 @@ function aimAt(e, speed) {
   return [cx - v * (d / speed), cy];
 }
 function shoot(w, id, st, tx, ty, extra = {}) {
-  const [fx, fy] = extra.from ?? GEM, d = Math.hypot(tx - fx, ty - fy) || 1;
+  const [fx, fy] = extra.from ?? w.mirror?.from ?? GEM, d = Math.hypot(tx - fx, ty - fy) || 1;
   const s = { id: w.nextId++, skill: id, elem: SKILLS[id].elem, kind: SKILLS[id].kind, x: fx, y: fy, vx: ((tx - fx) / d) * st.speed, vy: ((ty - fy) / d) * st.speed, left: d, st, hit: new Set(), pierced: 0, ...extra };
   w.shots.push(s);
   // how it should look: its level, and a mark it carries beyond its own (an imbue: card or gear)
