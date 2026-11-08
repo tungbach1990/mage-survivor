@@ -3,10 +3,11 @@
 // a reaction card (from chapter 2), an imbue (martial classes: the basic attack carries a mark the class's book
 // lacks, so every class can gather all ten), the wall, and once the class's ten marks have awakened, Chaos Seed.
 
-import { SKILLS, maxLevel, reqOf } from "../data/skills.js?v=mw707hfu";
-import { ELEM, MARTIAL, schoolOf } from "../data/elements.js?v=mw707hfu";
-import { CLASSES } from "../data/classes.js?v=mw707hfu";
-import { T, skillT } from "../data/tuning.js?v=mw707hfu";
+import { SKILLS, maxLevel, reqOf, milestoneText, stats } from "../data/skills.js?v=mw7ac2wa";
+const levelText = (id, next) => { const m = milestoneText(id, next); return m ? `★ Cấp ${next}: ${m}` : "Mạnh hơn, hồi chiêu nhanh hơn." };
+import { ELEM, MARTIAL, schoolOf } from "../data/elements.js?v=mw7ac2wa";
+import { CLASSES } from "../data/classes.js?v=mw7ac2wa";
+import { T, skillT } from "../data/tuning.js?v=mw7ac2wa";
 
 export const BASE_SLOTS = 12;
 const STATS = [
@@ -48,10 +49,10 @@ export function cardPool(w) {
       if (!sk.cls.includes(cls(w))) continue;
       const [a, b] = sk.fuse;
       if (!s && w.skills[a] && w.skills[b]) cards.push({ kind: "fuse", id, elem: sk.elem, title: `Hợp thể: ${sk.name}`, text: sk.desc, weight: 7 });
-      else if (s && s.level < maxLevel(id)) cards.push({ kind: "level", id, elem: sk.elem, title: `${sk.name} cấp ${s.level + 1}`, text: "Mạnh hơn, hồi chiêu nhanh hơn.", weight: 2 });
+      else if (s && s.level < maxLevel(id)) cards.push({ kind: "level", id, elem: sk.elem, title: `${sk.name} cấp ${s.level + 1}`, text: levelText(id, s.level + 1), weight: 2 });
       continue;
     }
-    if (s) { if (s.level < maxLevel(id)) cards.push({ kind: "level", id, elem: sk.elem, title: `${sk.name} cấp ${s.level + 1}`, text: sk.basic ? sk.desc : "Mạnh hơn, hồi chiêu nhanh hơn.", weight: sk.basic ? 3 : 2 }); continue }
+    if (s) { if (s.level < maxLevel(id)) cards.push({ kind: "level", id, elem: sk.elem, title: `${sk.name} cấp ${s.level + 1}`, text: sk.basic ? sk.desc : levelText(id, s.level + 1), weight: 2 }); continue }
     if (owned(w).length >= slots(w) || !learnable(w, id)) continue;
     // past six marks, the missing ones come first
     const marks = marksOfSkill(sk), fresh = marks.some((m) => !have.has(m));
@@ -96,7 +97,7 @@ export function refreshPassives(w) {
   w.pm = { dmg: 1, wallTaken: (t.wallTaken ?? 1) * (w.mods?.wallTaken ?? 1), gold: w.mods?.gold ?? 1 };
   for (const [id, s] of Object.entries(w.skills)) {
     if (SKILLS[id].passive !== "mod") continue;
-    const st = SKILLS[id].stats(s.level);
+    const st = stats(id, s.level);
     if (st.dmg) w.pm.dmg *= st.dmg;
     if (st.wallTaken) w.pm.wallTaken *= st.wallTaken;
     if (st.gold) w.pm.gold *= st.gold;

@@ -6,16 +6,16 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw707hfu";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw707hfu";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw707hfu";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw707hfu";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw707hfu";
-import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw707hfu";
-import { ENVS } from "../data/environments.js?v=mw707hfu";
-import { T, reactT } from "../data/tuning.js?v=mw707hfu";
+import { ENEMIES } from "./enemies.js?v=mw7ac2wa";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw7ac2wa";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw7ac2wa";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw7ac2wa";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw7ac2wa";
+import { center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw7ac2wa";
+import { ENVS } from "../data/environments.js?v=mw7ac2wa";
+import { T, reactT } from "../data/tuning.js?v=mw7ac2wa";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw707hfu";
+import { startBlackHole } from "./chaos.js?v=mw7ac2wa";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */

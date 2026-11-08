@@ -7,8 +7,8 @@
 //   passive works on its own (Frost Nova, Chaos Seed)
 // Element effects carried by a hit: burn (dps), poison (dps), stun (s), freezeAt3, push (px).
 
-import { SUMMONS } from "./summons.js?v=mw707hfu";
-import { CLASS_SKILLS, SHARED, CLASS_IDS } from "./classes.js?v=mw707hfu";
+import { SUMMONS } from "./summons.js?v=mw7ac2wa";
+import { CLASS_SKILLS, SHARED, CLASS_IDS } from "./classes.js?v=mw7ac2wa";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;
 const lv = (spec) => (l) => Object.fromEntries(Object.entries(spec).map(([k, v]) => [k, typeof v === "function" ? v(l) : v]));
@@ -60,9 +60,43 @@ for (const [id, r] of Object.entries(REQ)) SKILLS[id].req = r;
 /** The marks a class must have unlocked to learn this skill. */
 export const reqOf = (id) => SKILLS[id].req ?? [SKILLS[id].elem];
 /** The highest level a skill goes to (a basic attack: 8). */
-export const maxLevel = (id) => SKILLS[id]?.max ?? 5;
-export const MAX_LEVEL = 5;
-export const stats = (id, level) => SKILLS[id].stats(level);
+export const maxLevel = (id) => SKILLS[id]?.max ?? 8;
+export const MAX_LEVEL = 8;
+
+// ---- every skill goes to level 8. Its numbers run along its old 1-5 curve (level 8 = the old level 5), and it
+// gains something at levels 4 and 8, like the basic attacks (which have their own and their own curve).
+const curve = (sk, level) => (sk.basic ? level : 1 + ((level - 1) * 4) / 7);
+const mul = (st, k, f) => { if (typeof st[k] === "number") st[k] *= f };
+const add = (st, k, n) => { if (typeof st[k] === "number") st[k] += n };
+export const MILESTONES = {
+  bolt:    [["+1 đạn mỗi lần bắn", (st) => { st.count = (st.count ?? 1) + 1 }], ["xuyên thêm 2 con, +20% sát thương", (st) => { st.pierce = (st.pierce ?? 1) + 2; mul(st, "dmg", 1.2) }]],
+  ball:    [["vùng nổ +25%", (st) => mul(st, "radius", 1.25)], ["+30% sát thương, vùng nổ +20%", (st) => { mul(st, "dmg", 1.3); mul(st, "radius", 1.2) }]],
+  chain:   [["nảy thêm 1 con", (st) => add(st, "chains", 1)], ["nảy thêm 2 con, +20% sát thương", (st) => { add(st, "chains", 2); mul(st, "dmg", 1.2) }]],
+  orb:     [["tồn tại lâu hơn 30%", (st) => mul(st, "life", 1.3)], ["+30% sát thương, rộng hơn 20%", (st) => { mul(st, "dmg", 1.3); mul(st, "radius", 1.2) }]],
+  zone:    [["vùng rộng hơn 20%", (st) => mul(st, "radius", 1.2)], ["+30% sát thương, kéo dài hơn 30%", (st) => { mul(st, "dmg", 1.3); mul(st, "life", 1.3) }]],
+  weather: [["mưa lâu hơn 30%", (st) => mul(st, "dur", 1.3)], ["+30% sát thương, hạt rơi dày hơn", (st) => { mul(st, "dmg", 1.3); mul(st, "every", 0.75) }]],
+  summon:  [["triệu hồi tối thiểu 2 con", (st) => { if (typeof st.max === "number") st.max = Math.max(st.max, 2) }], ["+1 con, máu ×1,5, +30% sát thương", (st) => { add(st, "max", 1); mul(st, "hp", 1.5); mul(st, "dmg", 1.3) }]],
+  melee:   [["chém thêm 1 con, rộng hơn", (st) => { add(st, "targets", 1); mul(st, "width", 1.25) }], ["+30% sát thương, tầm với +8", (st) => { mul(st, "dmg", 1.3); add(st, "reach", 8) }]],
+  dash:    [["hàng lao rộng hơn 30%", (st) => mul(st, "width", 1.3)], ["+30% sát thương, hất lùi mạnh hơn", (st) => { mul(st, "dmg", 1.3); mul(st, "push", 1.5) }]],
+  volley:  [["+4 mũi tên", (st) => add(st, "arrows", 4)], ["+6 mũi tên, +20% sát thương", (st) => { add(st, "arrows", 6); mul(st, "dmg", 1.2) }]],
+  heal:    [["hồi nhiều hơn 30%", (st) => mul(st, "heal", 1.3)], ["hồi nhiều hơn 30%, hồi chiêu −20%", (st) => { mul(st, "heal", 1.3); mul(st, "cd", 0.8) }]],
+  passive: [["hiệu lực mạnh hơn 25%", (st) => boostPassive(st, 1.25)], ["hiệu lực mạnh hơn 25% nữa", (st) => boostPassive(st, 1.25)]],
+};
+function boostPassive(st, k) {
+  for (const f of ["dmg", "gold"]) if (typeof st[f] === "number" && st[f] > 1) st[f] = 1 + (st[f] - 1) * k;
+  if (typeof st.wallTaken === "number") st.wallTaken = 1 - (1 - st.wallTaken) * k;
+  mul(st, "chance", k); mul(st, "radius", k > 1 ? 1.15 : 1);
+}
+/** What a skill gains at level 4 or 8 (null for other levels and for basic attacks). */
+export const milestoneText = (id, level) => {
+  const sk = SKILLS[id], m = MILESTONES[sk?.kind];
+  return sk && !sk.basic && m && (level === 4 || level === 8) ? m[level === 4 ? 0 : 1][0] : null;
+};
+export const stats = (id, level) => {
+  const sk = SKILLS[id], st = sk.stats(curve(sk, level)), m = MILESTONES[sk.kind];
+  if (!sk.basic && m) { if (level >= 4) m[0][1](st); if (level >= 8) m[1][1](st) }
+  return st;
+};
 export const SKILLS_OF = (elem) => Object.entries(SKILLS).filter(([, s]) => s.elem === elem).map(([id]) => id);
 
 // one weather at a time; each skews the elements and the field

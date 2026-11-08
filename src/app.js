@@ -1,22 +1,22 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw707hfu";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw707hfu";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw707hfu";
-import { createRenderer , PW, PH } from "./view.js?v=mw707hfu";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw707hfu";
-import { ENEMIES } from "./sim/enemies.js?v=mw707hfu";
-import { SKILLS, stats } from "./data/skills.js?v=mw707hfu";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw707hfu";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw707hfu";
-import { CHAPTERS } from "./data/chapters.js?v=mw707hfu";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw707hfu";
-import { ENVS } from "./data/environments.js?v=mw707hfu";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw707hfu";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw707hfu";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw707hfu";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw707hfu";
+import { loadAssets, browserLoad } from "./assets.js?v=mw7ac2wa";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw7ac2wa";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw7ac2wa";
+import { createRenderer , PW, PH } from "./view.js?v=mw7ac2wa";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw7ac2wa";
+import { ENEMIES } from "./sim/enemies.js?v=mw7ac2wa";
+import { SKILLS, stats } from "./data/skills.js?v=mw7ac2wa";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw7ac2wa";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw7ac2wa";
+import { CHAPTERS } from "./data/chapters.js?v=mw7ac2wa";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw7ac2wa";
+import { ENVS } from "./data/environments.js?v=mw7ac2wa";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw7ac2wa";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw7ac2wa";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw7ac2wa";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, unlockMark, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw7ac2wa";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
