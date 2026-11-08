@@ -3,11 +3,11 @@
 // a reaction card (from chapter 2), an imbue (martial classes: the basic attack carries a mark the class's book
 // lacks, so every class can gather all ten), the wall, and once the class's ten marks have awakened, Chaos Seed.
 
-import { SKILLS, maxLevel, reqOf, milestoneText, stats } from "../data/skills.js?v=mw7naca9";
+import { SKILLS, maxLevel, reqOf, milestoneText, stats } from "../data/skills.js?v=mw7nqz45";
 const levelText = (id, next) => { const m = milestoneText(id, next); return m ? `★ Cấp ${next}: ${m}` : "Mạnh hơn, hồi chiêu nhanh hơn." };
-import { ELEM, MARTIAL, schoolOf } from "../data/elements.js?v=mw7naca9";
-import { CLASSES } from "../data/classes.js?v=mw7naca9";
-import { T, skillT } from "../data/tuning.js?v=mw7naca9";
+import { ELEM, MARTIAL, schoolOf } from "../data/elements.js?v=mw7nqz45";
+import { CLASSES } from "../data/classes.js?v=mw7nqz45";
+import { T, skillT } from "../data/tuning.js?v=mw7nqz45";
 
 export const BASE_SLOTS = 12;
 const STATS = [
@@ -93,7 +93,8 @@ export function refreshPassives(w) {
   // a new player's class: its "early" factor, fading as its tree fills (gone by the time it's half full)
   // and its "mid" factor, strongest with half the tree (a class that is weak mid-game, strong at both ends)
   const nv = w.novice ?? 0;
-  w.power = (c?.power ?? 1) * (t.dmg ?? 1) * (1 + ((c?.early ?? 1) - 1) * Math.max(0, Math.min(1, (nv - 0.5) * 2))) * (1 + ((c?.mid ?? 1) - 1) * Math.max(0, 1 - Math.abs(nv - 0.5) * 2));   // on the skills' own numbers (skillStats)
+  // the early factor holds fully while less than 30% of the tree is bought, and is gone by half
+  w.power = (c?.power ?? 1) * (t.dmg ?? 1) * (1 + ((c?.early ?? 1) - 1) * Math.max(0, Math.min(1, (nv - 0.5) / 0.2))) * (1 + ((c?.mid ?? 1) - 1) * Math.max(0, 1 - Math.abs(nv - 0.5) * 2));   // on the skills' own numbers (skillStats)
   w.pm = { dmg: 1, wallTaken: (t.wallTaken ?? 1) * (w.mods?.wallTaken ?? 1), gold: w.mods?.gold ?? 1 };
   for (const [id, s] of Object.entries(w.skills)) {
     if (SKILLS[id].passive !== "mod") continue;

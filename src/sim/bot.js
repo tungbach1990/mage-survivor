@@ -1,13 +1,14 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw7naca9";
-import { speedFactor } from "./status.js?v=mw7naca9";
-import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw7naca9";
-import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw7naca9";
-import { PASSIVES } from "../data/passives.js?v=mw7naca9";
-import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw7naca9";
-import { CLASS_IDS } from "../data/classes.js?v=mw7naca9";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw7nqz45";
+import { speedFactor } from "./status.js?v=mw7nqz45";
+import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw7nqz45";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw7nqz45";
+import { PASSIVES, passiveCost } from "../data/passives.js?v=mw7nqz45";
+import { talentCost } from "../data/meta.js?v=mw7nqz45";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw7nqz45";
+import { CLASS_IDS } from "../data/classes.js?v=mw7nqz45";
 
 const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
 
@@ -21,6 +22,26 @@ export function presetProfile(kind) {
   const p = freshProfile();
   p.classes = [...CLASS_IDS];
   if (kind === "fresh") return p;
+  // "k1000": each class has had 1000 crystals spent on it, the cheapest talent or passive level first; the
+  // account at level 4 (the runs that earned them)
+  if (kind === "k1000") {
+    p.mageLevel = 4;
+    for (const c of CLASS_IDS) {
+      const pc = p.perClass[c];
+      let left = 1000;
+      for (;;) {
+        const opts = [
+          ...TALENT_TREES[c].filter((t) => (pc.talents[t.id] ?? 0) < t.max).map((t) => ["t", t.id, talentCost(t, pc.talents[t.id] ?? 0)]),
+          ...PASSIVES[c].filter((ps) => (pc.passives[ps.id] ?? 0) < ps.max).map((ps) => ["p", ps.id, passiveCost(ps, pc.passives[ps.id] ?? 0)]),
+        ].sort((a, b) => a[2] - b[2]);
+        if (!opts.length || opts[0][2] > left) break;
+        const [k, id, cost] = opts[0];
+        left -= cost;
+        if (k === "t") pc.talents[id] = (pc.talents[id] ?? 0) + 1; else pc.passives[id] = (pc.passives[id] ?? 0) + 1;
+      }
+    }
+    return p;
+  }
   const [frac, nMarks, lvl] = STAGE[kind];
   p.mageLevel = lvl;
   for (const c of CLASS_IDS) {
