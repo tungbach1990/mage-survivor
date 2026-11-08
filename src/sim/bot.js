@@ -1,18 +1,20 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw81k6jb";
-import { speedFactor } from "./status.js?v=mw81k6jb";
-import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw81k6jb";
-import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw81k6jb";
-import { PASSIVES, passiveCost } from "../data/passives.js?v=mw81k6jb";
-import { autoStats, claimGear, itemScore, equip } from "../meta/profile.js?v=mw81k6jb";
-import { liveRefresh } from "../meta/live.js?v=mw81k6jb";
-import { talentCost } from "../data/meta.js?v=mw81k6jb";
-import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw81k6jb";
-import { CLASS_IDS } from "../data/classes.js?v=mw81k6jb";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw82dx49";
+import { speedFactor } from "./status.js?v=mw82dx49";
+import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw82dx49";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw82dx49";
+import { PASSIVES, passiveCost } from "../data/passives.js?v=mw82dx49";
+import { autoStats, claimGear, itemScore, equip } from "../meta/profile.js?v=mw82dx49";
+import { liveRefresh } from "../meta/live.js?v=mw82dx49";
+import { talentCost } from "../data/meta.js?v=mw82dx49";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw82dx49";
+import { CLASS_IDS } from "../data/classes.js?v=mw82dx49";
 
-const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
+/** The card the bot (and the idle toggle) would take. */
+export const bestCard = (w) => w.cards.map((c, j) => [score(w, c), j]).sort((a, b) => b[0] - a[0])[0][1];
+export const score = (w, c) => c.kind === "imbue" ? 5 : c.kind === "repair" ? (w.wall.hp < w.wall.max * 0.5 ? 9 : 0) : c.elem === "chaos" ? 10 : c.kind === "fuse" ? 8 : c.kind === "learn" ? 6 : c.kind === "mastery" ? 5 : c.kind === "level" ? 4 : c.kind === "react" ? 3 : 2;
 
 /**
  * A profile at five stages, for every class: "fresh"; "early" (a few runs in: a quarter of its tree, four
@@ -84,7 +86,7 @@ export function playRun({ profile = "fresh", chapter = 1, seed = 1, cls = "mage"
       if (boss.status.stun > 0 || boss.status.freeze > 0 || boss.status.root > 0) bossHeld += 1 / 60;
       if (boss.state === "walk" || boss.blocked) { bossWalk += 1 / 60; if (!boss.blocked) bossMove += speedFactor(boss) / 60 }
     }
-    if (w.phase === "cards") chooseCard(w, w.cards.map((c, j) => [score(w, c), j]).sort((a, b) => b[0] - a[0])[0][1]);
+    if (w.phase === "cards") chooseCard(w, bestCard(w));
   }
   return { ...summary(w), bossTime, bossHeld, unstop, bossMove, bossWalk };
 }

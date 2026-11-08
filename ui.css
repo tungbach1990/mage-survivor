@@ -266,3 +266,5 @@ h1 { font-size: 28px; }
 /* an item's base numbers */
 .tile.item .base { margin: 4px 0 2px; font-size: 14px; color: #f4ecff; } .tile.item .base b { color: #ffe286; font-size: 16px; }
 .up { color: #6ee07a; font-weight: 700; } .down { color: #ff6a6a; font-weight: 700; }
+
+#auto-btn { order: 5; pointer-events: auto; padding: 2px 8px; font-size: 14px; } #auto-btn.on { border-color: #6ee07a; color: #6ee07a; box-shadow: 0 0 6px #6ee07a; }
