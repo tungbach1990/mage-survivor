@@ -72,7 +72,7 @@ export const maxElems = (slot) => (slot === "weapon" ? 3 : 2);
 /** How often a basic attack carries a mark from one element (or the martial line) on this item. */
 export const imbueChance = (it) => (it.slot === "weapon" ? 0.15 : 0.06) + 0.01 * gradeIndex(it.rarity);
 // drops by %: a monster, an elite, a boss; at most this many a run
-export const GEAR_RATE = { normal: 0.005, elite: 0.08, boss: 0.6 }, GEAR_BOSS_BONUS = 0.25, GEAR_PER_RUN = 12;
+export const GEAR_RATE = { normal: 0.02, elite: 0.1, boss: 0.6 }, GEAR_BOSS_BONUS = 0.25, GEAR_PER_RUN = 25;
 // enchanting and refining (crystals x the item's level)
 export const ENCHANT = { add: [[40, 1], [120, 0.6], [300, 0.3]], remove: 20, martial: 60 };
 export const refineCost = (it) => 30 * (it.level ?? 1) * ((it.refine ?? 0) + 1);

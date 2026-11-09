@@ -3,20 +3,20 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8tw06c";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mw8tw06c";
-import { SKILLS } from "../data/skills.js?v=mw8tw06c";
-import { CODEX } from "../data/reactions.js?v=mw8tw06c";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw8tw06c";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw8tw06c";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw8tw06c";
-import { GRADE, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8tw06c";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw8tw06c";
-import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mw8tw06c";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw8tw06c";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw8tw06c";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw8tw06c";
-import { GEAR_SCALE } from "../data/meta.js?v=mw8tw06c";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8uu997";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mw8uu997";
+import { SKILLS } from "../data/skills.js?v=mw8uu997";
+import { CODEX } from "../data/reactions.js?v=mw8uu997";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw8uu997";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw8uu997";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw8uu997";
+import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8uu997";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw8uu997";
+import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mw8uu997";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw8uu997";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw8uu997";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw8uu997";
+import { GEAR_SCALE } from "../data/meta.js?v=mw8uu997";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
@@ -192,8 +192,11 @@ export const STAT_PLAN = {
   acolyte: [["int", 0.6], ["vit", 0.25], ["dex", 0.15]], merchant: [["str", 0.6], ["vit", 0.25], ["luk", 0.15]],
 };
 /** A piece of gear a boss dropped in a run, made into a real item in the bag (now, not at the end). */
+/** The lowest grade kept when picked up; lower ones are broken down into crystals at once. */
+export const lootKeeps = (p, grade) => GRADES.indexOf(gradeOf(grade)) >= GRADES.indexOf(p.lootMin ?? "white");
 export function claimGear(p, cls, g, seed = 0) {
   g = { ...g };
+  if (!lootKeeps(p, g.grade)) { const v = salvageValue({ rarity: g.grade, level: g.level ?? 1 }); p.crystals += v; return { salvaged: v, rarity: g.grade, level: g.level ?? 1 } }
   const it = rollItem(p.itemSeed++ * 7919 + seed, g.level ?? 1, profileMods(p, cls).luck ?? 0, { cls, marks: marksOpen(p, cls), grade: g.grade });
   if (GRADE[it.rarity].power) p.stats.legendaries++;
   if (p.bag.length < BAG_SIZE) p.bag.push(it); else p.crystals += salvageValue(it);
@@ -364,6 +367,7 @@ export function settle(p, sum, opts = {}) {
   for (const k of Object.keys(sum.counts)) if (!p.codex.includes(k) && CODEX.some((c) => c.id === k)) { p.codex.push(k); out.discovered.push(k) }
   // the gear the bosses dropped, of the grade and level they dropped it at
   for (const g of (sum.gear ?? []).slice(sum.gearClaimed ?? 0)) {
+    if (!lootKeeps(p, g.grade)) { p.crystals += salvageValue({ rarity: g.grade, level: g.level ?? 1 }); continue }
     const it = rollItem(p.itemSeed++ * 7919 + (opts.seed ?? 0), g.level ?? sum.chapter, mods.luck ?? 0, { cls, marks: marksOpen(p, cls), grade: g.grade });
     if (GRADE[it.rarity].power) p.stats.legendaries++;
     if (p.bag.length < BAG_SIZE) p.bag.push(it); else p.crystals += salvageValue(it);
