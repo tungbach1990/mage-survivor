@@ -3,25 +3,26 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8oupoh";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mw8oupoh";
-import { SKILLS } from "../data/skills.js?v=mw8oupoh";
-import { CODEX } from "../data/reactions.js?v=mw8oupoh";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw8oupoh";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw8oupoh";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw8oupoh";
-import { GRADE, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8oupoh";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw8oupoh";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw8oupoh";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw8oupoh";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw8oupoh";
-import { GEAR_SCALE } from "../data/meta.js?v=mw8oupoh";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8po4le";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mw8po4le";
+import { SKILLS } from "../data/skills.js?v=mw8po4le";
+import { CODEX } from "../data/reactions.js?v=mw8po4le";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw8po4le";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw8po4le";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw8po4le";
+import { GRADE, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8po4le";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw8po4le";
+import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines } from "../data/affix.js?v=mw8po4le";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw8po4le";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw8po4le";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw8po4le";
+import { GEAR_SCALE } from "../data/meta.js?v=mw8po4le";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
 
 const freshGear = () => Object.fromEntries(SLOT_IDS.map((s) => [s, null]));
-export const starterWeapon = (cls) => ({ id: `start_${cls}`, cls, slot: "weapon", wtype: STARTER[cls], variant: 0, rarity: "white", level: 1, chapter: 1, affixes: [], elems: [], martial: null, refine: 0, legendary: null, starter: true });
+export const starterWeapon = (cls) => ({ id: `start_${cls}`, cls, slot: "weapon", wtype: STARTER[cls], variant: 0, rarity: "white", level: 1, chapter: 1, affixes: [], refine: 0, legendary: null, starter: true });
 const freshClass = (cls) => ({ talents: {}, stats: freshStats(), statResets: 0, passives: { [SIG_PASSIVE[cls]]: 1 }, marks: [...START_MARKS[cls]], gear: { ...freshGear(), weapon: starterWeapon(cls) }, starterGiven: true });
 export function freshProfile() {
   return {
@@ -56,10 +57,21 @@ export function migrate(data) {
   p.bag = (d.bag ?? []).map((it) => fixItem(it));
   const regrade = (it) => {
     if (!it) return;
-    it.rarity = gradeOf(it.rarity); it.level ??= it.chapter ?? 1; it.refine ??= 0; it.elems ??= []; if (it.martial === undefined) it.martial = null;
+    it.rarity = gradeOf(it.rarity); it.level ??= it.chapter ?? 1; it.refine ??= 0; it.elems ??= []; it.affixes ??= [];
     if (it.slot === "weapon") it.wtype ??= STARTER[it.cls] ?? "staff";
     for (const a of it.affixes.filter((x) => x.id.startsWith("i_"))) { const mk = a.id.slice(2); if (MARTIAL.includes(mk)) it.martial ??= { mark: mk, v: 10 }; else if (!it.elems.includes(mk) && it.elems.length < maxElems(it.slot)) it.elems.push(mk) }
     it.affixes = it.affixes.filter((x) => !x.id.startsWith("i_"));
+    const lv = it.level ?? 1, mid = (id, kind) => lineValue(id, kind, lv, it.rarity, 0.5), OLD = { dmg: "dmg", cd: "cd", area: "area", react: "react", tier: "tier", aura: "aura", crit: "crit", xp: "xp", crystal: "crystal", regen: "regen" };
+    it.affixes = it.affixes.map((a) => {
+      if (a.kind) return a;
+      if (a.id === "wall") return { id: "wall", kind: "pt", v: mid("wall", "pt") };
+      if (OLD[a.id]) { const k = ATTR[OLD[a.id]].pct != null ? "pct" : "pt"; return { id: OLD[a.id], kind: k, v: mid(OLD[a.id], k) } }
+      const mk = a.id.replace(/^[me]_/, ""); if (ATTR[`el_${mk}`]) return { id: `el_${mk}`, kind: "pct", v: mid(`el_${mk}`, "pct") };
+      return null;
+    }).filter(Boolean);
+    for (const e of it.elems ?? []) if (!it.affixes.some((l) => l.id === `el_${e}`)) it.affixes.push({ id: `el_${e}`, kind: "pct", v: mid(`el_${e}`, "pct") });
+    if (it.martial && !it.affixes.some((l) => ATTR[l.id]?.martial)) it.affixes.push({ id: `el_${it.martial.mark}`, kind: "pct", v: mid(`el_${it.martial.mark}`, "pct") });
+    delete it.elems; delete it.martial;
   };
   // a class that never had its starter weapon: given now, worn if its hands are empty
   for (const [cl, c] of Object.entries(p.perClass)) if (!c.starterGiven) { c.starterGiven = true; if (!c.gear.weapon) c.gear.weapon = starterWeapon(cl); else if (p.bag.length < BAG_SIZE) p.bag.push(starterWeapon(cl)) }
@@ -84,15 +96,10 @@ export function profileMods(p, cls = p.lastClass ?? "mage") {
   for (const t of TALENT_TREES[cls]) { const l = c.talents[t.id] ?? 0; if (l) t.mod(m, l) }
   applyPassives(m, cls, c.passives);
   for (const it of Object.values(c.gear)) { const b = baseOf(it, STARTER[cls]); if (b?.def) m.def = (m.def ?? 0) + b.def; if (b?.hp) m.wallMax += b.hp }
-  const open = new Set(marksOpen(p, cls));
-  for (const it of Object.values(c.gear)) {
-    if (!it) continue;
-    const k = imbueChance(it);
-    for (const el of it.elems ?? []) if (open.has(el)) m.imbue[el] = Math.min(0.5, (m.imbue[el] ?? 0) + k);
-    if (it.martial && open.has(it.martial.mark)) { m.imbue[it.martial.mark] = Math.min(0.5, (m.imbue[it.martial.mark] ?? 0) + k); m.elem[it.martial.mark] = (m.elem[it.martial.mark] ?? 1) * (1 + it.martial.v / 100) }
-  }
-  const seen = new Set();
-  for (const it of Object.values(c.gear)) if (it) { applyItem(m, it, seen.has(it.legendary)); if (it.legendary) seen.add(it.legendary) }
+  const open = new Set(marksOpen(p, cls)), seen = new Set();
+  for (const it of Object.values(c.gear)) if (it) { applyItem(m, it, seen.has(it.legendary), open); if (it.legendary) seen.add(it.legendary) }
+  m.def = (m.def ?? 0) * (1 + (m.defPct ?? 0));
+  m.cd = Math.max(0.4, m.cd);
   return m;
 }
 /** CHAOS Seed for a class: all ten marks of its own school open (the Acolyte: any ten). */
@@ -141,6 +148,8 @@ export const weaponOf = (it) => (it ? { wtype: it.wtype ?? STARTER[it.cls], atk:
 export function statTotals(p, cls) {
   const t = totalsOf(pc(p, cls).stats ?? freshStats(), cls, p.mageLevel);
   for (const it of Object.values(pc(p, cls).gear ?? {})) { const b = baseOf(it); if (b?.stat) t[b.stat] += b.v }
+  const m = profileMods(p, cls);
+  for (const s of Object.keys(t)) t[s] = Math.round((t[s] + (m.statAdd?.[s] ?? 0)) * (1 + (m.statPct?.[s] ?? 0)));
   return t;
 }
 export const statPointsLeft = (p, cls) => pointsAt(p.mageLevel) - spentOn(pc(p, cls).stats ?? freshStats());
@@ -185,7 +194,7 @@ export function claimGear(p, cls, g, seed = 0) {
   return it;
 }
 /** How good a piece is, roughly (to compare with what's worn). */
-export const itemScore = (it) => (it ? baseMul(it.level ?? it.chapter ?? 1, it.rarity, it.refine ?? 0) * (2 + GRADE[gradeOf(it.rarity)].affixes + (it.legendary ? 1 : 0) + 0.3 * ((it.elems?.length ?? 0) + (it.martial ? 1 : 0))) : 0);
+export const itemScore = (it) => (it ? baseMul(it.level ?? it.chapter ?? 1, it.rarity, it.refine ?? 0) * (2 + (it.affixes?.length ?? 0) + (it.legendary ? 1 : 0)) : 0);
 // ---------- enchanting and refining (in the hall) ----------
 /** An item by id, in the bag or worn by any class. */
 export function findItem(p, id) {
@@ -195,27 +204,28 @@ export function findItem(p, id) {
 }
 const enchantRoll = (p) => new Rng((p.enchantSeed = (p.enchantSeed ?? 1) + 1) * 2654435761).next();
 /** What adding the next element costs, and how likely it is to take. */
-export const addElemCost = (it) => { const n = it.elems?.length ?? 0; if (n >= maxElems(it.slot)) return null; const [c, ch] = ENCHANT.add[Math.min(n, ENCHANT.add.length - 1)]; return { cost: c * (it.level ?? 1), chance: ch } };
+export const addElemCost = (it) => { const n = elemsOfLines(it.affixes).length; if (n >= maxElems(it.slot)) return null; const [c, ch] = ENCHANT.add[Math.min(n, ENCHANT.add.length - 1)]; return { cost: c * (it.level ?? 1), chance: ch } };
 /** Add an element to an item. Returns "ok", "fail" (crystals spent, nothing added) or null (not possible). */
-export function addElement(p, id, el) {
+export function addElement(p, id, el, kind = "pct") {
   const it = findItem(p, id), q = it && addElemCost(it);
-  if (!q || it.elems.includes(el) || !ELEMENTS.includes(el) || p.crystals < q.cost) return null;
+  if (!q || elemsOfLines(it.affixes).includes(el) || !ELEMENTS.includes(el) || p.crystals < q.cost) return null;
   p.crystals -= q.cost;
   if (enchantRoll(p) >= q.chance) return "fail";
-  it.elems.push(el); return "ok";
+  it.affixes.push({ id: `el_${el}`, kind, v: lineValue(`el_${el}`, kind, it.level ?? 1, it.rarity, enchantRoll(p)) }); return "ok";
 }
 export function removeElement(p, id, el) {
   const it = findItem(p, id);
-  if (!it || !it.elems?.includes(el) || p.crystals < ENCHANT.remove) return false;
-  p.crystals -= ENCHANT.remove; it.elems = it.elems.filter((e) => e !== el); return true;
+  if (!it || !elemsOfLines(it.affixes).includes(el) || p.crystals < ENCHANT.remove) return false;
+  p.crystals -= ENCHANT.remove; it.affixes = it.affixes.filter((l) => l.id !== `el_${el}`); return true;
 }
 /** A new martial line (another mark; the value kept, or a fresh one). */
 export function rerollMartial(p, id) {
   const it = findItem(p, id), cost = it ? ENCHANT.martial * (it.level ?? 1) : 0;
   if (!it || p.crystals < cost) return false;
   p.crystals -= cost;
-  const others = MARTIAL.filter((m) => m !== it.martial?.mark);
-  it.martial = { mark: others[Math.floor(enchantRoll(p) * others.length)], v: it.martial?.v ?? Math.round(8 * itemPower(it.level ?? 1, it.rarity)) };
+  const cur = martialOfLines(it.affixes), others = MARTIAL.filter((m) => `el_${m}` !== cur?.id), mk = others[Math.floor(enchantRoll(p) * others.length)];
+  if (cur) cur.id = `el_${mk}`;
+  else it.affixes.push({ id: `el_${mk}`, kind: "pct", v: lineValue(`el_${mk}`, "pct", it.level ?? 1, it.rarity, enchantRoll(p)) });
   return true;
 }
 /** Refine +1: sure to +4, then less and less; a failure drops it one. Returns "ok", "fail" or null. */
@@ -265,13 +275,12 @@ export function salvage(p, itemId) {
 }
 
 // ---------- gear ----------
-export function applyItem(m, it, dupLegendary = false) {
-  m.imbue ??= {};
-  for (const a of it.affixes) AFFIXES.find((x) => x[0] === a.id)?.[3](m, a.v);
+export function applyItem(m, it, dupLegendary = false, open = null) {
+  for (const l of it.affixes ?? []) applyLine(m, l, open);
   if (it.legendary && !dupLegendary) LEGENDARY.find((x) => x[0] === it.legendary)?.[2](m);
 }
-export function affixText(a) { const def = AFFIXES.find((x) => x[0] === a.id); return def ? def[1].replace("{v}", a.v) : a.id }
-export const itemName = (it) => `${kindOf(it)[0]}${(it.elems ?? []).map((e) => " " + ELEM[e].name).join("")} ${GRADE[gradeOf(it.rarity)].name} · cấp ${it.level ?? it.chapter ?? 1}${it.refine ? ` · +${it.refine}` : ""}`;
+export const affixText = (a) => lineText(a);
+export const itemName = (it) => `${kindOf(it)[0]}${elemsOfLines(it.affixes).map((e) => " " + ELEM[e].name).join("")} ${GRADE[gradeOf(it.rarity)].name} · cấp ${it.level ?? it.chapter ?? 1}${it.refine ? ` · +${it.refine}` : ""}`;
 /**
  * A random item for a chapter, from a seed (so tests and drops repeat), for a class: its lines only name marks
  * the class has open, and its imbues only marks of the other school (the Acolyte: either).
@@ -279,25 +288,12 @@ export const itemName = (it) => `${kindOf(it)[0]}${(it.elems ?? []).map((e) => "
 export function rollItem(seed, chapter, luck = 0, { cls = "mage", marks = MARKS, grade = null } = {}) {
   const r = new Rng(seed), slots = Object.keys(SLOTS), open = new Set(marks);
   const rarity = grade ?? rollGrade(() => r.next(), 0.15 * luck), level = Math.max(1, Math.min(5, chapter)), power = itemPower(level, rarity);
-  const pool = AFFIXES.filter((a) => {
-    const o = a[4];
-    if (!o) return true;
-    if (o.legacy || !open.has(o.mark)) return false;
-    return !o.imbue || homeSchool(cls) === "both" || crossSchool(cls, o.mark);
-  }), affixes = [];
-  for (let i = 0; i < GRADE[rarity].affixes && pool.length; i++) {
-    const a = pool.splice(Math.floor(r.next() * pool.length), 1)[0], [lo, hi] = a[2];
-    affixes.push({ id: a[0], v: Math.round((lo + (hi - lo) * r.next()) * (a[4]?.imbue ? 1 : power)) });
-  }
   const slot = slots[Math.floor(r.next() * slots.length)];
   const types = level <= 1 ? [STARTER[cls]] : level === 2 ? wtypesOf(cls).filter((t) => t === STARTER[cls] || ["dagger", "sword", "bow", "mace"].includes(t)) : wtypesOf(cls);
   const wtype = slot === "weapon" ? types[Math.floor(r.next() * types.length)] : undefined;
   const kinds = kindsOf(slot, cls, wtype).length, variant = Math.floor(r.next() * (level <= 1 ? Math.min(2, kinds) : kinds));
-  const epool = [...elemsFor(level)], [elo, ehi] = ELEM_COUNT[rarity], ne = Math.min(maxElems(slot), elo + Math.floor(r.next() * (ehi - elo + 1))), elems = [];
-  for (let i = 0; i < ne && epool.length; i++) elems.push(epool.splice(Math.floor(r.next() * epool.length), 1)[0]);
-  const martial = rarity !== "white" || r.next() < 0.5 ? { mark: MARTIAL[Math.floor(r.next() * MARTIAL.length)], v: Math.round(8 * power) } : null;
-  for (const a of affixes) a.v = Math.max(1, Math.round(a.v * GEAR_SCALE));
-  return { id: `i${seed}`, cls, slot, ...(wtype ? { wtype } : {}), variant, rarity, level, elems, martial, refine: 0, affixes, legendary: GRADE[rarity].power ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter: level };
+  const affixes = rollLines(() => r.next(), level, rarity, elemsFor(level));
+  return { id: `i${seed}`, cls, slot, ...(wtype ? { wtype } : {}), variant, rarity, level, refine: 0, affixes, legendary: GRADE[rarity].power ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter: level };
 }
 
 // ---------- quests ----------

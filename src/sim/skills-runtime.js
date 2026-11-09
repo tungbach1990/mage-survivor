@@ -1,14 +1,14 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw8oupoh";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw8oupoh";
-import { T, skillT } from "../data/tuning.js?v=mw8oupoh";
-import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mw8oupoh";
-import { schoolOf } from "../data/elements.js?v=mw8oupoh";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw8oupoh";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw8oupoh";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw8oupoh";
+import { ENEMIES } from "./enemies.js?v=mw8po4le";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw8po4le";
+import { T, skillT } from "../data/tuning.js?v=mw8po4le";
+import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mw8po4le";
+import { schoolOf } from "../data/elements.js?v=mw8po4le";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw8po4le";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw8po4le";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw8po4le";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -34,6 +34,7 @@ export function skillStats(w, id) {
     else if (st.dmg && !SKILLS[id].basic && sch === "martial") st.dmg *= 0.6 + 0.4 * atk;
     else if (st.dmg && !SKILLS[id].basic && w.weapon?.wtype === "staff") st.dmg *= 1 + 0.1 * (atk - 1);
     if (st.heal) st.heal *= D.healMul;
+    if (SKILLS[id].basic && st.dmg && m.basicFlat) st.dmg += m.basicFlat * (w.mirror?.pct ?? 1);
     if (SKILLS[id].basic && st.cd) {
       const lvl = w.skills[id]?.level ?? 1, sm = 0.03 * (lvl - 1) + D.fleeSM + Math.max(0, 1 - (m.cd ?? 1)) * 0.5;
       st.cd = 1 / hitsPerSec(aspdOf(D.btba, D.agi, D.dex, sm));
@@ -52,7 +53,7 @@ export function skillStats(w, id) {
   // imbued with by a card (a quarter of the blows), and those the gear imbues every blow with now and then
   const open = (mk) => !w.unlocked || w.unlocked.has(mk);
   const imbued = [];
-  const gear = SKILLS[id].basic && st.dmg && m.imbue ? Object.entries(m.imbue).filter(([, p]) => w.rng.chance(p * (m.imbueMul ?? 1))).map(([mk]) => mk) : [];
+  const gear = [];
   const also = [...(SKILLS[id].also ?? []).filter(open), ...imbued, ...gear];
   // a skill whose mark the class hasn't unlocked still hits, but leaves no mark (a basic attack always does)
   st.locked = !SKILLS[id].basic && !open(SKILLS[id].elem);

@@ -6,25 +6,25 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw8oupoh";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw8oupoh";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw8oupoh";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw8oupoh";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw8oupoh";
-import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw8oupoh";
-import { ENVS } from "../data/environments.js?v=mw8oupoh";
-import { T, reactT } from "../data/tuning.js?v=mw8oupoh";
+import { ENEMIES } from "./enemies.js?v=mw8po4le";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw8po4le";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw8po4le";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw8po4le";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw8po4le";
+import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw8po4le";
+import { ENVS } from "../data/environments.js?v=mw8po4le";
+import { T, reactT } from "../data/tuning.js?v=mw8po4le";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw8oupoh";
+import { startBlackHole } from "./chaos.js?v=mw8po4le";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
 export const isPhys = (elem) => elem === "phys" || schoolOf(elem) === "martial";
 /** The marks this run's class works with (Chaos Seed sows them, the black hole leaves them). */
 export const schoolMarks = (w) => w.schoolMarks ?? ELEMENTS;
-import { rollGrade, crystalPerKill, CRYSTAL, GEAR_RATE, GEAR_BOSS_BONUS, GEAR_PER_RUN } from "../data/loot.js?v=mw8oupoh";
-import { acctGain } from "./world.js?v=mw8oupoh";
-import { SKILLS } from "../data/skills.js?v=mw8oupoh";
+import { rollGrade, crystalPerKill, CRYSTAL, GEAR_RATE, GEAR_BOSS_BONUS, GEAR_PER_RUN } from "../data/loot.js?v=mw8po4le";
+import { acctGain } from "./world.js?v=mw8po4le";
+import { SKILLS } from "../data/skills.js?v=mw8po4le";
 export const OVERTIME = 120;
 export const WALL_HEAL_PER_SEC = 0.04;
 /** Mend the wall by n, within this second's budget (returns what it mended). */
@@ -110,7 +110,7 @@ export function tickAuras(w, e, dt) {
 export function damage(w, e, amount, elem, opts = {}) {
   if (opts === true) opts = { quiet: true };
   if (e.hp <= 0 || amount <= 0) return { react: null };
-  const def = ENEMIES[e.type], st = e.status, real = IS_ELEM.has(elem) && !opts.reaction;
+  const def = ENEMIES[e.type], st = e.status, real = IS_ELEM.has(elem) && !opts.reaction, base0 = amount;
   // what this hit sets off: the new element against the newest aura it carries
   // (a combo only between two marks of the same school: two elements, or two martial marks)
   // lockMark: the hit's own mark isn't the class's yet: it lands, but leaves no mark (its extra marks still do)
@@ -148,7 +148,7 @@ export function damage(w, e, amount, elem, opts = {}) {
     if (M.doubleHit && w.rng.chance(M.doubleHit)) { amount *= 2; opts = { ...opts, crit: true } }
   }
   if (real && phys && st.exposed > 0) { st.exposed--; amount *= (env(w).exposeCrit ?? 1.5) + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }   // exposed: this blow is a sure crit
-  else if (real && ((w.mods?.crit ?? 0) + (w.derived && SKILLS[w.src]?.basic ? w.derived.crit : 0)) > 0 && w.rng.chance((w.mods?.crit ?? 0) + (w.derived && SKILLS[w.src]?.basic ? w.derived.crit : 0))) { amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }
+  else if (real && !opts.extra && ((w.mods?.crit ?? 0) + (w.derived && SKILLS[w.src]?.basic ? w.derived.crit : 0)) > 0 && w.rng.chance((w.mods?.crit ?? 0) + (w.derived && SKILLS[w.src]?.basic ? w.derived.crit : 0))) { amount *= 1.5 + (w.mods?.critMul ?? 0); opts = { ...opts, crit: true } }
   // a shield (an elite's, a boss's): reactions (or tiers) break it outright; any other blow wears it down a
   // little, a physical one more (it's force against a barrier), more still on a sundered monster. Nothing
   // reaches the body while the shield stands.
@@ -183,6 +183,16 @@ export function damage(w, e, amount, elem, opts = {}) {
   // a blow can carry more marks than its own (a Bash: daze and sunder; an imbued blade): those count for tiers
   let more = false;
   if (real && !opts.noAura && e.hp > 0) for (const m of opts.also ?? []) if (!e.auras.has(m) && applyAura(w, e, m, { ...opts, hit: amount })) more = true;
+  // the gear's kinds of damage with a basic attack: points, and a share of the blow (each leaves its mark)
+  if (real && !opts.extra && e.hp > 0 && SKILLS[w.src]?.basic && (w.mods?.addPt || w.mods?.addPct)) {
+    const M = w.mods, k = (M.addMul ?? 1) * (w.mirror?.pct ?? 1);
+    for (const mk of new Set([...Object.keys(M.addPt ?? {}), ...Object.keys(M.addPct ?? {})])) {
+      if (e.hp <= 0) break;
+      const x = ((M.addPt?.[mk] ?? 0) * (w.mirror?.pct ?? 1) + (M.addPct?.[mk] ?? 0) * base0) * (M.addMul ?? 1);
+      if (x > 0) damage(w, e, x, mk, { extra: true });
+    }
+    void k;
+  }
   // Chaos Seed: now and then a hit sows two of the auras it still lacks
   let seeded = false;
   const seed = w.skills?.chaosseed;

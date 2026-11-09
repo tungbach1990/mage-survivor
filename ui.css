@@ -272,3 +272,5 @@ h1 { font-size: 28px; }
 /* elements, the martial line, enchanting */
 .marks-line { font-size: 11px; margin: 2px 0; } .marks-line .mk { margin-right: 6px; font-weight: 700; } .marks-line .mk.off { filter: grayscale(1); opacity: .5; }
 .tile.enchant { border-color: #c08cff; text-align: left; } .tile.enchant button { margin: 2px; padding: 3px 8px; font-size: 12px; }
+
+.tile.item ul li.off { filter: grayscale(1); opacity: .5; }
