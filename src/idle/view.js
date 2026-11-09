@@ -3,19 +3,19 @@
 // the hero. On top: the blows' effects, arrows and spells flying, damage numbers, health bars, a ring under the
 // hero's target, the cast bar, the loot flying in.
 
-import { createFrame, clearFrame, createFx, Rng, FONTS } from "../../lib/pixelfx/core/index.js?v=mw92mcdd";
-import * as hitSpark from "../../lib/pixelfx/fx/impacts/hit-spark.js?v=mw92mcdd";
-import * as bluntHit from "../../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw92mcdd";
-import * as swordSlash from "../../lib/pixelfx/fx/melee/sword-slash.js?v=mw92mcdd";
-import * as dmgNumber from "../../lib/pixelfx/fx/ui/damage-number.js?v=mw92mcdd";
-import * as healFx from "../../lib/pixelfx/fx/holy/heal.js?v=mw92mcdd";
-import * as poof from "../../lib/pixelfx/fx/spawn/poof.js?v=mw92mcdd";
-import { blastOf } from "../render/looks.js?v=mw92mcdd";
-import { ELEM } from "../data/elements.js?v=mw92mcdd";
-import { GRADE } from "../data/loot.js?v=mw92mcdd";
-import { MATERIALS, kindOf } from "../data/gear.js?v=mw92mcdd";
-import { mapOf } from "./data.js?v=mw92mcdd";
-import { GRID, mapGrid } from "./world.js?v=mw92mcdd";
+import { createFrame, clearFrame, createFx, Rng, FONTS } from "../../lib/pixelfx/core/index.js?v=mw94uhhp";
+import * as hitSpark from "../../lib/pixelfx/fx/impacts/hit-spark.js?v=mw94uhhp";
+import * as bluntHit from "../../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw94uhhp";
+import * as swordSlash from "../../lib/pixelfx/fx/melee/sword-slash.js?v=mw94uhhp";
+import * as dmgNumber from "../../lib/pixelfx/fx/ui/damage-number.js?v=mw94uhhp";
+import * as healFx from "../../lib/pixelfx/fx/holy/heal.js?v=mw94uhhp";
+import * as poof from "../../lib/pixelfx/fx/spawn/poof.js?v=mw94uhhp";
+import { blastOf } from "../render/looks.js?v=mw94uhhp";
+import { ELEM } from "../data/elements.js?v=mw94uhhp";
+import { GRADE } from "../data/loot.js?v=mw94uhhp";
+import { MATERIALS, kindOf } from "../data/gear.js?v=mw94uhhp";
+import { mapOf } from "./data.js?v=mw94uhhp";
+import { GRID, mapGrid } from "./world.js?v=mw94uhhp";
 
 export const VW = 180, VH = 200, TW = 16, TH = 12;
 const W = VW, H = VH, WW = GRID * TW, WH = GRID * TH;
@@ -124,7 +124,11 @@ export function createIdleRenderer(A) {
       case "basic":
         heroAnim = { move: "strike", t: 0 };
         if (ev.ranged) flyers.push({ x0: ev.fromX, y0: ev.fromY, h0: 18, x1: ev.x, y1: ev.y, h1: 10 + ev.fly, t: 0, life: 0.16, col: ev.wtype === "staff" ? [200, 170, 255] : [236, 226, 200], kind: ev.wtype === "staff" ? "orb" : "arrow" });
-        else addAt(swordSlash, ev.x, ev.y, 10, { scale: 0.5, palette: NUM.neutral, light: 0.3 }, 0.2);
+        else {
+          // the slash from the hero toward the monster: turned to it (mirrored when it is to the left, so the crescent stays upright)
+          const dx = (ev.x - ev.fromX) * TW, dy = (ev.y - ev.fromY) * TH;
+          flyers.push({ kind: "slash", x0: ev.x, y0: ev.y, h0: 12 + (ev.fly ?? 0), x1: ev.x, y1: ev.y, h1: 12, a: Math.atan2(dy, dx), side: ((ev.x * 7 + ev.y * 13) | 0) % 2 ? 1 : -1, t: 0, life: 0.2, col: [236, 244, 255] });
+        }
         break;
       case "castStart": heroAnim = { move: "cast", t: 0 }; break;
       case "skill": {
@@ -139,7 +143,8 @@ export function createIdleRenderer(A) {
       case "dmg":
         flash.set(ev.id, clock + 0.08);
         addAt(dmgNumber, ev.x, ev.y, 26 + ev.fly, { text: String(ev.amount), palette: NUM[ev.elem] ?? NUM.neutral, scale: ev.crit ? 2 : 1 }, 0.9);
-        if (!ev.skill) addAt(ev.crit ? bluntHit : hitSpark, ev.x, ev.y, 10 + ev.fly, { height: 0, palette: NUM.neutral, light: 0.4 }, 0.35);
+        // the spark flies on the way the blow went (from the hero through the monster)
+        if (!ev.skill) addAt(ev.crit ? bluntHit : hitSpark, ev.x, ev.y, 10 + ev.fly, { height: 0, palette: NUM.neutral, light: 0.2, angle: Math.atan2((ev.y - w.hy) * TH, (ev.x - w.hx) * TW) }, 0.3);
         break;
       case "miss": addAt(dmgNumber, ev.x, ev.y, 28, { text: "MISS", palette: NUM.neutral }, 0.7); break;
       case "hurt":
@@ -270,6 +275,17 @@ export function createIdleRenderer(A) {
       const k = Math.min(1, f.t / f.life), e = f.kind === "coin" || f.kind === "gem" ? k * k : k;
       const [x0, y0] = S(f.x0, f.y0), [x1, y1] = S(f.x1, f.y1);
       const x = x0 + (x1 - x0) * e, y = y0 - f.h0 + (y1 - f.h1 - (y0 - f.h0)) * e - (f.kind === "coin" || f.kind === "gem" ? Math.sin(k * Math.PI) * 14 : 0);
+      if (f.kind === "slash") {
+        // a bright arc swept across the monster, square to the blow: its head leads, its tail fades behind
+        const cx = x0, cy = y0 - f.h0, R = 11, head = -1.25 + 2.5 * Math.min(1, k * 1.6);
+        for (let s = 0; s <= 48; s++) {
+          const th = -1.25 + (2.5 * s) / 48; if (th > head) break;
+          const age = (head - th) / 2.5, a = f.a + Math.PI / 2 * 0 + th * f.side, px = cx + Math.cos(a) * R * 0.55 - Math.cos(f.a) * 3, py = cy + Math.sin(a) * R * 0.75 - Math.sin(f.a) * 2;
+          const kk = (1 - age) * (1 - k * 0.6);
+          put(px, py, age < 0.15 ? [255, 255, 255] : f.col, kk); put(px + Math.cos(f.a), py + Math.sin(f.a), f.col, kk * 0.8); put(px + 2 * Math.cos(f.a), py + 2 * Math.sin(f.a), [120, 170, 240], kk * 0.5);
+        }
+        continue;
+      }
       if (f.kind === "arrow") { const dx = x1 - x0, dy = (y1 - f.h1) - (y0 - f.h0), n = Math.hypot(dx, dy) || 1; for (let i = 0; i < 6; i++) put(x - (dx / n) * i, y - (dy / n) * i, f.col, 1 - i / 7) }
       else if (f.kind === "orb") { const r = f.big ? 3 : 2; for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) if (i * i + j * j <= r * r) put(x + i, y + j, f.col, 1 - (i * i + j * j) / (r * r + 1) * 0.6) }
       else if (f.kind === "coin") { put(x, y, f.col); put(x + 1, y, f.col); put(x, y + 1, [200, 150, 40]); put(x + 1, y + 1, [200, 150, 40]) }

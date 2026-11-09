@@ -3,12 +3,12 @@
 // reach, up to its weapon's range, and fight. It never ends. Every 100 kills on a map, its boss comes for the
 // hero. The hero falls now and then (a little experience lost), gets back up at the map's middle, and goes on.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw92mcdd";
-import { KINDS, MAPS, mapOf, monsterBase, elemMul, xpToNext, MAX_LEVEL, BOSS_EVERY, BOSS_HP, BOSS_ATK, BOSS_LOOT, DEATH_XP, RESPAWN } from "./data.js?v=mw92mcdd";
-import { SKILL_TREE, skillOf, skillAt } from "./skills.js?v=mw92mcdd";
-import { heroStats, hitChance, afterDef, CASTERS } from "./hero.js?v=mw92mcdd";
-import { BAL } from "./balance.js?v=mw92mcdd";
-import { rollGrade } from "../data/loot.js?v=mw92mcdd";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw94uhhp";
+import { KINDS, MAPS, mapOf, monsterBase, elemMul, xpToNext, MAX_LEVEL, BOSS_EVERY, BOSS_HP, BOSS_ATK, BOSS_LOOT, DEATH_XP, RESPAWN } from "./data.js?v=mw94uhhp";
+import { SKILL_TREE, skillOf, skillAt } from "./skills.js?v=mw94uhhp";
+import { heroStats, hitChance, afterDef, CASTERS } from "./hero.js?v=mw94uhhp";
+import { BAL } from "./balance.js?v=mw94uhhp";
+import { rollGrade } from "../data/loot.js?v=mw94uhhp";
 
 // the map, in tiles; the hero's and monsters' paces (tiles a second); ranges
 export const GRID = 24;
