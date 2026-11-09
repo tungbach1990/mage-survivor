@@ -3,18 +3,18 @@
 // Older saves (the tower-defense game) move over: their gear, crystals (with what their talents and marks cost
 // back), and a starting gift for every class that had played.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8wxgia";
-import { pointsAt, spentOn, statCost, freshStats, STAT_IDS, STAT_MAX } from "../data/stats.js?v=mw8wxgia";
-import { SLOT_IDS } from "../data/gear.js?v=mw8wxgia";
-import { STARTER, WTYPES } from "../data/weapons.js?v=mw8wxgia";
-import { GRADES, GRADE, gradeOf } from "../data/loot.js?v=mw8wxgia";
-import { CLASS_IDS } from "./hero.js?v=mw8wxgia";
-import { SKILL_TREE, canLearn, skillPointsAt } from "./skills.js?v=mw8wxgia";
-import { PASSIVE_TREE, SIG, passiveCost } from "./passives.js?v=mw8wxgia";
-import { rollItem, starterWeapon, itemPower, salvageValue, refineCost, refineChance, REFINE_MAX, LINES, SLOT_POOL, LINE_COUNT, lineValue } from "./items.js?v=mw8wxgia";
-import { xpToNext, MAX_LEVEL, mapOf } from "./data.js?v=mw8wxgia";
-import { BAL } from "./balance.js?v=mw8wxgia";
-import { freshHero, autoStats, autoSkills } from "./bot.js?v=mw8wxgia";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8wy0lc";
+import { pointsAt, spentOn, statCost, freshStats, STAT_IDS, STAT_MAX } from "../data/stats.js?v=mw8wy0lc";
+import { SLOT_IDS } from "../data/gear.js?v=mw8wy0lc";
+import { STARTER, WTYPES } from "../data/weapons.js?v=mw8wy0lc";
+import { GRADES, GRADE, gradeOf } from "../data/loot.js?v=mw8wy0lc";
+import { CLASS_IDS } from "./hero.js?v=mw8wy0lc";
+import { SKILL_TREE, canLearn, skillPointsAt } from "./skills.js?v=mw8wy0lc";
+import { PASSIVE_TREE, SIG, passiveCost } from "./passives.js?v=mw8wy0lc";
+import { rollItem, starterWeapon, itemPower, salvageValue, refineCost, refineChance, REFINE_MAX, LINES, SLOT_POOL, LINE_COUNT, lineValue } from "./items.js?v=mw8wy0lc";
+import { xpToNext, MAX_LEVEL, mapOf } from "./data.js?v=mw8wy0lc";
+import { BAL } from "./balance.js?v=mw8wy0lc";
+import { freshHero, autoStats, autoSkills } from "./bot.js?v=mw8wy0lc";
 
 export const VERSION = 4, SAVE_KEY = "msd.save.v1", BAG_SIZE = 60;
 export function freshProfile() {

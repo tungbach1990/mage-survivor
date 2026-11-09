@@ -2,21 +2,21 @@
 // the left as it's dressed and armed, the monsters on the right with their element's glow, the blows' effects,
 // the damage numbers, the loot flying in, and the bars over heads.
 
-import { createFrame, clearFrame, createFx, Rng, FONTS } from "../../lib/pixelfx/core/index.js?v=mw8wxgia";
-import * as hitSpark from "../../lib/pixelfx/fx/impacts/hit-spark.js?v=mw8wxgia";
-import * as bluntHit from "../../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw8wxgia";
-import * as swordSlash from "../../lib/pixelfx/fx/melee/sword-slash.js?v=mw8wxgia";
-import * as daggerFlurry from "../../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw8wxgia";
-import * as dmgNumber from "../../lib/pixelfx/fx/ui/damage-number.js?v=mw8wxgia";
-import * as healFx from "../../lib/pixelfx/fx/holy/heal.js?v=mw8wxgia";
-import * as poof from "../../lib/pixelfx/fx/spawn/poof.js?v=mw8wxgia";
-import { blastOf } from "../render/looks.js?v=mw8wxgia";
-import { dressHero } from "../render/dress.js?v=mw8wxgia";
-import { lookOf } from "../data/gear.js?v=mw8wxgia";
-import { ELEM } from "../data/elements.js?v=mw8wxgia";
-import { GRADE } from "../data/loot.js?v=mw8wxgia";
-import { mapOf } from "./data.js?v=mw8wxgia";
-import { FIELD } from "./world.js?v=mw8wxgia";
+import { createFrame, clearFrame, createFx, Rng, FONTS } from "../../lib/pixelfx/core/index.js?v=mw8wy0lc";
+import * as hitSpark from "../../lib/pixelfx/fx/impacts/hit-spark.js?v=mw8wy0lc";
+import * as bluntHit from "../../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw8wy0lc";
+import * as swordSlash from "../../lib/pixelfx/fx/melee/sword-slash.js?v=mw8wy0lc";
+import * as daggerFlurry from "../../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw8wy0lc";
+import * as dmgNumber from "../../lib/pixelfx/fx/ui/damage-number.js?v=mw8wy0lc";
+import * as healFx from "../../lib/pixelfx/fx/holy/heal.js?v=mw8wy0lc";
+import * as poof from "../../lib/pixelfx/fx/spawn/poof.js?v=mw8wy0lc";
+import { blastOf } from "../render/looks.js?v=mw8wy0lc";
+import { dressHero } from "../render/dress.js?v=mw8wy0lc";
+import { lookOf } from "../data/gear.js?v=mw8wy0lc";
+import { ELEM } from "../data/elements.js?v=mw8wy0lc";
+import { GRADE } from "../data/loot.js?v=mw8wy0lc";
+import { mapOf } from "./data.js?v=mw8wy0lc";
+import { FIELD } from "./world.js?v=mw8wy0lc";
 
 export const VW = FIELD.w, VH = FIELD.h;
 const W = VW, H = VH;
@@ -114,7 +114,7 @@ export function createIdleRenderer(A) {
         break;
       case "miss": add(dmgNumber, { x: ev.x, y: ev.y - 14, text: "MISS", palette: hexes(NUM.neutral) }, 0.7); break;
       case "hurt": hurtT = 0.15; shake = Math.min(2, shake + 0.8); add(dmgNumber, { x: hx, y: hy - 14, text: String(ev.amount), palette: ["#3a0a0a", "#7a1414", "#c02424", "#ff4a4a", "#ff8a8a", "#ffd0d0", "#ffffff", "#ffffff"] }, 0.8); break;
-      case "dodge": add(dmgNumber, { x: hx, y: hy - 14, text: "NÉ", palette: hexes(NUM.wind) }, 0.6); break;
+      case "dodge": add(dmgNumber, { x: hx, y: hy - 14, text: "DODGE", palette: hexes(NUM.wind) }, 0.6); break;
       case "kill": add(poof, { x: ev.x, y: FIELD.ground - 4, light: 0.3 }, 0.5); if (ev.gold) flyers.push({ x0: ev.x, y0: FIELD.ground - 8, x1: hx, y1: hy, t: 0, life: 0.6, col: [255, 214, 80], kind: "coin" }); break;
       case "gear": flyers.push({ x0: ev.x, y0: FIELD.ground - 10, x1: hx, y1: hy, t: 0, life: 0.9, col: GRADE[ev.grade]?.color ?? [255, 255, 255], kind: "gem" }); break;
       case "heal": add(dmgNumber, { x: hx, y: hy - 18, text: "+" + ev.n, palette: hexes(NUM.wind) }, 0.8); break;
