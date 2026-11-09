@@ -2,12 +2,12 @@
 // its buffs. Ragnarok-style (simplified): ATK from the weapon and STR (DEX for bows), MATK from INT, HIT/FLEE,
 // crit from LUK, ASPD from the weapon, AGI and DEX, casting from DEX.
 
-import { totalsOf, aspdOf, hitsPerSec, freshStats } from "../data/stats.js?v=mw8wy0lc";
-import { btbaOf, STARTER, WTYPES } from "../data/weapons.js?v=mw8wy0lc";
-import { baseOf } from "../data/loot.js?v=mw8wy0lc";
-import { PASSIVE_TREE } from "./passives.js?v=mw8wy0lc";
-import { lineFor } from "./items.js?v=mw8wy0lc";
-import { BAL } from "./balance.js?v=mw8wy0lc";
+import { totalsOf, aspdOf, hitsPerSec, freshStats } from "../data/stats.js?v=mw8xck5v";
+import { btbaOf, STARTER, WTYPES } from "../data/weapons.js?v=mw8xck5v";
+import { baseOf } from "../data/loot.js?v=mw8xck5v";
+import { PASSIVE_TREE } from "./passives.js?v=mw8xck5v";
+import { lineFor } from "./items.js?v=mw8xck5v";
+import { BAL } from "./balance.js?v=mw8xck5v";
 
 export const CLASS_IDS = ["mage", "swordman", "archer", "thief", "acolyte", "merchant"];
 // the classes that cast (their skills use MATK and casting time)
@@ -70,7 +70,7 @@ export function heroStats(h, buff = {}) {
     maxHp, maxSp, atk: atk * lf, matk: matk * lf, def, softDef: t.vit * 0.5,
     hit: L + t.dex, flee: L + t.agi,
     crit: Math.min(0.75, (1 + t.luk * 0.3) / 100 + (g.pct.crit ?? 0) + P.crit + (buff.crit ?? 0)),
-    aspd, aps: hitsPerSec(aspd), castMul: Math.max(0, 1 - t.dex / 150),
+    aspd, aps: hitsPerSec(aspd) * BAL.aspd, castMul: Math.max(0, 1 - t.dex / 150),
     regenHp: 1 + Math.floor(t.vit / 5) + L * 0.2, regenSp: 1 + Math.floor(t.int / 6) + L * 0.05,
     xpMul: 1 + (g.pct.xp ?? 0) + P.xp, goldMul: 1 + (g.pct.gold ?? 0) + P.gold, cdMul: Math.max(0.5, 1 - P.cd),
     melee: !ranged && !CASTERS.has(cls) || (!ranged && wtype !== "staff"),

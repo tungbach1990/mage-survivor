@@ -2,21 +2,21 @@
 // the left as it's dressed and armed, the monsters on the right with their element's glow, the blows' effects,
 // the damage numbers, the loot flying in, and the bars over heads.
 
-import { createFrame, clearFrame, createFx, Rng, FONTS } from "../../lib/pixelfx/core/index.js?v=mw8wy0lc";
-import * as hitSpark from "../../lib/pixelfx/fx/impacts/hit-spark.js?v=mw8wy0lc";
-import * as bluntHit from "../../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw8wy0lc";
-import * as swordSlash from "../../lib/pixelfx/fx/melee/sword-slash.js?v=mw8wy0lc";
-import * as daggerFlurry from "../../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw8wy0lc";
-import * as dmgNumber from "../../lib/pixelfx/fx/ui/damage-number.js?v=mw8wy0lc";
-import * as healFx from "../../lib/pixelfx/fx/holy/heal.js?v=mw8wy0lc";
-import * as poof from "../../lib/pixelfx/fx/spawn/poof.js?v=mw8wy0lc";
-import { blastOf } from "../render/looks.js?v=mw8wy0lc";
-import { dressHero } from "../render/dress.js?v=mw8wy0lc";
-import { lookOf } from "../data/gear.js?v=mw8wy0lc";
-import { ELEM } from "../data/elements.js?v=mw8wy0lc";
-import { GRADE } from "../data/loot.js?v=mw8wy0lc";
-import { mapOf } from "./data.js?v=mw8wy0lc";
-import { FIELD } from "./world.js?v=mw8wy0lc";
+import { createFrame, clearFrame, createFx, Rng, FONTS } from "../../lib/pixelfx/core/index.js?v=mw8xck5v";
+import * as hitSpark from "../../lib/pixelfx/fx/impacts/hit-spark.js?v=mw8xck5v";
+import * as bluntHit from "../../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw8xck5v";
+import * as swordSlash from "../../lib/pixelfx/fx/melee/sword-slash.js?v=mw8xck5v";
+import * as daggerFlurry from "../../lib/pixelfx/fx/melee/dagger-flurry.js?v=mw8xck5v";
+import * as dmgNumber from "../../lib/pixelfx/fx/ui/damage-number.js?v=mw8xck5v";
+import * as healFx from "../../lib/pixelfx/fx/holy/heal.js?v=mw8xck5v";
+import * as poof from "../../lib/pixelfx/fx/spawn/poof.js?v=mw8xck5v";
+import { blastOf } from "../render/looks.js?v=mw8xck5v";
+import { dressHero } from "../render/dress.js?v=mw8xck5v";
+import { lookOf } from "../data/gear.js?v=mw8xck5v";
+import { ELEM } from "../data/elements.js?v=mw8xck5v";
+import { GRADE } from "../data/loot.js?v=mw8xck5v";
+import { mapOf } from "./data.js?v=mw8xck5v";
+import { FIELD } from "./world.js?v=mw8xck5v";
 
 export const VW = FIELD.w, VH = FIELD.h;
 const W = VW, H = VH;

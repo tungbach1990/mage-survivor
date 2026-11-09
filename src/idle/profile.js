@@ -3,23 +3,25 @@
 // Older saves (the tower-defense game) move over: their gear, crystals (with what their talents and marks cost
 // back), and a starting gift for every class that had played.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8wy0lc";
-import { pointsAt, spentOn, statCost, freshStats, STAT_IDS, STAT_MAX } from "../data/stats.js?v=mw8wy0lc";
-import { SLOT_IDS } from "../data/gear.js?v=mw8wy0lc";
-import { STARTER, WTYPES } from "../data/weapons.js?v=mw8wy0lc";
-import { GRADES, GRADE, gradeOf } from "../data/loot.js?v=mw8wy0lc";
-import { CLASS_IDS } from "./hero.js?v=mw8wy0lc";
-import { SKILL_TREE, canLearn, skillPointsAt } from "./skills.js?v=mw8wy0lc";
-import { PASSIVE_TREE, SIG, passiveCost } from "./passives.js?v=mw8wy0lc";
-import { rollItem, starterWeapon, itemPower, salvageValue, refineCost, refineChance, REFINE_MAX, LINES, SLOT_POOL, LINE_COUNT, lineValue } from "./items.js?v=mw8wy0lc";
-import { xpToNext, MAX_LEVEL, mapOf } from "./data.js?v=mw8wy0lc";
-import { BAL } from "./balance.js?v=mw8wy0lc";
-import { freshHero, autoStats, autoSkills } from "./bot.js?v=mw8wy0lc";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8xck5v";
+import { pointsAt, spentOn, statCost, freshStats, STAT_IDS, STAT_MAX } from "../data/stats.js?v=mw8xck5v";
+import { SLOT_IDS } from "../data/gear.js?v=mw8xck5v";
+import { STARTER, WTYPES } from "../data/weapons.js?v=mw8xck5v";
+import { GRADES, GRADE, gradeOf } from "../data/loot.js?v=mw8xck5v";
+import { CLASS_IDS } from "./hero.js?v=mw8xck5v";
+import { SKILL_TREE, canLearn, skillPointsAt } from "./skills.js?v=mw8xck5v";
+import { PASSIVE_TREE, SIG, passiveCost } from "./passives.js?v=mw8xck5v";
+import { rollItem, starterWeapon, itemPower, salvageValue, refineCost, refineChance, REFINE_MAX, LINES, SLOT_POOL, LINE_COUNT, lineValue } from "./items.js?v=mw8xck5v";
+import { xpToNext, MAX_LEVEL, mapOf } from "./data.js?v=mw8xck5v";
+import { BAL } from "./balance.js?v=mw8xck5v";
+import { freshHero, autoStats, autoSkills } from "./bot.js?v=mw8xck5v";
 
 export const VERSION = 4, SAVE_KEY = "msd.save.v1", BAG_SIZE = 60;
+/** Saves from an older epoch are wiped (a fresh start for everyone). */
+export const EPOCH = 2;
 export function freshProfile() {
   return {
-    v: VERSION, current: "mage", heroes: Object.fromEntries(CLASS_IDS.map((c) => [c, withSig(freshHero(c))])),
+    v: VERSION, epoch: EPOCH, current: "mage", heroes: Object.fromEntries(CLASS_IDS.map((c) => [c, withSig(freshHero(c))])),
     bag: [], crystals: 0, seed: 1, lootKeep: [...GRADES], autoSalvage: false, speed: 1,
     lastSeen: Date.now(), totals: { kills: 0, bosses: 0, deaths: 0, salvaged: 0, playSec: 0 }, achievements: [], quests: { day: "", list: [], done: [] },
     settings: {}, migratedFrom: null,
@@ -37,7 +39,7 @@ export const importSave = (text) => migrate(JSON.parse(text));
 
 /** Any save to the current shape (a broken one: a fresh profile). */
 export function migrate(o) {
-  if (!o || typeof o !== "object") return freshProfile();
+  if (!o || typeof o !== "object" || (o.epoch ?? 0) < EPOCH) return freshProfile();
   if ((o.v ?? 0) >= 4 && o.heroes) {
     const p = freshProfile();
     Object.assign(p, o);

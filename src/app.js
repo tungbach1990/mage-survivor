@@ -1,27 +1,27 @@
 // Mage Survivor — the idle RPG. The battle runs all the time; the tabs below it are where the hero learns
 // skills, spends stat points, wears gear, picks a map, and where the six heroes and the passives live.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw8wy0lc";
-import { createIdleRenderer, VW, VH } from "./idle/view.js?v=mw8wy0lc";
-import { createBattle, step, drain, refresh, setMap, bestMap, mapOpen, FIELD } from "./idle/world.js?v=mw8wy0lc";
-import { MAPS, mapOf, xpToNext, MAX_LEVEL, BOSS_EVERY, ELEM_NAME, BEATS } from "./idle/data.js?v=mw8wy0lc";
-import { SKILL_TREE, skillOf, skillAt, canLearn, SKILL_MAX } from "./idle/skills.js?v=mw8wy0lc";
-import { heroStats, CLASS_IDS } from "./idle/hero.js?v=mw8wy0lc";
-import { PASSIVE_TREE, passiveCost } from "./idle/passives.js?v=mw8wy0lc";
-import { itemName, itemPower, lineText, salvageValue, refineCost, refineChance, REFINE_MAX } from "./idle/items.js?v=mw8wy0lc";
-import { STAT_PLAN } from "./idle/bot.js?v=mw8wy0lc";
+import { loadAssets, browserLoad } from "./assets.js?v=mw8xck5v";
+import { createIdleRenderer, VW, VH } from "./idle/view.js?v=mw8xck5v";
+import { createBattle, step, drain, refresh, setMap, bestMap, mapOpen, FIELD } from "./idle/world.js?v=mw8xck5v";
+import { MAPS, mapOf, xpToNext, MAX_LEVEL, BOSS_EVERY, ELEM_NAME, BEATS } from "./idle/data.js?v=mw8xck5v";
+import { SKILL_TREE, skillOf, skillAt, canLearn, SKILL_MAX } from "./idle/skills.js?v=mw8xck5v";
+import { heroStats, CLASS_IDS } from "./idle/hero.js?v=mw8xck5v";
+import { PASSIVE_TREE, passiveCost } from "./idle/passives.js?v=mw8xck5v";
+import { itemName, itemPower, lineText, salvageValue, refineCost, refineChance, REFINE_MAX } from "./idle/items.js?v=mw8xck5v";
+import { STAT_PLAN } from "./idle/bot.js?v=mw8xck5v";
 import {
   load, save, exportSave, importSave, freshProfile, heroOf, raiseStat, statPointsLeft, skillPointsLeft, learnSkill, resetPoints, resetCost, onLevel,
   claimDrop, equip, unequip, salvage, salvageFiltered, refine, buyPassive, notePace, offlineGains, BAG_SIZE,
-} from "./idle/profile.js?v=mw8wy0lc";
-import { STAT_IDS, statCost } from "./data/stats.js?v=mw8wy0lc";
-import { CLASSES } from "./data/classes.js?v=mw8wy0lc";
-import { GRADES, GRADE, baseOf } from "./data/loot.js?v=mw8wy0lc";
-import { WTYPES, STARTER } from "./data/weapons.js?v=mw8wy0lc";
-import { iconPixels, kindOf, SLOT_IDS, SLOT_NAMES } from "./data/gear.js?v=mw8wy0lc";
-import { dressHero } from "./render/dress.js?v=mw8wy0lc";
-import { lookOf } from "./data/gear.js?v=mw8wy0lc";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw8wy0lc";
+} from "./idle/profile.js?v=mw8xck5v";
+import { STAT_IDS, statCost } from "./data/stats.js?v=mw8xck5v";
+import { CLASSES } from "./data/classes.js?v=mw8xck5v";
+import { GRADES, GRADE, baseOf } from "./data/loot.js?v=mw8xck5v";
+import { WTYPES, STARTER } from "./data/weapons.js?v=mw8xck5v";
+import { iconPixels, kindOf, SLOT_IDS, SLOT_NAMES } from "./data/gear.js?v=mw8xck5v";
+import { dressHero } from "./render/dress.js?v=mw8xck5v";
+import { lookOf } from "./data/gear.js?v=mw8xck5v";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw8xck5v";
 
 const $ = (id) => document.getElementById(id);
 const DT = 1 / 60;

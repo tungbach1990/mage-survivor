@@ -2,12 +2,12 @@
 // and they fight where they meet. It never ends: groups keep coming; every 100 kills on a map, its boss. The hero
 // dies now and then (a little experience lost), gets back up, and fights on.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8wy0lc";
-import { KINDS, MAPS, mapOf, monsterBase, elemMul, xpToNext, MAX_LEVEL, BOSS_EVERY, BOSS_HP, BOSS_ATK, BOSS_LOOT, DEATH_XP, RESPAWN } from "./data.js?v=mw8wy0lc";
-import { SKILL_TREE, skillOf, skillAt } from "./skills.js?v=mw8wy0lc";
-import { heroStats, hitChance, afterDef, CASTERS } from "./hero.js?v=mw8wy0lc";
-import { BAL } from "./balance.js?v=mw8wy0lc";
-import { rollGrade } from "../data/loot.js?v=mw8wy0lc";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8xck5v";
+import { KINDS, MAPS, mapOf, monsterBase, elemMul, xpToNext, MAX_LEVEL, BOSS_EVERY, BOSS_HP, BOSS_ATK, BOSS_LOOT, DEATH_XP, RESPAWN } from "./data.js?v=mw8xck5v";
+import { SKILL_TREE, skillOf, skillAt } from "./skills.js?v=mw8xck5v";
+import { heroStats, hitChance, afterDef, CASTERS } from "./hero.js?v=mw8xck5v";
+import { BAL } from "./balance.js?v=mw8xck5v";
+import { rollGrade } from "../data/loot.js?v=mw8xck5v";
 
 export const FIELD = { w: 180, h: 150, ground: 118, heroX: 34, spawnX: 196 };
 const MELEE_GAP = 32, RANGED_GAP = 80, WALK = 1.2;
@@ -165,7 +165,7 @@ export function step(w, dt) {
       if ((w.cds[id] ?? 0) > w.t) continue;
       const sk = skillOf(w.hero.cls, id), st = skillAt(sk, lv);
       if (w.sp < st.sp || !wants(w, id)) continue;
-      w.sp -= st.sp; w.cds[id] = w.t + st.cd * w.hs.cdMul;
+      w.sp -= st.sp; w.cds[id] = w.t + st.cd * w.hs.cdMul * BAL.cd;
       const ct = (st.cast ?? 0) * w.hs.castMul;
       if (ct > 0.05) { w.cast = { id, t: ct, total: ct, elem: sk.elem }; w.events.push({ type: "castStart", id, t: ct, elem: sk.elem }) }
       else useSkill(w, id);
