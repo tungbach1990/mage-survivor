@@ -63,7 +63,7 @@ export function baseOf(it, starterType = "staff") {
 export const defShare = (def) => 100 / (100 + Math.max(0, def));
 
 // ---- elements and a martial line on gear; what drops in which chapter; refining
-export const REFINE_STEP = 0.08, REFINE_MAX = 10;
+export const REFINE_STEP = 0.1, REFINE_MAX = 10;
 export const CH_ELEMS = [[], ["fire", "wind", "volt"], ["fire", "wind", "volt", "water", "poison"], ["fire", "wind", "volt", "water", "poison", "earth"], ["fire", "wind", "volt", "water", "poison", "earth", "ice", "light"], ["fire", "wind", "volt", "water", "poison", "earth", "ice", "light", "dark", "arcane"]];
 export const elemsFor = (ch) => CH_ELEMS[Math.max(1, Math.min(5, ch))];
 /** How many elements an item of this grade rolls: [min, max]. */

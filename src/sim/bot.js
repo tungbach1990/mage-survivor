@@ -1,16 +1,16 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw8qgu7r";
-import { speedFactor } from "./status.js?v=mw8qgu7r";
-import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw8qgu7r";
-import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw8qgu7r";
-import { PASSIVES, passiveCost } from "../data/passives.js?v=mw8qgu7r";
-import { autoStats, claimGear, itemScore, equip } from "../meta/profile.js?v=mw8qgu7r";
-import { liveRefresh } from "../meta/live.js?v=mw8qgu7r";
-import { talentCost } from "../data/meta.js?v=mw8qgu7r";
-import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw8qgu7r";
-import { CLASS_IDS } from "../data/classes.js?v=mw8qgu7r";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw8sf18k";
+import { speedFactor } from "./status.js?v=mw8sf18k";
+import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw8sf18k";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw8sf18k";
+import { PASSIVES, passiveCost } from "../data/passives.js?v=mw8sf18k";
+import { autoStats, claimGear, itemScore, equip } from "../meta/profile.js?v=mw8sf18k";
+import { liveRefresh } from "../meta/live.js?v=mw8sf18k";
+import { talentCost } from "../data/meta.js?v=mw8sf18k";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw8sf18k";
+import { CLASS_IDS } from "../data/classes.js?v=mw8sf18k";
 
 /** The card the bot (and the idle toggle) would take. */
 export const bestCard = (w) => w.cards.map((c, j) => [score(w, c), j]).sort((a, b) => b[0] - a[0])[0][1];
@@ -76,7 +76,7 @@ export function playRun({ profile = "fresh", chapter = 1, seed = 1, cls = "mage"
       if (ev.type === "acctLevel") { p.mageLevel = ev.level; autoStats(p, cls); changed = true }
       if (ev.type === "pickup" && ev.kind === "gear") {
         const it = claimGear(p, cls, { grade: ev.grade, level: ev.level ?? w.chapter }, seed); w.run.gearClaimed = (w.run.gearClaimed ?? 0) + 1;
-        if (p.bag.includes(it) && itemScore(it) > itemScore(p.perClass[cls].gear[it.slot])) { equip(p, cls, it.id); changed = true }
+        if (p.bag.includes(it) && itemScore(it, p) > itemScore(p.perClass[cls].gear[it.slot], p)) { equip(p, cls, it.id); changed = true }
       }
     }
     if (changed) liveRefresh(w, p);

@@ -3,26 +3,26 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8qgu7r";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mw8qgu7r";
-import { SKILLS } from "../data/skills.js?v=mw8qgu7r";
-import { CODEX } from "../data/reactions.js?v=mw8qgu7r";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw8qgu7r";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw8qgu7r";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw8qgu7r";
-import { GRADE, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8qgu7r";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw8qgu7r";
-import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines } from "../data/affix.js?v=mw8qgu7r";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw8qgu7r";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw8qgu7r";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw8qgu7r";
-import { GEAR_SCALE } from "../data/meta.js?v=mw8qgu7r";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8sf18k";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mw8sf18k";
+import { SKILLS } from "../data/skills.js?v=mw8sf18k";
+import { CODEX } from "../data/reactions.js?v=mw8sf18k";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw8sf18k";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw8sf18k";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw8sf18k";
+import { GRADE, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8sf18k";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw8sf18k";
+import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mw8sf18k";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw8sf18k";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw8sf18k";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw8sf18k";
+import { GEAR_SCALE } from "../data/meta.js?v=mw8sf18k";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
 
 const freshGear = () => Object.fromEntries(SLOT_IDS.map((s) => [s, null]));
-export const starterWeapon = (cls) => ({ id: `start_${cls}`, cls, slot: "weapon", wtype: STARTER[cls], variant: 0, rarity: "white", level: 1, chapter: 1, affixes: [], refine: 0, legendary: null, starter: true });
+export const starterWeapon = (cls) => ({ id: `start_${cls}`, cls, slot: "weapon", wtype: STARTER[cls], variant: 0, rarity: "white", level: 1, chapter: 1, affixes: [], refine: 0, gen: 3, legendary: null, starter: true });
 const freshClass = (cls) => ({ talents: {}, stats: freshStats(), statResets: 0, passives: { [SIG_PASSIVE[cls]]: 1 }, marks: [...START_MARKS[cls]], gear: { ...freshGear(), weapon: starterWeapon(cls) }, starterGiven: true });
 export function freshProfile() {
   return {
@@ -72,6 +72,13 @@ export function migrate(data) {
     for (const e of it.elems ?? []) if (!it.affixes.some((l) => l.id === `el_${e}`)) it.affixes.push({ id: `el_${e}`, kind: "pct", v: mid(`el_${e}`, "pct") });
     if (it.martial && !it.affixes.some((l) => ATTR[l.id]?.martial)) it.affixes.push({ id: `el_${it.martial.mark}`, kind: "pct", v: mid(`el_${it.martial.mark}`, "pct") });
     delete it.elems; delete it.martial;
+    if ((it.gen ?? 0) < 3 && !it.starter) {
+      let h = 0; for (const ch of String(it.id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      const rr = new Rng(h || 7), keep = it.affixes.find((l) => ATTR[l.id]?.mark);
+      it.affixes = rollLines(() => rr.next(), it.level ?? 1, it.rarity, elemsFor(it.level ?? 1), it.slot);
+      if (keep && !it.affixes.some((l) => ATTR[l.id]?.mark)) { const kind = "pct"; it.affixes[it.affixes.length - 1] = { id: keep.id, kind, v: lineValue(keep.id, kind, it.level ?? 1, it.rarity, 0.5) } }
+    }
+    it.gen = 3;
   };
   // a class that never had its starter weapon: given now, worn if its hands are empty
   for (const [cl, c] of Object.entries(p.perClass)) if (!c.starterGiven) { c.starterGiven = true; if (!c.gear.weapon) c.gear.weapon = starterWeapon(cl); else if (p.bag.length < BAG_SIZE) p.bag.push(starterWeapon(cl)) }
@@ -194,7 +201,8 @@ export function claimGear(p, cls, g, seed = 0) {
   return it;
 }
 /** How good a piece is, roughly (to compare with what's worn). */
-export const itemScore = (it) => (it ? baseMul(it.level ?? it.chapter ?? 1, it.rarity, it.refine ?? 0) * (2 + (it.affixes?.length ?? 0) + (it.legendary ? 1 : 0)) : 0);
+/** "Lực chiến": one number to compare items by (a mark the class hasn't open counts nothing). */
+export const itemScore = (it, p = null) => (it ? gearScore(it, baseOf(it, STARTER[it.cls]), p ? new Set(marksOpen(p, it.cls)) : null) + (it.legendary ? 15 : 0) : 0);
 // ---------- enchanting and refining (in the hall) ----------
 /** An item by id, in the bag or worn by any class. */
 export function findItem(p, id) {
@@ -276,7 +284,7 @@ export function salvage(p, itemId) {
 
 // ---------- gear ----------
 export function applyItem(m, it, dupLegendary = false, open = null) {
-  for (const l of it.affixes ?? []) applyLine(m, l, open);
+  for (const l of it.affixes ?? []) applyLine(m, l, open, it.refine ?? 0);
   if (it.legendary && !dupLegendary) LEGENDARY.find((x) => x[0] === it.legendary)?.[2](m);
 }
 export const affixText = (a) => lineText(a);
@@ -292,8 +300,8 @@ export function rollItem(seed, chapter, luck = 0, { cls = "mage", marks = MARKS,
   const types = level <= 1 ? [STARTER[cls]] : level === 2 ? wtypesOf(cls).filter((t) => t === STARTER[cls] || ["dagger", "sword", "bow", "mace"].includes(t)) : wtypesOf(cls);
   const wtype = slot === "weapon" ? types[Math.floor(r.next() * types.length)] : undefined;
   const kinds = kindsOf(slot, cls, wtype).length, variant = Math.floor(r.next() * (level <= 1 ? Math.min(2, kinds) : kinds));
-  const affixes = rollLines(() => r.next(), level, rarity, elemsFor(level));
-  return { id: `i${seed}`, cls, slot, ...(wtype ? { wtype } : {}), variant, rarity, level, refine: 0, affixes, legendary: GRADE[rarity].power ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter: level };
+  const affixes = rollLines(() => r.next(), level, rarity, elemsFor(level), slot, marks === MARKS ? null : marks);
+  return { id: `i${seed}`, cls, slot, ...(wtype ? { wtype } : {}), variant, rarity, level, refine: 0, affixes, gen: 3, legendary: GRADE[rarity].power ? LEGENDARY[Math.floor(r.next() * LEGENDARY.length)][0] : null, chapter: level };
 }
 
 // ---------- quests ----------

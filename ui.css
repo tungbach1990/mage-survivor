@@ -278,3 +278,6 @@ h1 { font-size: 28px; }
 #speed-btn { order: 5; pointer-events: auto; padding: 2px 8px; font-size: 13px; } #speed-btn.on { border-color: #ffb03a; color: #ffd28a; box-shadow: 0 0 6px #ff9a2a; }
 /* the character panel over a running fight: see-through, the field shows behind */
 #charpanel { background: #0c0812b8; }
+
+.tile.item .power { font-size: 12px; color: #ffd28a; margin-top: 2px; } .tile.item .power b { font-size: 15px; color: #ffe286; }
+.power-total { margin: 4px 0; color: #ffd28a; } .power-total b { color: #ffe286; font-size: 16px; }

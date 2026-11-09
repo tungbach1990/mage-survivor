@@ -6,25 +6,25 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw8qgu7r";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw8qgu7r";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw8qgu7r";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw8qgu7r";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw8qgu7r";
-import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw8qgu7r";
-import { ENVS } from "../data/environments.js?v=mw8qgu7r";
-import { T, reactT } from "../data/tuning.js?v=mw8qgu7r";
+import { ENEMIES } from "./enemies.js?v=mw8sf18k";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw8sf18k";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw8sf18k";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw8sf18k";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw8sf18k";
+import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw8sf18k";
+import { ENVS } from "../data/environments.js?v=mw8sf18k";
+import { T, reactT } from "../data/tuning.js?v=mw8sf18k";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw8qgu7r";
+import { startBlackHole } from "./chaos.js?v=mw8sf18k";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
 export const isPhys = (elem) => elem === "phys" || schoolOf(elem) === "martial";
 /** The marks this run's class works with (Chaos Seed sows them, the black hole leaves them). */
 export const schoolMarks = (w) => w.schoolMarks ?? ELEMENTS;
-import { rollGrade, crystalPerKill, CRYSTAL, GEAR_RATE, GEAR_BOSS_BONUS, GEAR_PER_RUN } from "../data/loot.js?v=mw8qgu7r";
-import { acctGain } from "./world.js?v=mw8qgu7r";
-import { SKILLS } from "../data/skills.js?v=mw8qgu7r";
+import { rollGrade, crystalPerKill, CRYSTAL, GEAR_RATE, GEAR_BOSS_BONUS, GEAR_PER_RUN } from "../data/loot.js?v=mw8sf18k";
+import { acctGain } from "./world.js?v=mw8sf18k";
+import { SKILLS } from "../data/skills.js?v=mw8sf18k";
 export const OVERTIME = 120;
 export const WALL_HEAL_PER_SEC = 0.04;
 /** Mend the wall by n, within this second's budget (returns what it mended). */
