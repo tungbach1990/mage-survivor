@@ -6,25 +6,25 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mw8q189f";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw8q189f";
-import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw8q189f";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw8q189f";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw8q189f";
-import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw8q189f";
-import { ENVS } from "../data/environments.js?v=mw8q189f";
-import { T, reactT } from "../data/tuning.js?v=mw8q189f";
+import { ENEMIES } from "./enemies.js?v=mw8qgu7r";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mw8qgu7r";
+import { PAIRS, TIERS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mw8qgu7r";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mw8qgu7r";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mw8qgu7r";
+import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mw8qgu7r";
+import { ENVS } from "../data/environments.js?v=mw8qgu7r";
+import { T, reactT } from "../data/tuning.js?v=mw8qgu7r";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mw8q189f";
+import { startBlackHole } from "./chaos.js?v=mw8qgu7r";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
 export const isPhys = (elem) => elem === "phys" || schoolOf(elem) === "martial";
 /** The marks this run's class works with (Chaos Seed sows them, the black hole leaves them). */
 export const schoolMarks = (w) => w.schoolMarks ?? ELEMENTS;
-import { rollGrade, crystalPerKill, CRYSTAL, GEAR_RATE, GEAR_BOSS_BONUS, GEAR_PER_RUN } from "../data/loot.js?v=mw8q189f";
-import { acctGain } from "./world.js?v=mw8q189f";
-import { SKILLS } from "../data/skills.js?v=mw8q189f";
+import { rollGrade, crystalPerKill, CRYSTAL, GEAR_RATE, GEAR_BOSS_BONUS, GEAR_PER_RUN } from "../data/loot.js?v=mw8qgu7r";
+import { acctGain } from "./world.js?v=mw8qgu7r";
+import { SKILLS } from "../data/skills.js?v=mw8qgu7r";
 export const OVERTIME = 120;
 export const WALL_HEAL_PER_SEC = 0.04;
 /** Mend the wall by n, within this second's budget (returns what it mended). */
@@ -65,10 +65,10 @@ export function applyAura(w, e, elem, opts = {}) {
     case "volt": if (opts.stun) stun(w, e, opts.stun); break;
     case "water": st.wet = AURA.dur; break;
     case "earth": break;   // armor broken while the aura lasts (damage())
-    case "wind": if (movable(e) && (e.state === "walk" || opts.push)) e.x += (opts.push ?? AURA.windPush) * (def.boss ? 0.2 : LIGHT[e.type] ?? 1); break;
+    case "wind": if (opts.push && movable(e)) e.x += opts.push * (def.boss ? 0.2 : LIGHT[e.type] ?? 1); break;   // only a skill's push
     case "poison": applyPoison(e, def, opts.poison ?? 2 * p); break;
     case "light": st.judged = true; break;
-    case "dark": if (fresh) e.fearT = AURA.curse.fearEvery; break;
+    case "dark": break;   // cursed: hits the wall softer (world.js)
     case "arcane":
       st.charge++;
       if (st.charge >= AURA.arcane.stacks && !opts.noBurst) {
@@ -80,8 +80,8 @@ export function applyAura(w, e, elem, opts = {}) {
       break;
     // ---- the martial marks
     case "bleed": applyDot(e, "bleed", (opts.bleed ?? AURA.bleed.dps * p) * (env(w).mul?.bleed ?? 1), opts.stacks ?? 1, AURA.bleed.maxStacks); break;
-    case "daze": st.dazeHits = (st.dazeHits ?? 0) + 1; if (st.dazeHits >= AURA.daze.hits) { st.dazeHits = 0; stun(w, e, AURA.daze.stun) } break;
-    case "pin": if ((e.pinAt ?? -99) + AURA.pin.every <= w.t) { e.pinAt = w.t; applyRoot(e, def, AURA.pin.root * (env(w).pinMul ?? 1)) } break;
+    case "daze": break;   // dazed: hits the wall softer (world.js)
+    case "pin": break;   // a mark for combos and tiers
     case "expose": st.exposed = Math.max(st.exposed ?? 0, 1); break;
     case "venom": applyDot(e, "venom", (opts.venom ?? AURA.venom.dps * p) * (env(w).mul?.venom ?? 1), opts.stacks ?? 1, env(w).venomCap ?? AURA.venom.maxStacks); break;
     // sunder, cripple, blind, disarm, bounty: they work while the mark lasts (damage(), world.js, onDeath)
@@ -95,10 +95,7 @@ export function tickAuras(w, e, dt) {
   // the arcane kin hold auras half as long; the sun dries water off twice as fast
   for (const [el, t] of e.auras) { const r = t - dt * (kin(e, "arcane") ? 2 : 1) * (el === "water" ? env(w).dry ?? 1 : 1); if (r <= 0) removeAura(e, el); else e.auras.set(el, r) }
   for (const n of [...e.tiers]) if (n > e.auras.size) e.tiers.delete(n);
-  if (e.auras.has("dark")) {   // cursed: now and then, afraid
-    e.fearT = (e.fearT ?? AURA.curse.fearEvery) - dt;
-    if (e.fearT <= 0) { e.fearT = AURA.curse.fearEvery; applyFear(e, ENEMIES[e.type], AURA.curse.fear) }
-  }
+
 }
 
 // ---------- the hit ----------
@@ -344,7 +341,7 @@ export function obsidianAt(w, x, y, r) {
 }
 
 // ---------- what reactions can do ----------
-function api(w) {
+export function api(w) {
   if (w._api) return w._api;
   const A = {
     area: (x, y, r, skip) => around(w, x, y, r, skip),
@@ -354,11 +351,12 @@ function api(w) {
     // a reaction spreads only marks the class has (an elemental monster's own mark aside)
     aura: (o, elem) => (!w.unlocked || w.unlocked.has(elem) ? applyAura(w, o, elem, { noBurst: false }) : false),
     removeAura: (o, elem) => removeAura(o, elem),
-    stun: (o, d) => stun(w, o, d),
-    freeze: (o, d, force) => applyFreeze(o, ENEMIES[o.type], d, force),
+    // the Codex effects (combos, triads, tiers) hold nothing: no stun, freeze, root, fear, push or pull
+    stun: () => {},
+    freeze: () => {},
     chill: (o) => applySlow(o, ENEMIES[o.type]),
-    root: (o, d) => applyRoot(o, ENEMIES[o.type], d),
-    fear: (o, d) => applyFear(o, ENEMIES[o.type], d),
+    root: () => {},
+    fear: () => {},
     mud: (o, k, d) => applyMud(o, k, d),
     burn: (o, dps) => applyBurn(o, ENEMIES[o.type], dps * (w.mods?.dmg ?? 1)),
     poison: (o, stacks) => applyPoison(o, ENEMIES[o.type], 2 * (w.mods?.dmg ?? 1), stacks),
@@ -367,10 +365,10 @@ function api(w) {
     gold: (n) => { w.gold += n * (w.pm?.gold ?? 1); w.events.push({ type: "gold", n: Math.round(n) }) },
     xp: (n) => { w.xp = (w.xp ?? 0) + n },
     isBoss: (o) => !!ENEMIES[o.type].boss,
-    push: (o, dx) => { if (o.hp > 0 && movable(o)) o.x += dx * (ENEMIES[o.type].boss ? 0.2 : 1) },
-    pull: (x, y, r, px) => { for (const o of around(w, x, y, r).filter(movable)) { const d = Math.hypot(x - o.x, y - o.y) || 1, k = Math.min(px, d) * (ENEMIES[o.type].boss ? 0.3 : 1); o.x += ((x - o.x) / d) * k; o.y += ((y - o.y) / d) * k } },
+    push: () => {},
+    pull: () => {},
     ground: (kind, x, y, r, life) => { if (kind === "lava" && w.grounds.some((g) => g.kind === "water" && reaches(g, x, y, r))) return steamAt(w, x, y, r); addGround(w, kind, x, y, r, life) },
-    well: (x, y, r, k, t) => { addWell(w, x, y, r, k, t); w.events.push({ type: "fx", fx: "well", x, y, r, t, elem: "arcane" }) },
+    well: () => {},
     heal: (n) => healWall(w, n),
     cdr: (s) => { if ((w.cds.flow ?? 0) > w.t) return; w.cds.flow = w.t + 2; for (const k of Object.values(w.skills)) k.cd = Math.max(0, k.cd - s) },
     cooldown: (key, s) => { if ((w.cds[key] ?? 0) > w.t) return false; w.cds[key] = w.t + s; return true },

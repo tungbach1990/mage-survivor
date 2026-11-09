@@ -1,26 +1,26 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw8q189f";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw8q189f";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw8q189f";
-import { createRenderer , PW, PH } from "./view.js?v=mw8q189f";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw8q189f";
-import { ENEMIES } from "./sim/enemies.js?v=mw8q189f";
-import { SKILLS, stats } from "./data/skills.js?v=mw8q189f";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw8q189f";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw8q189f";
-import { CHAPTERS } from "./data/chapters.js?v=mw8q189f";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw8q189f";
-import { PASSIVES, passiveCost } from "./data/passives.js?v=mw8q189f";
-import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mw8q189f";
-import { liveRefresh } from "./meta/live.js?v=mw8q189f";
-import { bestCard } from "./sim/bot.js?v=mw8q189f";
-import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mw8q189f";
-import { ATTR, lineText, elemsOfLines } from "./data/affix.js?v=mw8q189f";
-import { baseOf, elemsFor, ENCHANT, refineCost, refineChance, REFINE_MAX } from "./data/loot.js?v=mw8q189f";
-import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw8q189f";
-import { dressHero } from "./render/dress.js?v=mw8q189f";
+import { loadAssets, browserLoad } from "./assets.js?v=mw8qgu7r";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mw8qgu7r";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw8qgu7r";
+import { createRenderer , PW, PH } from "./view.js?v=mw8qgu7r";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mw8qgu7r";
+import { ENEMIES } from "./sim/enemies.js?v=mw8qgu7r";
+import { SKILLS, stats } from "./data/skills.js?v=mw8qgu7r";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mw8qgu7r";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mw8qgu7r";
+import { CHAPTERS } from "./data/chapters.js?v=mw8qgu7r";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mw8qgu7r";
+import { PASSIVES, passiveCost } from "./data/passives.js?v=mw8qgu7r";
+import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mw8qgu7r";
+import { liveRefresh } from "./meta/live.js?v=mw8qgu7r";
+import { bestCard } from "./sim/bot.js?v=mw8qgu7r";
+import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mw8qgu7r";
+import { ATTR, lineText, elemsOfLines } from "./data/affix.js?v=mw8qgu7r";
+import { baseOf, elemsFor, ENCHANT, refineCost, refineChance, REFINE_MAX } from "./data/loot.js?v=mw8qgu7r";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mw8qgu7r";
+import { dressHero } from "./render/dress.js?v=mw8qgu7r";
 // an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
 const iconCache = new Map();
 function itemIcon(it) {
@@ -56,11 +56,11 @@ function drawPreview(cls) {
     g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
   } catch { /* no canvas */ }
 }
-import { ENVS } from "./data/environments.js?v=mw8q189f";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw8q189f";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw8q189f";
-import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw8q189f";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, weaponOf, profileMods, addElement, removeElement, rerollMartial, refineItem, addElemCost, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw8q189f";
+import { ENVS } from "./data/environments.js?v=mw8qgu7r";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mw8qgu7r";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mw8qgu7r";
+import { TALENT_TREES, talentCost, markCost, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mw8qgu7r";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, weaponOf, profileMods, addElement, removeElement, rerollMartial, refineItem, addElemCost, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mw8qgu7r";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -357,6 +357,7 @@ function drawGear() {
   }
 }
 function drawCodex() {
+  const note = $("codex-note"); if (note) note.textContent = "Hiệu ứng Codex (combo, bộ ba, tầng, Hố Đen) không gây khống chế: không choáng, đóng băng, giữ chân, đẩy hay hút quái.";
   const bz = $("bestiary");
   bz.innerHTML = "";
   for (const [el, k] of Object.entries(ELEMENTAL)) {
