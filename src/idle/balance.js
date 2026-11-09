@@ -1,6 +1,6 @@
 // The idle game's dials, in one place (the admin page can change them).
 export const BAL = {
-  monster: { hp: 1, atk: 1.2, xp: 0.55 },   // monsters' health, blows and experience
+  monster: { hp: 1, atk: 1.8, xp: 0.55 },   // monsters' health, blows and experience
   basic: 0.5,                          // the basic attack's damage
   aspd: 0.6,                           // how fast the hero strikes (a multiplier on blows a second)
   cd: 1.5,                             // the skills' cooldowns

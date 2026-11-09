@@ -2,12 +2,12 @@
 // its buffs. Ragnarok-style (simplified): ATK from the weapon and STR (DEX for bows), MATK from INT, HIT/FLEE,
 // crit from LUK, ASPD from the weapon, AGI and DEX, casting from DEX.
 
-import { totalsOf, aspdOf, hitsPerSec, freshStats } from "../data/stats.js?v=mw98ji0s";
-import { btbaOf, STARTER, WTYPES } from "../data/weapons.js?v=mw98ji0s";
-import { baseOf } from "../data/loot.js?v=mw98ji0s";
-import { PASSIVE_TREE } from "./passives.js?v=mw98ji0s";
-import { lineFor } from "./items.js?v=mw98ji0s";
-import { BAL } from "./balance.js?v=mw98ji0s";
+import { totalsOf, aspdOf, hitsPerSec, freshStats } from "../data/stats.js?v=mw9dlnna";
+import { btbaOf, STARTER, WTYPES } from "../data/weapons.js?v=mw9dlnna";
+import { baseOf } from "../data/loot.js?v=mw9dlnna";
+import { PASSIVE_TREE } from "./passives.js?v=mw9dlnna";
+import { lineFor } from "./items.js?v=mw9dlnna";
+import { BAL } from "./balance.js?v=mw9dlnna";
 
 export const CLASS_IDS = ["mage", "swordman", "archer", "thief", "acolyte", "merchant"];
 // the classes that cast (their skills use MATK and casting time)

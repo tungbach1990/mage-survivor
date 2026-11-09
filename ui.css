@@ -29,7 +29,7 @@ small { color: #b8aecb; }
 .bars2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
 /* the battle */
-#screen { width: 100%; max-height: 52vh; object-fit: contain; aspect-ratio: 180 / 200; image-rendering: pixelated; display: block; background: #000; }
+#screen { width: 100%; aspect-ratio: 180 / 150; image-rendering: pixelated; display: block; background: #000; }
 #skillbar { display: flex; gap: 4px; padding: 4px 6px; background: #160f22; min-height: 34px; overflow-x: auto; }
 #skillbar .sk { position: relative; width: 34px; height: 26px; padding: 0; font-size: 11px; font-weight: 700; overflow: hidden; }
 #skillbar .sk::after { content: ""; position: absolute; left: 0; bottom: 0; width: 100%; height: var(--cd, 0%); background: #00000099; }
@@ -87,5 +87,3 @@ small { color: #b8aecb; }
 .overlay h2 { margin: 0 0 6px; font-size: 16px; }
 #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #120c1c; }
 [hidden] { display: none !important; }
-
-.minimap { width: 144px; height: 144px; image-rendering: pixelated; align-self: center; border: 1px solid #4a3a66; border-radius: 4px; }
