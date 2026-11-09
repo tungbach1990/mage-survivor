@@ -2,7 +2,7 @@
 // shading as one mass and its scud are kept; no discharges, no bolt, no sparks, and no rain of its own (the game
 // draws the rain over the whole field). A light grey-blue, so the day stays bright under it.
 // The cloud's shapes follow pixelfx's storm cloud, MIT License (see .agents/skills/pixelfx/LICENSE).
-import { clamp, rng, smooth, loopNoise, tileNoise, fit } from "../../lib/pixelfx/core/index.js?v=mw8jyp5q";
+import { clamp, rng, smooth, loopNoise, tileNoise, fit } from "../../lib/pixelfx/core/index.js?v=mw8oupoh";
 
 export const meta = {
   name: "Rain cloud",
