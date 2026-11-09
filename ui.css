@@ -285,3 +285,15 @@ h1 { font-size: 28px; }
 .loot-filter { gap: 3px; align-items: center; margin: 4px 0; } .loot-filter button { padding: 2px 6px; font-size: 11px; background: #1a1228; } .loot-filter button.on { border-color: currentColor; box-shadow: 0 0 6px currentColor; }
 
 .loot-filter.tile { text-align: left; } .loot-filter button.off { opacity: .5; }
+
+/* the run's top bar: two rows that never wrap into the XP bar below. Row 1 the wall; row 2 the wave, the
+   badges (shrinking, cut with an ellipsis) and the buttons, all on one line */
+#stage { --top: max(78px, calc((100cqh - var(--field)) * 0.4)); }
+#hud-top { flex-wrap: wrap; align-content: flex-start; row-gap: 4px; column-gap: 6px; height: calc(var(--top) - 22px); overflow: hidden; }
+#hud-top .bar.wall { flex: 0 0 100%; order: 0; }
+#hud-top #wave { order: 1; flex: none; white-space: nowrap; }
+#hud-top .badge { order: 2; flex: 1 1 0; min-width: 0; max-width: 40%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud-top #fps { order: 3; flex: none; }
+#hud-top #speed-btn, #hud-top #auto-btn, #hud-top #char-btn, #hud-top #pause-btn { order: 4; flex: none; margin-left: 0; padding: 1px 6px; font-size: 13px; line-height: 20px; }
+#hud-top #speed-btn { margin-left: auto; }
+#xp { top: calc(var(--top) - 18px); }

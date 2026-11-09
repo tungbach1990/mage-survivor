@@ -2,8 +2,8 @@
 // take their item's material; gloves cover the hands; a cloak hangs behind; an off-hand piece sits in the back
 // hand; an amulet at the neck, a ring at the hand; the weapon's head takes its material. Cached per class and look.
 
-import { MATERIALS, RARITY_GEM } from "../data/gear.js?v=mw9e6fgi";
-import { GRADES, gradeOf } from "../data/loot.js?v=mw9e6fgi";
+import { MATERIALS, RARITY_GEM } from "../data/gear.js?v=mw9eebqq";
+import { GRADES, gradeOf } from "../data/loot.js?v=mw9eebqq";
 
 // the heroes' poses (as game/art.px.js draws them), in frame order idle0 idle1 focus cast throw hurt
 const POSES = [
