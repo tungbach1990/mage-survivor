@@ -3,19 +3,19 @@
 // the hero. On top: the blows' effects, arrows and spells flying, damage numbers, health bars, a ring under the
 // hero's target, the cast bar, the loot flying in.
 
-import { createFrame, clearFrame, createFx, Rng, FONTS } from "../../lib/pixelfx/core/index.js?v=mw94uhhp";
-import * as hitSpark from "../../lib/pixelfx/fx/impacts/hit-spark.js?v=mw94uhhp";
-import * as bluntHit from "../../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw94uhhp";
-import * as swordSlash from "../../lib/pixelfx/fx/melee/sword-slash.js?v=mw94uhhp";
-import * as dmgNumber from "../../lib/pixelfx/fx/ui/damage-number.js?v=mw94uhhp";
-import * as healFx from "../../lib/pixelfx/fx/holy/heal.js?v=mw94uhhp";
-import * as poof from "../../lib/pixelfx/fx/spawn/poof.js?v=mw94uhhp";
-import { blastOf } from "../render/looks.js?v=mw94uhhp";
-import { ELEM } from "../data/elements.js?v=mw94uhhp";
-import { GRADE } from "../data/loot.js?v=mw94uhhp";
-import { MATERIALS, kindOf } from "../data/gear.js?v=mw94uhhp";
-import { mapOf } from "./data.js?v=mw94uhhp";
-import { GRID, mapGrid } from "./world.js?v=mw94uhhp";
+import { createFrame, clearFrame, createFx, Rng, FONTS } from "../../lib/pixelfx/core/index.js?v=mw98ji0s";
+import * as hitSpark from "../../lib/pixelfx/fx/impacts/hit-spark.js?v=mw98ji0s";
+import * as bluntHit from "../../lib/pixelfx/fx/impacts/blunt-hit.js?v=mw98ji0s";
+import * as swordSlash from "../../lib/pixelfx/fx/melee/sword-slash.js?v=mw98ji0s";
+import * as dmgNumber from "../../lib/pixelfx/fx/ui/damage-number.js?v=mw98ji0s";
+import * as healFx from "../../lib/pixelfx/fx/holy/heal.js?v=mw98ji0s";
+import * as poof from "../../lib/pixelfx/fx/spawn/poof.js?v=mw98ji0s";
+import { blastOf } from "../render/looks.js?v=mw98ji0s";
+import { ELEM } from "../data/elements.js?v=mw98ji0s";
+import { GRADE } from "../data/loot.js?v=mw98ji0s";
+import { MATERIALS, kindOf } from "../data/gear.js?v=mw98ji0s";
+import { mapOf } from "./data.js?v=mw98ji0s";
+import { GRID, mapGrid } from "./world.js?v=mw98ji0s";
 
 export const VW = 180, VH = 200, TW = 16, TH = 12;
 const W = VW, H = VH, WW = GRID * TW, WH = GRID * TH;
@@ -158,6 +158,7 @@ export function createIdleRenderer(A) {
       case "heal": addAt(dmgNumber, ev.x, ev.y, 34, { text: "+" + ev.n, palette: NUM.wind }, 0.8); break;
       case "levelUp": for (let i = 0; i < 24; i++) flyers.push({ x0: ev.x, y0: ev.y, h0: 0, x1: ev.x + (i % 2 ? 1 : -1) * 0.3 * (i % 5), y1: ev.y, h1: 34 + (i % 7) * 3, t: 0, life: 0.9, col: [255, 236, 140], kind: "mote" }); break;
       case "death": heroAnim = { move: "dead", t: 0 }; break;
+      case "teleport": addAt(poof, ev.fromX, ev.fromY, 0, { light: 0.5 }, 0.5); addAt(poof, ev.x, ev.y, 0, { light: 0.5 }, 0.5); camSet = false; break;
       case "revive": case "map": heroAnim = { move: "idle", t: 0 }; camSet = false; break;
     }
   }

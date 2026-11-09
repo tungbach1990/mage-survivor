@@ -3,12 +3,12 @@
 // reach, up to its weapon's range, and fight. It never ends. Every 100 kills on a map, its boss comes for the
 // hero. The hero falls now and then (a little experience lost), gets back up at the map's middle, and goes on.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw94uhhp";
-import { KINDS, MAPS, mapOf, monsterBase, elemMul, xpToNext, MAX_LEVEL, BOSS_EVERY, BOSS_HP, BOSS_ATK, BOSS_LOOT, DEATH_XP, RESPAWN } from "./data.js?v=mw94uhhp";
-import { SKILL_TREE, skillOf, skillAt } from "./skills.js?v=mw94uhhp";
-import { heroStats, hitChance, afterDef, CASTERS } from "./hero.js?v=mw94uhhp";
-import { BAL } from "./balance.js?v=mw94uhhp";
-import { rollGrade } from "../data/loot.js?v=mw94uhhp";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw98ji0s";
+import { KINDS, MAPS, mapOf, monsterBase, elemMul, xpToNext, MAX_LEVEL, BOSS_EVERY, BOSS_HP, BOSS_ATK, BOSS_LOOT, DEATH_XP, RESPAWN } from "./data.js?v=mw98ji0s";
+import { SKILL_TREE, skillOf, skillAt } from "./skills.js?v=mw98ji0s";
+import { heroStats, hitChance, afterDef, CASTERS } from "./hero.js?v=mw98ji0s";
+import { BAL } from "./balance.js?v=mw98ji0s";
+import { rollGrade } from "../data/loot.js?v=mw98ji0s";
 
 // the map, in tiles; the hero's and monsters' paces (tiles a second); ranges
 export const GRID = 24;
@@ -163,7 +163,9 @@ function walk(w, a, gx, gy, speed, dt, isHero) {
     else { const k = left / d; a.face = faceOf(px - x, py - y, a.face); x += (px - x) * k; y += (py - y) * k; left = 0 }
     moved = true;
   }
-  if (!a.path.length && left > 0 && dist(x, y, gx, gy) > 0.05 && free(w.grid, Math.floor(gx), Math.floor(gy))) {
+  // the last bit straight to the goal, only within a free tile of it (never through what blocks: no path, no move)
+  const near = Math.abs(Math.floor(x) - Math.floor(gx)) <= 1 && Math.abs(Math.floor(y) - Math.floor(gy)) <= 1 && free(w.grid, Math.floor(gx), Math.floor(y)) && free(w.grid, Math.floor(x), Math.floor(gy));
+  if (!a.path.length && near && left > 0 && dist(x, y, gx, gy) > 0.05 && free(w.grid, Math.floor(gx), Math.floor(gy))) {
     const d = dist(x, y, gx, gy), k = Math.min(1, left / d); a.face = faceOf(gx - x, gy - y, a.face); x += (gx - x) * k; y += (gy - y) * k; moved = true;
   }
   if (isHero) { w.hx = x; w.hy = y } else { a.x = x; a.y = y }
@@ -179,7 +181,7 @@ function deal(w, m, raw, elem, opts = {}) {
   const crit = opts.crit || w.rng.chance(hs.crit);
   let dmg = raw * elemMul(elem, m.elem) * (crit ? 1.4 : 1) * (0.92 + 0.16 * w.rng.next());
   dmg = afterDef(dmg, Math.max(0, m.def - m.defCut));
-  m.hp -= dmg;
+  m.hp -= dmg; w.lastDealt = w.t;
   w.events.push({ type: "dmg", id: m.id, x: m.x, y: m.y, fly: m.fly, amount: Math.round(dmg), crit, elem: elem ?? "neutral", skill: opts.skill ?? null });
   if (m.hp <= 0) kill(w, m);
   return dmg;
@@ -246,7 +248,7 @@ function wants(w, id) {
 }
 /** The hero's next target: a boss above all, then what's fighting it, then the nearest. */
 function pickTarget(w) {
-  const ms = alive(w); if (!ms.length) return null;
+  const ms = alive(w).filter((m) => !((w.skip?.[m.id] ?? 0) > w.t)); if (!ms.length) return alive(w)[0] ?? null;
   const score = (m) => dist(w.hx, w.hy, m.x, m.y) - (m.boss ? 100 : 0) - (m.aggro ? 4 : 0);
   return ms.reduce((a, b) => (score(b) < score(a) ? b : a));
 }
@@ -274,20 +276,30 @@ export function step(w, dt) {
       m.atkT += m.rate; m.attacking = 0.3;
       if (!w.rng.chance(hitChance(m.hit, w.hs.flee))) { w.events.push({ type: "dodge", x: w.hx, y: w.hy }); continue }
       const dmg = afterDef(m.atk * (0.9 + 0.2 * w.rng.next()), w.hs.def, w.hs.softDef);
-      w.hp -= dmg;
+      w.hp -= dmg; w.lastHitBy = { id: m.id, t: w.t }; if (w.lastDealt == null) w.lastDealt = w.t;
       w.events.push({ type: "hurt", amount: Math.round(dmg), from: m.id, ranged: m.ranged, x: w.hx, y: w.hy, fromX: m.x, fromY: m.y, elem: m.elem });
       if (w.hp <= 0) return die(w);
     }
   }
   // the hero: a target, walk up to it, fight
+  unstick(w);
   w.retargetT = (w.retargetT ?? 0) - dt;
-  if (!w.target || w.target.hp <= 0 || (w.retargetT <= 0 && !inRange(w, w.target))) { const n = pickTarget(w); if (n !== w.target) w.path = null; w.target = n; w.retargetT = 1 }
+  // struck by something while its own target is out of reach: turn on what struck it (if it can get at it)
+  const hitBy = w.lastHitBy && w.t - w.lastHitBy.t < 2 ? w.monsters.find((m) => m.id === w.lastHitBy.id && m.hp > 0 && !((w.skip?.[m.id] ?? 0) > w.t)) : null;
+  if (hitBy && w.target !== hitBy && !inRange(w, w.target)) { w.target = hitBy; w.path = null; w.chase = null; w.retargetT = 1 }
+  if (!w.target || w.target.hp <= 0 || ((w.skip?.[w.target.id] ?? 0) > w.t) || (w.retargetT <= 0 && !inRange(w, w.target))) { const n = pickTarget(w); if (n !== w.target) { w.path = null; w.chase = null } w.target = n; w.retargetT = 1 }
   const t = w.target;
   w.moving = false;
   if (t && !inRange(w, t) && !w.cast) {
-    const d = dist(w.hx, w.hy, t.x, t.y), k = Math.max(0, (d - reachOf(w) * 0.7) / d);
-    walk(w, w, w.hx + (t.x - w.hx) * k, w.hy + (t.y - w.hy) * k, HERO_SPEED, dt, true);
-  }
+    walk(w, w, t.x, t.y, HERO_SPEED, dt, true);
+    // the watchdog: no closer in 2.5 s, that one can't be reached for now: leave it 8 s and go for another
+    const d = dist(w.hx, w.hy, t.x, t.y);
+    if (!w.chase || w.chase.id !== t.id) w.chase = { id: t.id, best: d, t: w.t };
+    else if (d < w.chase.best - 0.3) { w.chase.best = d; w.chase.t = w.t }
+    else if (w.t - w.chase.t > 2.5) { (w.skip ??= {})[t.id] = w.t + 8; w.target = null; w.chase = null; w.path = null; w.events.push({ type: "unreachable", id: t.id }) }
+  } else w.chase = null;
+  // the way out: struck for 6 s and nothing dealt, nothing in reach: off to a free spot of the map (a fly wing)
+  if (w.lastHitBy && w.t - w.lastHitBy.t < 1 && w.t - (w.lastDealt ?? w.t) > 6 && w.t - (w.flownAt ?? -99) > 10 && !inRange(w, w.target)) flyAway(w);
   // the cast under way
   if (w.cast && (w.cast.t -= dt) <= 0) { const id = w.cast.id; w.cast = null; useSkill(w, id) }
   // the skills: the first ready one (in the hero's order) that it wants and can pay for
@@ -309,6 +321,17 @@ export function step(w, dt) {
   if ((w.basicT -= dt) <= 0) {
     if (inRange(w, t)) { basicAttack(w, t); w.basicT += 1 / w.hs.aps } else w.basicT = 0;
   }
+}
+function flyAway(w) {
+  const [x, y] = spawnTile(w, 7);
+  w.events.push({ type: "teleport", fromX: w.hx, fromY: w.hy, x, y });
+  w.hx = x; w.hy = y; w.path = null; w.target = null; w.chase = null; w.flownAt = w.t; w.lastDealt = w.t;
+  for (const m of w.monsters) if (!m.boss && dist(m.x, m.y, x, y) > AGGRO) { m.aggro = false; m.goal = null }
+}
+/** If the hero ever stands inside a blocked tile (a map change, a rounding), put it on the nearest free one. */
+function unstick(w) {
+  if (free(w.grid, Math.floor(w.hx), Math.floor(w.hy))) return;
+  for (let r = 1; r < 6; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const x = Math.floor(w.hx) + dx, y = Math.floor(w.hy) + dy; if (free(w.grid, x, y)) { w.hx = x + 0.5; w.hy = y + 0.5; w.path = null; return } }
 }
 function wanderOne(w, m, dt) {
   if (!m.goal && (m.idleT -= dt) > 0) { m.moving = false; return }

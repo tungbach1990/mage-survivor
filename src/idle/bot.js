@@ -1,10 +1,10 @@
 // The bot (and the "auto" settings): spends stat and skill points, wears the better gear. And a fast run of the
 // battle with no drawing, to balance the climb.
-import { createBattle, step, drain, refresh } from "./world.js?v=mw94uhhp";
-import { SKILL_TREE, canLearn, skillPointsAt } from "./skills.js?v=mw94uhhp";
-import { pointsAt, spentOn, statCost, freshStats, STAT_MAX } from "../data/stats.js?v=mw94uhhp";
-import { rollItem, itemPower, starterWeapon } from "./items.js?v=mw94uhhp";
-import { SLOT_IDS } from "../data/gear.js?v=mw94uhhp";
+import { createBattle, step, drain, refresh } from "./world.js?v=mw98ji0s";
+import { SKILL_TREE, canLearn, skillPointsAt } from "./skills.js?v=mw98ji0s";
+import { pointsAt, spentOn, statCost, freshStats, STAT_MAX } from "../data/stats.js?v=mw98ji0s";
+import { rollItem, itemPower, starterWeapon } from "./items.js?v=mw98ji0s";
+import { SLOT_IDS } from "../data/gear.js?v=mw98ji0s";
 
 export const STAT_PLAN = {
   mage: [["int", 0.55], ["dex", 0.3], ["vit", 0.15]], swordman: [["str", 0.5], ["vit", 0.3], ["agi", 0.2]],
