@@ -1,20 +1,23 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mw8sf18k";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw8sf18k";
-import { T, skillT } from "../data/tuning.js?v=mw8sf18k";
-import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mw8sf18k";
-import { schoolOf } from "../data/elements.js?v=mw8sf18k";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw8sf18k";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw8sf18k";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw8sf18k";
+import { ENEMIES } from "./enemies.js?v=mw8tw06c";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mw8tw06c";
+import { T, skillT } from "../data/tuning.js?v=mw8tw06c";
+import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mw8tw06c";
+import { schoolOf } from "../data/elements.js?v=mw8tw06c";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mw8tw06c";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mw8tw06c";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mw8tw06c";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
+/** Basic attacks hit at half their listed damage. */
+export const BASIC_DMG = 0.5;
 /** A skill's numbers now, with the run's modifiers: cooldown, area, and fire slowed by the rain. */
 export function skillStats(w, id) {
   const st = { ...stats(id, w.skills[id].level) };
+  if (SKILLS[id].basic && st.dmg) st.dmg *= BASIC_DMG;   // every basic attack, every weapon
   const tu = skillT(id);
   if (st.dmg) st.dmg *= (tu.dmg ?? 1) * (SKILLS[id].kind === "summon" ? T.summon.dmg * (w.mods?.summonDmg ?? 1) : 1) * (w.power ?? 1);
   if (st.hp) st.hp *= T.summon.hp;

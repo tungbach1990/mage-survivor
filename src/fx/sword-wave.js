@@ -1,7 +1,7 @@
 // A sword wave: the crescent of a sword stroke flung through the air. A broad moon of steel, its leading edge
 // white-hot, cooling to blue-grey toward its back, tapering to needle tips; behind it a smear of fading steel
 // (the stroke's trail), and a few sparks shed off the tips. Facing +x (the game turns it with `angle`).
-import { fit, rng, WHITE } from "../../lib/pixelfx/core/index.js?v=mw8sf18k";
+import { fit, rng, WHITE } from "../../lib/pixelfx/core/index.js?v=mw8tw06c";
 
 export const meta = {
   name: "Sword wave",
