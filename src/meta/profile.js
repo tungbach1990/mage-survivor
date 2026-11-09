@@ -3,20 +3,20 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8uu997";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mw8uu997";
-import { SKILLS } from "../data/skills.js?v=mw8uu997";
-import { CODEX } from "../data/reactions.js?v=mw8uu997";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw8uu997";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw8uu997";
-import { DEFAULT_MODS } from "../sim/world.js?v=mw8uu997";
-import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8uu997";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw8uu997";
-import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mw8uu997";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw8uu997";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw8uu997";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw8uu997";
-import { GEAR_SCALE } from "../data/meta.js?v=mw8uu997";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8v0vub";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mw8v0vub";
+import { SKILLS } from "../data/skills.js?v=mw8v0vub";
+import { CODEX } from "../data/reactions.js?v=mw8v0vub";
+import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mw8v0vub";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mw8v0vub";
+import { DEFAULT_MODS } from "../sim/world.js?v=mw8v0vub";
+import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8v0vub";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mw8v0vub";
+import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mw8v0vub";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mw8v0vub";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mw8v0vub";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mw8v0vub";
+import { GEAR_SCALE } from "../data/meta.js?v=mw8v0vub";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
@@ -79,6 +79,7 @@ export function migrate(data) {
       if (keep && !it.affixes.some((l) => ATTR[l.id]?.mark)) { const kind = "pct"; it.affixes[it.affixes.length - 1] = { id: keep.id, kind, v: lineValue(keep.id, kind, it.level ?? 1, it.rarity, 0.5) } }
     }
     it.gen = 3;
+    it.affixes = it.affixes.filter((l) => l.id !== "crystal");   // no crystal lines any more
   };
   // a class that never had its starter weapon: given now, worn if its hands are empty
   for (const [cl, c] of Object.entries(p.perClass)) if (!c.starterGiven) { c.starterGiven = true; if (!c.gear.weapon) c.gear.weapon = starterWeapon(cl); else if (p.bag.length < BAG_SIZE) p.bag.push(starterWeapon(cl)) }
@@ -193,13 +194,23 @@ export const STAT_PLAN = {
 };
 /** A piece of gear a boss dropped in a run, made into a real item in the bag (now, not at the end). */
 /** The lowest grade kept when picked up; lower ones are broken down into crystals at once. */
-export const lootKeeps = (p, grade) => GRADES.indexOf(gradeOf(grade)) >= GRADES.indexOf(p.lootMin ?? "white");
+export const lootKeeps = (p, grade) => (p.lootKeep ? p.lootKeep.includes(gradeOf(grade)) : GRADES.indexOf(gradeOf(grade)) >= GRADES.indexOf(p.lootMin ?? "white"));
+/** Is this piece weaker than what the class wears in its slot (and set to be broken down)? */
+export const weakerThanWorn = (p, it) => !!p.autoSalvage && !!pc(p, it.cls)?.gear?.[it.slot] && itemScore(it, p) <= itemScore(pc(p, it.cls).gear[it.slot], p);
+/** Break down every piece in the bag the filters would drop now (worn gear and starters kept). Returns the crystals. */
+export function salvageFiltered(p) {
+  let got = 0;
+  p.bag = p.bag.filter((it) => { if (it.starter || (lootKeeps(p, it.rarity) && !weakerThanWorn(p, it))) return true; got += salvageValue(it); return false });
+  p.crystals += got;
+  return got;
+}
 export function claimGear(p, cls, g, seed = 0) {
   g = { ...g };
   if (!lootKeeps(p, g.grade)) { const v = salvageValue({ rarity: g.grade, level: g.level ?? 1 }); p.crystals += v; return { salvaged: v, rarity: g.grade, level: g.level ?? 1 } }
   const it = rollItem(p.itemSeed++ * 7919 + seed, g.level ?? 1, profileMods(p, cls).luck ?? 0, { cls, marks: marksOpen(p, cls), grade: g.grade });
   if (GRADE[it.rarity].power) p.stats.legendaries++;
-  if (p.bag.length < BAG_SIZE) p.bag.push(it); else p.crystals += salvageValue(it);
+  if (weakerThanWorn(p, it) || p.bag.length >= BAG_SIZE) { const v = salvageValue(it); p.crystals += v; return { ...it, salvaged: v } }
+  p.bag.push(it);
   it.fresh = true;
   return it;
 }
@@ -277,7 +288,7 @@ export function equip(p, cls, itemId) {
   return true;
 }
 export function unequip(p, cls, slot) { const c = pc(p, cls); if (!c.gear[slot] || p.bag.length >= BAG_SIZE) return false; p.bag.push(c.gear[slot]); c.gear[slot] = null; return true }
-export const salvageValue = (it) => Math.round(GRADE[gradeOf(it.rarity)].salvage * (1 + 0.5 * ((it.level ?? it.chapter ?? 1) - 1)));
+export const salvageValue = (it) => Math.round(3 * GRADE[gradeOf(it.rarity)].salvage * (1 + 0.5 * ((it.level ?? it.chapter ?? 1) - 1)));
 export function salvage(p, itemId) {
   const i = p.bag.findIndex((it) => it.id === itemId);
   if (i < 0) return false;
@@ -334,7 +345,8 @@ export function crystalsFor(sum, mods = {}) {
   // pays less than 10: a beaten run still buys a little strength
   // the crystals picked up in the run (older summaries: from the kills)
   const kills = sum.crystals ?? (sum.kills ?? 0) * (1 + 0.5 * (ch - 1)) / 3;
-  return Math.round(Math.max(10, sum.waves * (1 + 0.5 * ch) + kills + sum.bosses * 20 * ch + (sum.won ? 50 * ch : 0)) * (mods.crystalMul ?? 1));
+  void kills; void mods;
+  return 0;   // crystals come only from breaking gear down now
 }
 /**
  * Fold a finished run into the profile. Returns what changed: { crystals, mageLevels, items, achievements,

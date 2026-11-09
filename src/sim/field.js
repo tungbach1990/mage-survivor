@@ -1,7 +1,7 @@
 // The field: its geometry, who is where, and what lies on the ground. Shared by world.js, combat.js and the
 // reactions, so none of them has to import the others.
 
-import { ENEMIES, LANE } from "./enemies.js?v=mw8uu997";
+import { ENEMIES, LANE } from "./enemies.js?v=mw8v0vub";
 
 export const W = 320, H = 180;
 export const WALL_X = 80;                 // the wall's outer face

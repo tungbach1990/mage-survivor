@@ -6,7 +6,7 @@
 // Elements and martial marks: points of that kind of damage on every basic attack, or a percent of the blow's
 // own damage added as that kind (10% fire on a 200 blow: +20 fire). It leaves the mark, if the class has it open.
 
-import { ELEM, ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw8uu997";
+import { ELEM, ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw8v0vub";
 
 export const PT_TABLE = [null, [10, 15], [50, 75], [150, 200], [300, 350], [500, 550]];
 export const PCT_TABLE = [null, [10, 15], [20, 25], [30, 35], [40, 45], [50, 55]];
@@ -28,7 +28,7 @@ export const SLOT_LINES = {
   boots:   [["agi", ["pt", "pct"]], ["react", ["pct"]], ["area", ["pct"]]],
   belt:    [["wall", ["pt", "pct"]], ["regen", ["pt", "pct"]], ["gold", ["pt", "pct"]], ["str", ["pt", "pct"]]],
   ring:    [["STAT", ["pt", "pct"]], ["tier", ["pct"]], ["react", ["pct"]]],
-  amulet:  [["STAT", ["pt", "pct"]], ["crystal", ["pct"]], ["xp", ["pct"]], ["MARK", ["pct"]]],
+  amulet:  [["STAT", ["pt", "pct"]], ["xp", ["pct"]], ["MARK", ["pct"]]],
 };
 
 const S = (id, name, pt, pct, applyPt, applyPct, extra = {}) => ({ id, name, pt, pct, applyPt, applyPct, ...extra });

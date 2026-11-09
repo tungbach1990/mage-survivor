@@ -44,7 +44,7 @@ export const PASSIVES = {
     P("guardian", "Thiên thần hộ mệnh", 50, lin(0.04, 0.04), (x) => `Triệu hồi +${pct(x)} máu và sát thương`, (m, x) => { m.summonHp *= 1 + x; m.summonDmg *= 1 + x }),
   ],
   merchant: [
-    P("greed", "Lòng tham", 30, lin(1, 0.25), (x) => `Mỗi quái hạ được thêm ${x.toFixed(2)} vàng, +${pct((x - 1) * 0.04 + 0.02)} tinh thể`, (m, x) => { m.killGold += x; m.crystalMul = (m.crystalMul ?? 1) * (1.02 + (x - 1) * 0.04) }, true),
+    P("greed", "Lòng tham", 30, lin(1, 0.25), (x) => `Mỗi quái hạ được thêm ${x.toFixed(2)} vàng`, (m, x) => { m.killGold += x }, true),
     P("heavycart", "Xe nặng", 40, lin(0.03, 0.03), (x) => `+${pct(x)} sát thương cận chiến, đẩy lùi mạnh hơn`, (m, x) => { m.meleeDmg *= 1 + x; m.push *= 1 + x }),
     P("haggle", "Mặc cả", 45, lin(0.04, 0.035), (x) => `Skill tốn vàng rẻ hơn ${pct(x)}`, (m, x) => (m.goldCost *= 1 - x)),
     P("investor", "Đầu tư", 45, lin(0.025, 0.025), (x) => `+${pct(x)} sát thương mọi đòn`, (m, x) => (m.dmg *= 1 + x)),

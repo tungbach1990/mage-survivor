@@ -283,3 +283,5 @@ h1 { font-size: 28px; }
 .power-total { margin: 4px 0; color: #ffd28a; } .power-total b { color: #ffe286; font-size: 16px; }
 
 .loot-filter { gap: 3px; align-items: center; margin: 4px 0; } .loot-filter button { padding: 2px 6px; font-size: 11px; background: #1a1228; } .loot-filter button.on { border-color: currentColor; box-shadow: 0 0 6px currentColor; }
+
+.loot-filter.tile { text-align: left; } .loot-filter button.off { opacity: .5; }
