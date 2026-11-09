@@ -3,8 +3,8 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw82t9te";
-import { STARTER, WTYPES, WTYPE_DMG, wtypesOf, btbaOf, basicIdOf } from "./weapons.js?v=mw82t9te";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mw8jyp5q";
+import { STARTER, WTYPES, WTYPE_DMG, wtypesOf, btbaOf, basicIdOf } from "./weapons.js?v=mw8jyp5q";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8
@@ -77,7 +77,7 @@ export const CLASS_SKILLS = {
 };
 
 // skills the other classes share with the Mage's book (they keep the Mage's numbers)
-export const SHARED = { holylance: ["mage", "acolyte"], smite: ["mage", "acolyte"], angel: ["mage", "acolyte"], stonegolem: ["mage", "merchant"] };
+export const SHARED = { holylance: ["mage", "acolyte"], smite: ["mage", "acolyte"], angel: ["mage", "acolyte"], stonegolem: ["mage"] };
 
 // every class's basic attack with each weapon type it may hold (its own type's is the one above), and bare hands
 for (const cls of Object.keys(STARTER)) {
@@ -106,13 +106,25 @@ for (const cls of Object.keys(STARTER)) {
     CLASS_SKILLS[id] = { name: W.blow, elem: t === "fist" ? "daze" : W.mark, kind, cls: [cls], desc, icon: t === "fist" ? "icon_basic" : own.icon, stats, basic: true, max: 8, wtype: t };
   }
 }
+// every class but the mage: its skills leave only its two signature marks (the rest come from its gear)
+export const SIGNATURE = { swordman: ["sunder", "bleed"], archer: ["bleed", "pin"], thief: ["venom", "blind"], acolyte: ["light", "daze"], merchant: ["bounty", "daze"] };
+const SIG_ELEM = {
+  bash: ["sunder"], magnum: ["sunder"], bowling: ["bleed", "sunder"], provoke: ["sunder"], whirlwind: ["bleed"], shieldcharge: ["sunder"], swordwave: ["sunder"], endure: ["sunder"],
+  doublestrafe: ["bleed"], arrowshower: ["pin"], pinshot: ["pin"], huntersmark: ["bleed"], blindarrow: ["pin"], chargearrow: ["pin"], falcon: ["bleed"], anklesnare: ["pin"],
+  envenom: ["venom"], backstab: ["venom"], sandattack: ["blind"], steal: ["blind"], hamstring: ["venom", "blind"], flurry: ["venom"], shadowclone: ["blind"], venomcloud: ["venom"],
+  heal: ["light"], blessing: ["light"], angelus: ["light"], magnus: ["light"], macestrike: ["daze"], judgment: ["light", "daze"], purify: ["daze"], aquabenedicta: ["light"],
+  mammonite: ["bounty"], cartrev: ["daze"], overcharge: ["bounty"], cointoss: ["daze", "bounty"], vending: ["daze"], loudex: ["bounty"], greed: ["bounty", "daze"],
+};
+for (const [id, [elem, ...also]] of Object.entries(SIG_ELEM)) if (CLASS_SKILLS[id]) { CLASS_SKILLS[id].elem = elem; if (also.length) CLASS_SKILLS[id].also = also; else delete CLASS_SKILLS[id].also }
+// a basic attack with another weapon: its type's mark if it's one of the class's own, else the class's first
+for (const [cls, sig] of Object.entries(SIGNATURE)) for (const [id, sk] of Object.entries(CLASS_SKILLS)) if (sk.basic && sk.cls.includes(cls) && !sig.includes(sk.elem)) sk.elem = sig[0];
 export const CLASSES = {
-  mage:     { early: 1.6, mid: 1.85, power: 1.48, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
-  swordman: { early: 0.86, mid: 0.88, chaosPow: 0.8, power: 2.68, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
+  mage:     { early: 1.4, mid: 1.85, power: 1.48, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
+  swordman: { early: 0.97, mid: 0.88, chaosPow: 0.8, power: 2.68, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
   archer:   { early: 2.8, mid: 1.3, power: 1.45, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
-  thief:    { early: 2.42, mid: 1.25, chaosPow: 0.95, power: 2.6, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
-  acolyte:  { early: 1.28, mid: 0.62, chaosAt: 11, chaosCd: 1.5, chaosPow: 0.6, power: 3.2, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
-  merchant: { early: 1.75, mid: 1.12, power: 2.15, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
+  thief:    { early: 2.6, mid: 1.25, chaosPow: 0.95, power: 2.6, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
+  acolyte:  { early: 1.65, mid: 0.62, chaosAt: 11, chaosCd: 1.5, chaosPow: 0.6, power: 3.2, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
+  merchant: { early: 2, mid: 1.12, power: 2.15, name: "Thương nhân", look: "merchant", school: "martial", cost: 700, blurb: "Xe đẩy, đồng xu, thuê golem: tiêu vàng ra sát thương lớn, kiếm vàng từ Truy nã." },
 };
 export const CLASS_IDS = Object.keys(CLASSES);
 /** The marks a class gathers toward awakening and CHAOS (Chaos Seed sows these). */

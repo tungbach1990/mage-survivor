@@ -1,8 +1,8 @@
 // What carries over between runs: per class the talent tree, the marks unlocked and the gear worn; shared, the
 // crystals, the bag, the account level, achievements and daily quests.
 
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mw82t9te";
-import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mw82t9te";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mw8jyp5q";
+import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mw8jyp5q";
 const MARTIAL_IDS = new Set([...MARTIAL_PAIRS.map((p) => p[2]), ...MARTIAL_TRIADS.map((t) => t[1])]);
 
 // ---------- talents: one tree per class, 4 branches of 4; cost = base * growth^level ----------
@@ -67,8 +67,8 @@ export const talentCost = (t, level) => Math.round(t.base * Math.pow(TALENT_GROW
 
 // ---------- marks: every class can unlock all twenty; three to start ----------
 export const START_MARKS = {
-  mage: ["fire", "ice", "volt"], swordman: ["sunder", "daze", "bleed"], archer: ["bleed", "pin", "cripple"],
-  thief: ["venom", "expose", "blind"], acolyte: ["daze", "sunder", "expose"], merchant: ["bounty", "daze", "cripple"],
+  mage: ["fire", "ice", "volt"], swordman: ["sunder", "bleed"], archer: ["bleed", "pin"],
+  thief: ["venom", "blind"], acolyte: ["light", "daze"], merchant: ["bounty", "daze"],
 };
 export const START_ELEMENTS = START_MARKS.mage;
 const BASE_COST = {
@@ -87,7 +87,7 @@ export const mageXpNext = (level) => Math.round(100 * Math.pow(1.35, level - 1))
 export const MAGE_PERKS = { 3: "Đòn đánh thường bắt đầu ở cấp 2", 5: "Mở ô Bùa hộ mệnh", 8: "Mở Vô tận sớm (khi đã qua chương 3)" };
 
 // ---------- gear: three slots per class; the weapon named for the class ----------
-import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mw82t9te";
+import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mw8jyp5q";
 export const SLOTS = Object.fromEntries(SLOT_IDS.map((s) => [s, SLOT_NAMES[s]]));
 export const WEAPON_NAME = { mage: "Gậy phép", swordman: "Kiếm", archer: "Cung", thief: "Dao găm", acolyte: "Chùy", merchant: "Xe đẩy" };
 export const slotName = (slot, cls) => (slot === "weapon" ? WEAPON_NAME[cls] ?? "Vũ khí" : SLOTS[slot] ?? slot);
@@ -113,7 +113,8 @@ export const AFFIXES = [
   ["crystal", "+{v}% tinh thể", [5, 15], (m, v) => (m.crystalMul = (m.crystalMul ?? 1) * (1 + v / 100))],
   // a mark's damage (m_), and an imbue (i_): the class's blows carry a mark of the other school now and then
   ...MARKS.map((mk) => [`m_${mk}`, `+{v}% sát thương ${ELEM[mk].name}`, [8, 20], (m, v) => (m.elem[mk] = (m.elem[mk] ?? 1) * (1 + v / 100)), { mark: mk }]),
-  ...MARKS.map((mk) => [`i_${mk}`, `Tẩm ${ELEM[mk].name} {v}%`, [8, 20], (m, v) => (m.imbue[mk] = Math.max(m.imbue[mk] ?? 0, v / 100)), { mark: mk, imbue: true }]),
+  // older saves' imbues (they're elements and martial lines on the item now)
+  ...MARKS.map((mk) => [`i_${mk}`, `Tẩm ${ELEM[mk].name} {v}%`, [8, 20], (m, v) => (m.imbue[mk] = Math.max(m.imbue[mk] ?? 0, v / 100)), { mark: mk, imbue: true, legacy: true }]),
   // older saves: e_<element>
   ...ELEMENTS.map((el) => [`e_${el}`, `+{v}% sát thương ${ELEM[el].name}`, [8, 20], (m, v) => (m.elem[el] = (m.elem[el] ?? 1) * (1 + v / 100)), { mark: el, legacy: true }]),
 ];
@@ -123,7 +124,7 @@ export const LEGENDARY = [
   ["slot", "+1 ô skill", (m) => (m.slots += 1)],
   ["aura", "Aura kéo dài gấp rưỡi", (m) => (m.auraDur *= 1.5)],
   ["resonance", "Sát thương phản ứng +50%", (m) => (m.reactDmg *= 1.5)],
-  ["imbue2", "Vũ khí nguyên tố: tỉ lệ tẩm dấu ×2", (m) => (m.imbueMul *= 2)],
+  ["imbue2", "Tỉ lệ tẩm dấu từ trang bị ×1,5", (m) => (m.imbueMul *= 1.5)],
 ];
 export const BAG_SIZE = 40;
 /** Ten slots now: each item's lines are worth less than when there were three. */

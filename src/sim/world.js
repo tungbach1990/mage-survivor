@@ -5,28 +5,28 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw82t9te";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw82t9te";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw82t9te";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw82t9te";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw82t9te";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mw82t9te";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw82t9te";
-import { T, typeT } from "../data/tuning.js?v=mw82t9te";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw82t9te";
-import { derive, castOf } from "../data/stats.js?v=mw82t9te";
-import { defShare } from "../data/loot.js?v=mw82t9te";
-import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mw82t9te";
-import { mageXpNext } from "../data/meta.js?v=mw82t9te";
-import { schoolOf } from "../data/elements.js?v=mw82t9te";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw82t9te";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw82t9te";
-import { CLASSES, marksOf } from "../data/classes.js?v=mw82t9te";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw82t9te";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw82t9te";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw82t9te";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw82t9te";
-import { updateBlackHoles } from "./chaos.js?v=mw82t9te";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8jyp5q";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mw8jyp5q";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mw8jyp5q";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mw8jyp5q";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mw8jyp5q";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mw8jyp5q";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mw8jyp5q";
+import { T, typeT } from "../data/tuning.js?v=mw8jyp5q";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mw8jyp5q";
+import { derive, castOf } from "../data/stats.js?v=mw8jyp5q";
+import { defShare } from "../data/loot.js?v=mw8jyp5q";
+import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mw8jyp5q";
+import { mageXpNext } from "../data/meta.js?v=mw8jyp5q";
+import { schoolOf } from "../data/elements.js?v=mw8jyp5q";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mw8jyp5q";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mw8jyp5q";
+import { CLASSES, marksOf } from "../data/classes.js?v=mw8jyp5q";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mw8jyp5q";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mw8jyp5q";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mw8jyp5q";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mw8jyp5q";
+import { updateBlackHoles } from "./chaos.js?v=mw8jyp5q";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);

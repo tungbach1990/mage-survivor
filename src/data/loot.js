@@ -42,7 +42,7 @@ export const hueRGB = (h) => { const f = (n) => { const k = (n + h * 6) % 6; ret
 
 // ---- an item's base numbers (Ragnarok's weapon ATK and armour DEF, its accessories' stat points; MU's base and
 // options): +40% a level, +20% a grade over a white. The rolled lines come on top.
-export const baseMul = (level, grade) => itemPower(level, grade);
+export const baseMul = (level, grade, refine = 0) => itemPower(level, grade) * (1 + REFINE_STEP * refine);
 export const WEAPON_ATK = { dagger: 30, sword: 40, twohand: 55, spear: 48, axe: 58, mace: 42, staff: 32, bow: 38, cart: 45 };
 export const ARMOUR = { body: { def: 6, hp: 12 }, head: { def: 3 }, offhand: { def: 5 }, cloak: { def: 3 }, gloves: { def: 2 }, boots: { def: 3 }, belt: { def: 2, hp: 8 } };
 export const RING_STATS = ["str", "agi", "dex", "luk"], AMULET_STATS = ["int", "vit"];
@@ -50,14 +50,30 @@ const hashId = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.ch
 /** { atk } for a weapon (and its multiplier against the type's base), { def, hp } for armour, { stat, v } for an accessory. */
 export function baseOf(it, starterType = "staff") {
   if (!it) return null;
-  const k = baseMul(it.level ?? it.chapter ?? 1, it.rarity);
+  const k = baseMul(it.level ?? it.chapter ?? 1, it.rarity, it.refine ?? 0);
   if (it.slot === "weapon") { const t = it.wtype ?? starterType, b = WEAPON_ATK[t] ?? 40; return { atk: Math.round(b * k), mul: k } }
   if (ARMOUR[it.slot]) { const a = ARMOUR[it.slot]; return { def: Math.round(a.def * k), ...(a.hp ? { hp: Math.round(a.hp * k) } : {}) } }
   if (it.slot === "ring" || it.slot === "amulet") {
     const list = it.slot === "ring" ? RING_STATS : AMULET_STATS, stat = list[(it.variant ?? hashId(it.id)) % list.length];
-    return { stat, v: Math.max(1, Math.round(2 * itemPower(it.level ?? it.chapter ?? 1, it.rarity))) };
+    return { stat, v: Math.max(1, Math.round(2 * itemPower(it.level ?? it.chapter ?? 1, it.rarity))) + Math.floor((it.refine ?? 0) / 3) };
   }
   return null;
 }
 /** DEF to the share of a blow that gets through (Ragnarok's armour: by percent, with diminishing returns). */
 export const defShare = (def) => 100 / (100 + Math.max(0, def));
+
+// ---- elements and a martial line on gear; what drops in which chapter; refining
+export const REFINE_STEP = 0.08, REFINE_MAX = 10;
+export const CH_ELEMS = [[], ["fire", "wind", "volt"], ["fire", "wind", "volt", "water", "poison"], ["fire", "wind", "volt", "water", "poison", "earth"], ["fire", "wind", "volt", "water", "poison", "earth", "ice", "light"], ["fire", "wind", "volt", "water", "poison", "earth", "ice", "light", "dark", "arcane"]];
+export const elemsFor = (ch) => CH_ELEMS[Math.max(1, Math.min(5, ch))];
+/** How many elements an item of this grade rolls: [min, max]. */
+export const ELEM_COUNT = { white: [0, 1], green: [1, 1], blue: [1, 2], yellow: [2, 2], purple: [2, 2], red: [2, 3], rainbow: [3, 3] };
+export const maxElems = (slot) => (slot === "weapon" ? 3 : 2);
+/** How often a basic attack carries a mark from one element (or the martial line) on this item. */
+export const imbueChance = (it) => (it.slot === "weapon" ? 0.15 : 0.06) + 0.01 * gradeIndex(it.rarity);
+// drops by %: a monster, an elite, a boss; at most this many a run
+export const GEAR_RATE = { normal: 0.005, elite: 0.08, boss: 0.6 }, GEAR_BOSS_BONUS = 0.25, GEAR_PER_RUN = 12;
+// enchanting and refining (crystals x the item's level)
+export const ENCHANT = { add: [[40, 1], [120, 0.6], [300, 0.3]], remove: 20, martial: 60 };
+export const refineCost = (it) => 30 * (it.level ?? 1) * ((it.refine ?? 0) + 1);
+export const refineChance = (to) => (to <= 4 ? 1 : [0.8, 0.6, 0.4, 0.3, 0.2, 0.1][to - 5] ?? 0);
