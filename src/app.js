@@ -1,27 +1,27 @@
 // Mage Survivor — the idle RPG. The battle runs all the time; the tabs below it are where the hero learns
 // skills, spends stat points, wears gear, picks a map, and where the six heroes and the passives live.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mw8xck5v";
-import { createIdleRenderer, VW, VH } from "./idle/view.js?v=mw8xck5v";
-import { createBattle, step, drain, refresh, setMap, bestMap, mapOpen, FIELD } from "./idle/world.js?v=mw8xck5v";
-import { MAPS, mapOf, xpToNext, MAX_LEVEL, BOSS_EVERY, ELEM_NAME, BEATS } from "./idle/data.js?v=mw8xck5v";
-import { SKILL_TREE, skillOf, skillAt, canLearn, SKILL_MAX } from "./idle/skills.js?v=mw8xck5v";
-import { heroStats, CLASS_IDS } from "./idle/hero.js?v=mw8xck5v";
-import { PASSIVE_TREE, passiveCost } from "./idle/passives.js?v=mw8xck5v";
-import { itemName, itemPower, lineText, salvageValue, refineCost, refineChance, REFINE_MAX } from "./idle/items.js?v=mw8xck5v";
-import { STAT_PLAN } from "./idle/bot.js?v=mw8xck5v";
+import { loadAssets, browserLoad } from "./assets.js?v=mw92mcdd";
+import { createIdleRenderer, VW, VH } from "./idle/view.js?v=mw92mcdd";
+import { createBattle, step, drain, refresh, setMap, bestMap, mapOpen, GRID, mapGrid } from "./idle/world.js?v=mw92mcdd";
+import { MAPS, mapOf, xpToNext, MAX_LEVEL, BOSS_EVERY, ELEM_NAME, BEATS } from "./idle/data.js?v=mw92mcdd";
+import { SKILL_TREE, skillOf, skillAt, canLearn, SKILL_MAX } from "./idle/skills.js?v=mw92mcdd";
+import { heroStats, CLASS_IDS } from "./idle/hero.js?v=mw92mcdd";
+import { PASSIVE_TREE, passiveCost } from "./idle/passives.js?v=mw92mcdd";
+import { itemName, itemPower, lineText, salvageValue, refineCost, refineChance, REFINE_MAX } from "./idle/items.js?v=mw92mcdd";
+import { STAT_PLAN } from "./idle/bot.js?v=mw92mcdd";
 import {
   load, save, exportSave, importSave, freshProfile, heroOf, raiseStat, statPointsLeft, skillPointsLeft, learnSkill, resetPoints, resetCost, onLevel,
   claimDrop, equip, unequip, salvage, salvageFiltered, refine, buyPassive, notePace, offlineGains, BAG_SIZE,
-} from "./idle/profile.js?v=mw8xck5v";
-import { STAT_IDS, statCost } from "./data/stats.js?v=mw8xck5v";
-import { CLASSES } from "./data/classes.js?v=mw8xck5v";
-import { GRADES, GRADE, baseOf } from "./data/loot.js?v=mw8xck5v";
-import { WTYPES, STARTER } from "./data/weapons.js?v=mw8xck5v";
-import { iconPixels, kindOf, SLOT_IDS, SLOT_NAMES } from "./data/gear.js?v=mw8xck5v";
-import { dressHero } from "./render/dress.js?v=mw8xck5v";
-import { lookOf } from "./data/gear.js?v=mw8xck5v";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw8xck5v";
+} from "./idle/profile.js?v=mw92mcdd";
+import { STAT_IDS, statCost } from "./data/stats.js?v=mw92mcdd";
+import { CLASSES } from "./data/classes.js?v=mw92mcdd";
+import { GRADES, GRADE, baseOf } from "./data/loot.js?v=mw92mcdd";
+import { WTYPES, STARTER } from "./data/weapons.js?v=mw92mcdd";
+import { iconPixels, kindOf, SLOT_IDS, SLOT_NAMES } from "./data/gear.js?v=mw92mcdd";
+import { dressHero } from "./render/dress.js?v=mw92mcdd";
+import { lookOf } from "./data/gear.js?v=mw92mcdd";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mw92mcdd";
 
 const $ = (id) => document.getElementById(id);
 const DT = 1 / 60;
@@ -281,8 +281,20 @@ function lootFilter() {
 }
 
 // ---- maps
+function miniMap() {
+  const S = 4, n = GRID * S, c = document.createElement("canvas"); c.width = c.height = n; c.className = "minimap";
+  try {
+    const gg = c.getContext("2d"), im = gg.createImageData(n, n), g = mapGrid(w.map), dot = (x, y, rgb, r = 1) => { for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) { const X = Math.round(x * S) + i, Y = Math.round(y * S) + j; if (X >= 0 && Y >= 0 && X < n && Y < n) { const k = (Y * n + X) * 4; im.data[k] = rgb[0]; im.data[k + 1] = rgb[1]; im.data[k + 2] = rgb[2]; im.data[k + 3] = 255 } } };
+    for (let ty = 0; ty < GRID; ty++) for (let tx = 0; tx < GRID; tx++) for (let j = 0; j < S; j++) for (let i = 0; i < S; i++) { const k = ((ty * S + j) * n + tx * S + i) * 4, b = g.blocked[ty * GRID + tx]; im.data[k] = b ? 40 : 70; im.data[k + 1] = b ? 70 : 110; im.data[k + 2] = b ? 50 : 80; im.data[k + 3] = 255 }
+    for (const m of w.monsters) if (m.hp > 0) dot(m.x, m.y, m.boss ? [255, 160, 40] : [230, 70, 70], m.boss ? 2 : 1);
+    dot(w.hx, w.hy, [255, 255, 255], 2);
+    gg.putImageData(im, 0, 0);
+  } catch { /* no canvas */ }
+  return c;
+}
 function drawMaps(p) {
   const h = heroOf(P);
+  p.appendChild(miniMap());
   p.appendChild(btn(`${w.autoMap ? "✔" : "✖"} Tự động lên map hợp cấp (lùi map nếu ngã 3 lần trong 2 phút)`, () => { w.autoMap = h.autoMap = !w.autoMap }, false, w.autoMap ? "on" : ""));
   for (const M of MAPS) {
     const open = mapOpen(h.level, M.id), here = w.map === M.id;
@@ -297,10 +309,10 @@ function drawMaps(p) {
 // ---- heroes and passives
 function heroPic(cls) {
   try {
-    const h = P.heroes[cls], t = h.gear.weapon ? h.gear.weapon.wtype : "fist", s = dressHero(A.armed?.[cls]?.[t] ?? A.heroes?.[cls] ?? A.mage, cls, lookOf(h.gear)), pic = s.pic;
-    const c = document.createElement("canvas"); c.width = s.fw; c.height = pic.h;
-    const gg = c.getContext("2d"), im = gg.createImageData(s.fw, pic.h);
-    for (let y = 0; y < pic.h; y++) for (let x = 0; x < s.fw; x++) { const v = pic.px[y * pic.w + x], i = (y * s.fw + x) * 4; im.data[i] = v & 255; im.data[i + 1] = (v >>> 8) & 255; im.data[i + 2] = (v >>> 16) & 255; im.data[i + 3] = v >>> 24 }
+    const h = P.heroes[cls], t = h.gear.weapon ? h.gear.weapon.wtype : "fist", sh = A.q[`${cls}_${t}`] ?? A.q[`${cls}_fist`], pic = sh.pic, row = sh.moves.idle.row * sh.fh;
+    const c = document.createElement("canvas"); c.width = sh.fw; c.height = sh.fh;
+    const gg = c.getContext("2d"), im = gg.createImageData(sh.fw, sh.fh);
+    for (let y = 0; y < sh.fh; y++) for (let x = 0; x < sh.fw; x++) { const v = pic.px[(row + y) * pic.w + x], i = (y * sh.fw + x) * 4; im.data[i] = v & 255; im.data[i + 1] = (v >>> 8) & 255; im.data[i + 2] = (v >>> 16) & 255; im.data[i + 3] = v >>> 24 }
     gg.putImageData(im, 0, 0);
     return c.toDataURL?.() ?? "";
   } catch { return "" }

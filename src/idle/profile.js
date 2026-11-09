@@ -3,18 +3,18 @@
 // Older saves (the tower-defense game) move over: their gear, crystals (with what their talents and marks cost
 // back), and a starting gift for every class that had played.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8xck5v";
-import { pointsAt, spentOn, statCost, freshStats, STAT_IDS, STAT_MAX } from "../data/stats.js?v=mw8xck5v";
-import { SLOT_IDS } from "../data/gear.js?v=mw8xck5v";
-import { STARTER, WTYPES } from "../data/weapons.js?v=mw8xck5v";
-import { GRADES, GRADE, gradeOf } from "../data/loot.js?v=mw8xck5v";
-import { CLASS_IDS } from "./hero.js?v=mw8xck5v";
-import { SKILL_TREE, canLearn, skillPointsAt } from "./skills.js?v=mw8xck5v";
-import { PASSIVE_TREE, SIG, passiveCost } from "./passives.js?v=mw8xck5v";
-import { rollItem, starterWeapon, itemPower, salvageValue, refineCost, refineChance, REFINE_MAX, LINES, SLOT_POOL, LINE_COUNT, lineValue } from "./items.js?v=mw8xck5v";
-import { xpToNext, MAX_LEVEL, mapOf } from "./data.js?v=mw8xck5v";
-import { BAL } from "./balance.js?v=mw8xck5v";
-import { freshHero, autoStats, autoSkills } from "./bot.js?v=mw8xck5v";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw92mcdd";
+import { pointsAt, spentOn, statCost, freshStats, STAT_IDS, STAT_MAX } from "../data/stats.js?v=mw92mcdd";
+import { SLOT_IDS } from "../data/gear.js?v=mw92mcdd";
+import { STARTER, WTYPES } from "../data/weapons.js?v=mw92mcdd";
+import { GRADES, GRADE, gradeOf } from "../data/loot.js?v=mw92mcdd";
+import { CLASS_IDS } from "./hero.js?v=mw92mcdd";
+import { SKILL_TREE, canLearn, skillPointsAt } from "./skills.js?v=mw92mcdd";
+import { PASSIVE_TREE, SIG, passiveCost } from "./passives.js?v=mw92mcdd";
+import { rollItem, starterWeapon, itemPower, salvageValue, refineCost, refineChance, REFINE_MAX, LINES, SLOT_POOL, LINE_COUNT, lineValue } from "./items.js?v=mw92mcdd";
+import { xpToNext, MAX_LEVEL, mapOf } from "./data.js?v=mw92mcdd";
+import { BAL } from "./balance.js?v=mw92mcdd";
+import { freshHero, autoStats, autoSkills } from "./bot.js?v=mw92mcdd";
 
 export const VERSION = 4, SAVE_KEY = "msd.save.v1", BAG_SIZE = 60;
 /** Saves from an older epoch are wiped (a fresh start for everyone). */

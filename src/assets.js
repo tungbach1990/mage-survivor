@@ -8,7 +8,8 @@ export const FRAMES = {
   mage: ["idle0", "idle1", "focus", "cast", "throw", "hurt"],
   monster: ["walk0", "walk1", "walk2", "walk3", "atk0", "atk1", "hurt"],
 };
-import { ENEMIES } from "./sim/enemies.js?v=mw8xck5v";
+import { ENEMIES } from "./sim/enemies.js?v=mw92mcdd";
+import { QINDEX } from "./idle/qindex.js?v=mw92mcdd";
 export const MONSTERS = ["slime", "goblin", "wolf", "skeleton", "orc", "golem", "bat", "shaman"];
 export const ICONS = ["fireball", "firebolt", "iceball", "icebolt", "lightball", "lightbolt", "nova", "meteor"];
 
@@ -21,6 +22,9 @@ const FILES = {
   ...Object.fromEntries(Object.entries(HERO_WEAPONS).flatMap(([c, ts]) => ts.map((t) => [`${c}_${t}`, `anims/${c}_${t}.png`]))),
   sum_spirit: "anims/sum_spirit.png", sum_golem: "anims/sum_golem.png", sum_beast: "anims/sum_beast.png",
   ...Object.fromEntries(MONSTERS.map((m) => [m, `anims/${m}.png`])),
+  // the 3/4 view: a sheet a figure, the decorations
+  ...Object.fromEntries(Object.keys(QINDEX.figures).map((n) => [`q_${n}`, `q/${n}.png`])),
+  ...Object.fromEntries(QINDEX.deco.map((n) => [`qd_${n}`, `q/deco_${n}.png`])),
 };
 
 /** Load every picture through `load(path) -> Promise<{ w, h, px }>`; returns the asset set. */
@@ -42,6 +46,8 @@ A.armed = {};
 for (const [c, ts] of Object.entries(HERO_WEAPONS)) { A.armed[c] = {}; for (const t of ts) if (pics[`${c}_${t}`]) A.armed[c][t] = strip(pics[`${c}_${t}`], FRAMES.mage.length) }
   // kinds that wear another's picture
   for (const [type, def] of Object.entries(ENEMIES)) if (def.sprite && !A.monsters[type]) A.monsters[type] = A.monsters[def.sprite];
+  A.q = Object.fromEntries(Object.keys(QINDEX.figures).map((n) => [n, { pic: pics[`q_${n}`], ...QINDEX.figures[n] }]));
+  A.deco = Object.fromEntries(QINDEX.deco.map((n) => [n, pics[`qd_${n}`]]));
   A.summons = {};
   for (const b of ["spirit", "golem", "beast"]) { const s = strip(pics[`sum_${b}`], 3); A.summons[b] = { ...s, ...anchorOf(s) } }
   return A;

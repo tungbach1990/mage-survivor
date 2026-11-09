@@ -1,10 +1,10 @@
 // Gear in the idle game: ten slots, seven grades, an item level (the map it dropped on, 1-10), its base numbers
 // (loot.js: weapon ATK, armour DEF and health, an accessory's stat) and one to three plain lines. Refining +1..+10.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mw8xck5v";
-import { SLOT_IDS, kindsOf, kindOf } from "../data/gear.js?v=mw8xck5v";
-import { STARTER, wtypesOf } from "../data/weapons.js?v=mw8xck5v";
-import { GRADES, GRADE, gradeOf, rollGrade, baseOf, refineChance, REFINE_MAX } from "../data/loot.js?v=mw8xck5v";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mw92mcdd";
+import { SLOT_IDS, kindsOf, kindOf } from "../data/gear.js?v=mw92mcdd";
+import { STARTER, wtypesOf } from "../data/weapons.js?v=mw92mcdd";
+import { GRADES, GRADE, gradeOf, rollGrade, baseOf, refineChance, REFINE_MAX } from "../data/loot.js?v=mw92mcdd";
 
 // the lines: points or percent, by item level (1-10) and grade (+10% a grade)
 export const LINES = {
