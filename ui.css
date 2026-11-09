@@ -274,3 +274,7 @@ h1 { font-size: 28px; }
 .tile.enchant { border-color: #c08cff; text-align: left; } .tile.enchant button { margin: 2px; padding: 3px 8px; font-size: 12px; }
 
 .tile.item ul li.off { filter: grayscale(1); opacity: .5; }
+
+#speed-btn { order: 5; pointer-events: auto; padding: 2px 8px; font-size: 13px; } #speed-btn.on { border-color: #ffb03a; color: #ffd28a; box-shadow: 0 0 6px #ff9a2a; }
+/* the character panel over a running fight: see-through, the field shows behind */
+#charpanel { background: #0c0812b8; }

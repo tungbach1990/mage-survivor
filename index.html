@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>Mage Survivor Defense</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <link rel="stylesheet" href="ui.css?v=mw8q0f32">
+  <link rel="stylesheet" href="ui.css?v=mw8q189f">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>(function(){var B="mw8q0f32";try{fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(v){if(v&&v.build&&v.build!==B){var u=location.pathname+"?v="+v.build+location.hash;if(sessionStorage.getItem("reloadTo")!==v.build){sessionStorage.setItem("reloadTo",v.build);location.replace(u)}}}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B="mw8q189f";try{fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(v){if(v&&v.build&&v.build!==B){var u=location.pathname+"?v="+v.build+location.hash;if(sessionStorage.getItem("reloadTo")!==v.build){sessionStorage.setItem("reloadTo",v.build);location.replace(u)}}}).catch(function(){})}catch(e){}})();</script>
 </head>
 <body>
   <div id="stage">
@@ -20,6 +20,7 @@
         <div id="weather" class="badge" hidden></div>
         <div id="wave"></div>
         <div id="fps" hidden></div>
+        <button id="speed-btn" title="Tốc độ trận (x1 / x2 / x4 / x8)">⏩ x1</button>
         <button id="auto-btn" title="Tự chọn thẻ (idle)">🤖</button>
         <button id="char-btn" title="Nhân vật: chỉ số và trang bị (C)">🧍<i id="char-dot" class="dot" hidden></i></button>
         <button id="pause-btn" title="Tạm dừng (P)">⏸</button>
@@ -97,6 +98,6 @@
     <div id="loading" class="overlay"><p>Đang tải…</p></div>
   </div>
   <p id="rotate">↻ Xoay ngang điện thoại để chơi rộng hơn</p>
-  <script type="module" src="src/app.js?v=mw8q0f32"></script>
+  <script type="module" src="src/app.js?v=mw8q189f"></script>
 </body>
 </html>
