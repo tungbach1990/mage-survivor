@@ -3,13 +3,13 @@
 // game reads it live. "Chạy thử" plays the bot against the current numbers right here, so a change can be
 // judged before anyone plays it.
 
-import { T, setTuning, DEFAULT_TUNING, TUNING_KEY } from "./data/tuning.js?v=mwad0nah";
-import { ENEMIES } from "./sim/enemies.js?v=mwad0nah";
-import { SKILLS } from "./data/skills.js?v=mwad0nah";
-import { ELEM, ELEMENTS, MARKS } from "./data/elements.js?v=mwad0nah";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mwad0nah";
-import { CODEX } from "./data/reactions.js?v=mwad0nah";
-import { trial } from "./sim/bot.js?v=mwad0nah";
+import { T, setTuning, DEFAULT_TUNING, TUNING_KEY } from "./data/tuning.js?v=mwadl24d";
+import { ENEMIES } from "./sim/enemies.js?v=mwadl24d";
+import { SKILLS } from "./data/skills.js?v=mwadl24d";
+import { ELEM, ELEMENTS, MARKS } from "./data/elements.js?v=mwadl24d";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mwadl24d";
+import { CODEX } from "./data/reactions.js?v=mwadl24d";
+import { trial } from "./sim/bot.js?v=mwadl24d";
 
 export function loadTuning(store) { try { setTuning(JSON.parse(store.getItem(TUNING_KEY) ?? "{}")) } catch { setTuning({}) } return T }
 export function saveTuning(store) { store.setItem(TUNING_KEY, JSON.stringify(T)) }

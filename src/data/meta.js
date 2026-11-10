@@ -1,8 +1,8 @@
 // What carries over between runs: per class the talent tree, the marks unlocked and the gear worn; shared, the
 // crystals, the bag, the account level, achievements and daily quests.
 
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwad0nah";
-import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mwad0nah";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwadl24d";
+import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mwadl24d";
 const MARTIAL_IDS = new Set([...MARTIAL_PAIRS.map((p) => p[2]), ...MARTIAL_TRIADS.map((t) => t[1])]);
 
 // ---------- talents: one tree per class, 4 branches of 4; cost = base * growth^level ----------
@@ -100,7 +100,7 @@ export const homeSchool = (cls) => (cls === "mage" ? "arcane" : cls === "acolyte
 export const crossSchool = (cls, mark) => homeSchool(cls) !== "both" && schoolOf(mark) !== homeSchool(cls);
 /** What unlocking a mark costs a class: marks of the other school half as much again. */
 /** A mark's price: the same for any mark; each one bought (beyond the class's starting ones) doubles the next. */
-export const MARK_BASE = 500;
+export const MARK_BASE = 499;
 export const marksBought = (cls, marks = [], start = START_MARKS[cls]) => Math.max(0, marks.length - (start?.length ?? 2));
 /** The marks a class can draw (its own school: the mage the ten elements, the martial classes the ten martial marks, the acolyte all twenty). */
 export const markPool = (cls) => (homeSchool(cls) === "arcane" ? [...ELEMENTS] : homeSchool(cls) === "martial" ? [...MARTIAL] : [...ELEMENTS, ...MARTIAL]);
@@ -111,7 +111,7 @@ export const mageXpNext = (level) => Math.round(100 * Math.pow(1.35, level - 1))
 export const MAGE_PERKS = { 3: "Đòn đánh thường bắt đầu ở cấp 2", 5: "Mở ô Bùa hộ mệnh", 8: "Mở Vô tận sớm (khi đã qua chương 3)" };
 
 // ---------- gear: three slots per class; the weapon named for the class ----------
-import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mwad0nah";
+import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mwadl24d";
 export const SLOTS = Object.fromEntries(SLOT_IDS.map((s) => [s, SLOT_NAMES[s]]));
 export const WEAPON_NAME = { mage: "Gậy phép", swordman: "Kiếm", archer: "Cung", thief: "Dao găm", acolyte: "Chùy", merchant: "Xe đẩy" };
 export const slotName = (slot, cls) => (slot === "weapon" ? WEAPON_NAME[cls] ?? "Vũ khí" : SLOTS[slot] ?? slot);

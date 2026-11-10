@@ -3,23 +3,25 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mwad0nah";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mwad0nah";
-import { SKILLS } from "../data/skills.js?v=mwad0nah";
-import { CODEX } from "../data/reactions.js?v=mwad0nah";
-import { CLASSES, CLASS_IDS, SIGNATURE, PLAYABLE } from "../data/classes.js?v=mwad0nah";
-import { TREE, LEGACY_TREES, legacyCost, TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, marksBought, markPool, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mwad0nah";
-import { DEFAULT_MODS } from "../sim/world.js?v=mwad0nah";
-import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mwad0nah";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mwad0nah";
-import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mwad0nah";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mwad0nah";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mwad0nah";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mwad0nah";
-import { GEAR_SCALE } from "../data/meta.js?v=mwad0nah";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mwadl24d";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mwadl24d";
+import { SKILLS } from "../data/skills.js?v=mwadl24d";
+import { CODEX } from "../data/reactions.js?v=mwadl24d";
+import { CLASSES, CLASS_IDS, SIGNATURE, PLAYABLE } from "../data/classes.js?v=mwadl24d";
+import { TREE, LEGACY_TREES, legacyCost, TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, marksBought, markPool, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mwadl24d";
+import { DEFAULT_MODS } from "../sim/world.js?v=mwadl24d";
+import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mwadl24d";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mwadl24d";
+import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mwadl24d";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mwadl24d";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mwadl24d";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mwadl24d";
+import { GEAR_SCALE } from "../data/meta.js?v=mwadl24d";
 
 export const SAVE_KEY = "msd.save.v1";
-export const VERSION = 3;
+export const VERSION = 4;
+/** Every new player (and everyone at the wipe to v4) starts with this: enough for one draw of a mark. */
+export const START_CRYSTALS = 499;
 
 const freshGear = () => Object.fromEntries(SLOT_IDS.map((s) => [s, null]));
 export const starterWeapon = (cls) => ({ id: `start_${cls}`, cls, slot: "weapon", wtype: STARTER[cls], variant: 0, rarity: "white", level: 1, chapter: 1, affixes: [], refine: 0, gen: 3, legendary: null, starter: true });
@@ -30,7 +32,7 @@ export function drawStart(cls, seed) { const r = new Rng(seed * 7919 + 17), pool
 const freshClass = (cls, seed = null) => { const marks = seed == null ? [...START_MARKS[cls]] : drawStart(cls, seed); return { cls, talents: {}, stats: freshStats(), statResets: 0, passives: { [SIG_PASSIVE[cls]]: 1 }, marks, start: [...marks], gear: { ...freshGear(), weapon: starterWeapon(cls) }, starterGiven: true } };
 export function freshProfile() {
   return {
-    v: VERSION, crystals: 0, mageXp: 0, mageLevel: 1,
+    v: VERSION, crystals: START_CRYSTALS, mageXp: 0, mageLevel: 1,
     perClass: Object.fromEntries(CLASS_IDS.map((c) => [c, freshClass(c)])),
     bag: [], codex: [], counts: {}, achievements: [],
     quests: { day: null, list: [] }, best: { chapter: 0, endless: 0, byClass: {} },
@@ -43,6 +45,7 @@ export function freshProfile() {
 const fixItem = (it, cls = "mage") => (it ? { ...it, slot: it.slot === "staff" ? "weapon" : it.slot, cls: it.cls ?? cls } : null);
 /** Bring an older save up to date (and fill anything missing). v1 (one tree, elements, gear) all goes to the Mage. */
 export function migrate(data) {
+  if (!data || (data.v ?? 0) < 4) { const f = freshProfile(); drawFirst(f, Date.now() + Math.floor(Math.random() * 1e6)); return f }
   const d = data ?? {}, p = { ...freshProfile(), ...d };
   p.stats = { ...freshProfile().stats, ...(d.stats ?? {}) };
   p.best = { ...freshProfile().best, ...(d.best ?? {}) };
