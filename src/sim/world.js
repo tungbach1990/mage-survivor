@@ -5,28 +5,28 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mwall5v2";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mwall5v2";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mwall5v2";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mwall5v2";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mwall5v2";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mwall5v2";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mwall5v2";
-import { T, typeT } from "../data/tuning.js?v=mwall5v2";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus, cc } from "./status.js?v=mwall5v2";
-import { derive, castOf } from "../data/stats.js?v=mwall5v2";
-import { defShare } from "../data/loot.js?v=mwall5v2";
-import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mwall5v2";
-import { mageXpNext } from "../data/meta.js?v=mwall5v2";
-import { schoolOf } from "../data/elements.js?v=mwall5v2";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mwall5v2";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mwall5v2";
-import { CLASSES, marksOf } from "../data/classes.js?v=mwall5v2";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mwall5v2";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mwall5v2";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mwall5v2";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mwall5v2";
-import { updateBlackHoles } from "./chaos.js?v=mwall5v2";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mwalx5wx";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mwalx5wx";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mwalx5wx";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mwalx5wx";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mwalx5wx";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mwalx5wx";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mwalx5wx";
+import { T, typeT } from "../data/tuning.js?v=mwalx5wx";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus, cc } from "./status.js?v=mwalx5wx";
+import { derive, castOf } from "../data/stats.js?v=mwalx5wx";
+import { defShare } from "../data/loot.js?v=mwalx5wx";
+import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mwalx5wx";
+import { mageXpNext } from "../data/meta.js?v=mwalx5wx";
+import { schoolOf } from "../data/elements.js?v=mwalx5wx";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mwalx5wx";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mwalx5wx";
+import { CLASSES, marksOf } from "../data/classes.js?v=mwalx5wx";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mwalx5wx";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mwalx5wx";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mwalx5wx";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mwalx5wx";
+import { updateBlackHoles } from "./chaos.js?v=mwalx5wx";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);

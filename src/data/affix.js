@@ -6,7 +6,7 @@
 // Elements and martial marks: points of that kind of damage on every basic attack, or a percent of the blow's
 // own damage added as that kind (10% fire on a 200 blow: +20 fire). It leaves the mark, if the class has it open.
 
-import { ELEM, ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mwall5v2";
+import { ELEM, ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mwalx5wx";
 
 export const PT_TABLE = [null, [10, 15], [50, 75], [150, 200], [300, 350], [500, 550]];
 export const PCT_TABLE = [null, [10, 15], [20, 25], [30, 35], [40, 45], [50, 55]];

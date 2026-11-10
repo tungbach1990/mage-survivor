@@ -3,8 +3,8 @@
 // (skills without one are the Mage's). New archetypes: melee (a swing at what's near the wall), dash (a charge
 // down one row), heal (mends the wall); passives with `pm` change the run's numbers (dmg, wallTaken, gold).
 
-import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mwall5v2";
-import { STARTER, WTYPES, WTYPE_DMG, wtypesOf, btbaOf, basicIdOf } from "./weapons.js?v=mwall5v2";
+import { ELEMENTS, MARTIAL, MARKS } from "./elements.js?v=mwalx5wx";
+import { STARTER, WTYPES, WTYPE_DMG, wtypesOf, btbaOf, basicIdOf } from "./weapons.js?v=mwalx5wx";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;            // levels 1-5
 const L8 = (a, b) => (l) => a + ((b - a) * (l - 1)) / 7;           // a basic attack's levels 1-8
@@ -27,13 +27,13 @@ export const CLASS_SKILLS = {
     { cd: L8(0.85, 0.45), dmg: L8(24, 32), reach: 32, width: 28, targets: (l) => (l >= 4 ? 3 : 2), coin: (l) => l >= 8 }, { basic: true, max: 8, icon: "icon_b_merchant" }),
 
   // ---------------- Swordman: a gatekeeper ----------------
-  bash: S("swordman", "Bash", "daze", "melee", "Đập mạnh một con sát tường: Choáng + Phá giáp.", { cd: L(2.6, 2), dmg: L(60, 96), reach: 34, width: 20, targets: 1 }, { also: ["sunder"], icon: "icon_bash" }),
-  magnum: S("swordman", "Magnum Break", "daze", "melee", "Bùng nổ quanh cổng: trúng mọi con gần tường, hất lùi.", { cd: L(5, 3.6), dmg: L(36, 64), reach: 38, width: 90, targets: 99, push: 14 }, { icon: "icon_magnum" }),
-  bowling: S("swordman", "Bowling Bash", "cripple", "dash", "Lao dọc một hàng quái: hất lùi, Què + Choáng.", { cd: L(7, 5), dmg: L(26, 58), length: 170, width: 18, push: 18 }, { also: ["daze"], icon: "icon_bowling" }),
-  provoke: S("swordman", "Provoke", "disarm", "zone", "Khiêu khích chỗ đông quái: Tước vũ khí + Đánh dấu.", { cd: L(8, 6), dmg: L(6, 14), radius: L(28, 36) }, { at: "crowd", also: ["expose"], icon: "icon_provoke" }),
-  whirlwind: S("swordman", "Whirlwind", "bleed", "melee", "Xoay kiếm: Chảy máu mọi con gần tường.", { cd: L(3.6, 2.6), dmg: L(26, 44), reach: 40, width: 80, targets: 99 }, { icon: "icon_whirlwind" }),
-  shieldcharge: S("swordman", "Shield Charge", "pin", "dash", "Húc khiên dọc một hàng: Ghim + Phá giáp.", { cd: L(8, 5.5), dmg: L(30, 64), length: 150, width: 20, push: 10 }, { also: ["sunder"], icon: "icon_shieldcharge" }),
-  swordwave: S("swordman", "Sword Wave", "sunder", "bolt", "Sóng kiếm dựng đứng quét ngang sân, chém mọi con nó đi qua: Phá giáp. Cao dần theo cấp, cấp 8 phủ kín chiều ngang tường thành.", { cd: L(2.2, 1.6), dmg: L(32, 50), speed: 200, pierce: 99, half: L(32, 56) }, { icon: "icon_swordwave" }),
+  bash: S("swordman", "Bash", "daze", "melee", "Đập mạnh một con sát tường: Choáng + Phá giáp.", { cd: L(2.4, 1.8), dmg: L(80, 130), reach: 60, width: 20, targets: 1 }, { also: ["sunder"], icon: "icon_bash" }),
+  magnum: S("swordman", "Magnum Break", "daze", "melee", "Bùng nổ quanh cổng: trúng mọi con gần tường, hất lùi.", { cd: L(4.5, 3.2), dmg: L(50, 88), reach: 60, width: 90, targets: 99, push: 14 }, { icon: "icon_magnum" }),
+  bowling: S("swordman", "Bowling Bash", "cripple", "dash", "Lao dọc một hàng quái: hất lùi, Què + Choáng.", { cd: L(6, 4.2), dmg: L(40, 80), length: 190, width: 22, push: 18 }, { also: ["daze"], icon: "icon_bowling" }),
+  provoke: S("swordman", "Provoke", "disarm", "zone", "Khiêu khích chỗ đông quái: Tước vũ khí + Đánh dấu.", { cd: L(7, 5), dmg: L(18, 36), radius: L(30, 40) }, { at: "crowd", also: ["expose"], icon: "icon_provoke" }),
+  whirlwind: S("swordman", "Whirlwind", "bleed", "melee", "Xoay kiếm: Chảy máu mọi con gần tường.", { cd: L(3.2, 2.3), dmg: L(44, 72), reach: 60, width: 80, targets: 99 }, { icon: "icon_whirlwind" }),
+  shieldcharge: S("swordman", "Shield Charge", "pin", "dash", "Húc khiên dọc một hàng: Ghim + Phá giáp.", { cd: L(6.5, 4.5), dmg: L(44, 86), length: 180, width: 24, push: 10 }, { also: ["sunder"], icon: "icon_shieldcharge" }),
+  swordwave: S("swordman", "Sword Wave", "sunder", "bolt", "Sóng kiếm dựng đứng quét ngang sân, chém 3 con đầu tiên nó gặp (6 ở cấp tối đa): Phá giáp. Cao dần theo cấp.", { cd: L(3.4, 2.6), dmg: L(18, 30), speed: 200, pierce: L(3, 6), half: L(32, 56) }, { icon: "icon_swordwave" }),
   endure: S("swordman", "Endure", "sunder", "passive", "Bị động: tường nhận ít sát thương hơn (−12% → −20%).", { cd: 0, wallTaken: L(0.88, 0.8) }, { passive: "mod", icon: "icon_endure" }),
 
   // ---------------- Archer: from the wall, far ----------------
@@ -113,7 +113,7 @@ export const SIGNATURE = { swordman: ["sunder", "bleed"], archer: ["bleed", "pin
 export const PLAYABLE = ["mage", "archer", "swordman"];
 export const CLASSES = {
   mage:     { early: 1.4, mid: 1.85, power: 2.66, name: "Pháp sư",   look: "mage",     school: "arcane",  cost: 0,   blurb: "Phép 10 nguyên tố, mưa phép, triệu hồi và hợp thể. Ghép nguyên tố để ra phản ứng." },
-  swordman: { early: 0.97, mid: 0.88, chaosPow: 0.8, power: 7.23, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
+  swordman: { early: 0.97, mid: 0.88, chaosPow: 0.8, power: 10.12, name: "Kiếm sĩ",   look: "swordman", school: "martial", cost: 0,   blurb: "Giữ cổng: chém những con sát tường, lao húc dọc hàng, giảm sát thương tường nhận." },
   archer:   { early: 3.25, mid: 1.3, power: 2.12, name: "Cung thủ",  look: "archer",   school: "martial", cost: 300, blurb: "Bắn xa từ trên tường: tên ghim, mưa tên, bẫy kẹp. Chảy máu và Đánh dấu." },
   thief:    { early: 2.6, mid: 1.25, chaosPow: 0.95, power: 2.6, name: "Đạo tặc",   look: "thief",    school: "martial", cost: 400, blurb: "Nọc độc, mù, đâm lén con đang đánh tường, móc túi rơi vàng." },
   acolyte:  { early: 1.65, mid: 0.62, chaosAt: 11, chaosCd: 1.5, chaosPow: 0.6, power: 3.2, name: "Tu sĩ",     look: "acolyte",  school: "both",    cost: 500, blurb: "Ánh sáng và chùy: hồi tường, ban phước, phán quyết. Lai cả nguyên tố lẫn võ thuật; CHAOS cần 12 dấu và hồi lâu hơn." },
