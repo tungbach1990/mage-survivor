@@ -1,14 +1,14 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mwalx5wx";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mwalx5wx";
-import { T, skillT } from "../data/tuning.js?v=mwalx5wx";
-import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mwalx5wx";
-import { schoolOf } from "../data/elements.js?v=mwalx5wx";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mwalx5wx";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mwalx5wx";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mwalx5wx";
+import { ENEMIES } from "./enemies.js?v=mwam54fu";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mwam54fu";
+import { T, skillT } from "../data/tuning.js?v=mwam54fu";
+import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mwam54fu";
+import { schoolOf } from "../data/elements.js?v=mwam54fu";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mwam54fu";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mwam54fu";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mwam54fu";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -289,7 +289,9 @@ export function updateShots(w, dt) {
         // the archer's passive: an arrow that hits may split in two, up and down from where it struck
         if (!s.split && w.mods.splitChance && s.kind === "bolt" && SKILLS[s.skill]?.cls?.includes("archer") && w.rng.chance(w.mods.splitChance)) {
           const sp = Math.hypot(s.vx, s.vy) || 200, a = Math.atan2(s.vy, s.vx);
-          for (const da of [-0.5, 0.5]) w.shots.push({ ...s, id: w.nextId++, x: s.x, y: s.y, vx: Math.cos(a + da) * sp, vy: Math.sin(a + da) * sp, left: 140, st: { ...s.st, dmg: s.st.dmg * 0.5, pierce: 1 }, hit: new Set([e.id]), pierced: 0, split: true, target: null, dead: false, gone: false });
+          const others = alive(w).filter((o) => o.id !== e.id && Math.hypot(o.x - s.x, o.y - s.y) < 150).sort((p, q) => Math.hypot(p.x - s.x, p.y - s.y) - Math.hypot(q.x - s.x, q.y - s.y));
+          for (const [k, da] of [-0.5, 0.5].entries()) { const o = others[k], [tx, ty] = o ? center(o) : [s.x + Math.cos(a + da) * 100, s.y + Math.sin(a + da) * 100], d = Math.hypot(tx - s.x, ty - s.y) || 1;
+            w.shots.push({ ...s, id: w.nextId++, x: s.x, y: s.y, vx: ((tx - s.x) / d) * sp, vy: ((ty - s.y) / d) * sp, left: 140, st: { ...s.st, dmg: s.st.dmg * 0.5, pierce: 1 }, hit: new Set([e.id]), pierced: 0, split: true, target: null, dead: false, gone: false }) }
           w.events.push({ type: "split", x: s.x, y: s.y });
         }
         if (++s.pierced >= (s.st.pierce ?? 1)) { s.dead = true; break }

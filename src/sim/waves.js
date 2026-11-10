@@ -1,7 +1,7 @@
 // Ten waves a chapter (the same shapes, tougher each chapter), and Endless: waves made up as they come.
 // Each group: [start s, type, count, gap s]. Bosses on waves 5 (a small one) and 10.
 
-import { ENDLESS } from "../data/chapters.js?v=mwalx5wx";
+import { ENDLESS } from "../data/chapters.js?v=mwam54fu";
 
 export const WAVES = [
   [[0, "slime", 8, 1.3]],
