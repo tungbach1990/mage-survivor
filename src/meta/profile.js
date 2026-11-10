@@ -3,34 +3,36 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mwa70dk0";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mwa70dk0";
-import { SKILLS } from "../data/skills.js?v=mwa70dk0";
-import { CODEX } from "../data/reactions.js?v=mwa70dk0";
-import { CLASSES, CLASS_IDS } from "../data/classes.js?v=mwa70dk0";
-import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, marksBought, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mwa70dk0";
-import { DEFAULT_MODS } from "../sim/world.js?v=mwa70dk0";
-import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mwa70dk0";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mwa70dk0";
-import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mwa70dk0";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mwa70dk0";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mwa70dk0";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mwa70dk0";
-import { GEAR_SCALE } from "../data/meta.js?v=mwa70dk0";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mwa7i8js";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mwa7i8js";
+import { SKILLS } from "../data/skills.js?v=mwa7i8js";
+import { CODEX } from "../data/reactions.js?v=mwa7i8js";
+import { CLASSES, CLASS_IDS, SIGNATURE } from "../data/classes.js?v=mwa7i8js";
+import { TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, marksBought, markPool, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mwa7i8js";
+import { DEFAULT_MODS } from "../sim/world.js?v=mwa7i8js";
+import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mwa7i8js";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mwa7i8js";
+import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mwa7i8js";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mwa7i8js";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mwa7i8js";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mwa7i8js";
+import { GEAR_SCALE } from "../data/meta.js?v=mwa7i8js";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 2;
 
 const freshGear = () => Object.fromEntries(SLOT_IDS.map((s) => [s, null]));
 export const starterWeapon = (cls) => ({ id: `start_${cls}`, cls, slot: "weapon", wtype: STARTER[cls], variant: 0, rarity: "white", level: 1, chapter: 1, affixes: [], refine: 0, gen: 3, legendary: null, starter: true });
-const freshClass = (cls) => ({ talents: {}, stats: freshStats(), statResets: 0, passives: { [SIG_PASSIVE[cls]]: 1 }, marks: [...START_MARKS[cls]], gear: { ...freshGear(), weapon: starterWeapon(cls) }, starterGiven: true });
+/** Two marks drawn from a class's school. */
+export function drawStart(cls, seed) { const r = new Rng(seed * 7919 + 17), pool = markPool(cls), out = []; while (out.length < 2 && pool.length) out.push(pool.splice(Math.floor(r.next() * pool.length), 1)[0]); return out }
+const freshClass = (cls, seed = null) => { const marks = seed == null ? [...START_MARKS[cls]] : drawStart(cls, seed); return { cls, talents: {}, stats: freshStats(), statResets: 0, passives: { [SIG_PASSIVE[cls]]: 1 }, marks, start: [...marks], gear: { ...freshGear(), weapon: starterWeapon(cls) }, starterGiven: true } };
 export function freshProfile() {
   return {
     v: VERSION, crystals: 0, mageXp: 0, mageLevel: 1,
     perClass: Object.fromEntries(CLASS_IDS.map((c) => [c, freshClass(c)])),
     bag: [], codex: [], counts: {}, achievements: [],
     quests: { day: null, list: [] }, best: { chapter: 0, endless: 0, byClass: {} },
-    classes: ["mage", "swordman"], lastClass: "mage",
+    classes: ["mage", "swordman"], lastClass: "mage", chars: ["mage"], current: "mage", nextChar: 1,
     stats: { runs: 0, kills: 0, waves: 0, elites: 0, legendaries: 0, flawless: 0, maxAwakened: 0 },
     itemSeed: 1,
   };
@@ -46,8 +48,14 @@ export function migrate(data) {
   p.classes = [...new Set(["mage", "swordman", ...(d.classes ?? [])])].filter((c) => CLASSES[c]);
   p.perClass = Object.fromEntries(CLASS_IDS.map((c) => {
     const o = d.perClass?.[c];
-    return [c, o ? { talents: { ...o.talents }, stats: { ...freshStats(), ...(o.stats ?? {}) }, statResets: o.statResets ?? 0, starterGiven: !!o.starterGiven, passives: { [SIG_PASSIVE[c]]: 1, ...(o.passives ?? {}) }, marks: [...new Set([...START_MARKS[c], ...(o.marks ?? [])])], gear: { ...freshGear(), ...Object.fromEntries(Object.entries(o.gear ?? {}).map(([k, v]) => [k === "staff" ? "weapon" : k, v])) } } : freshClass(c)];
+    return [c, o ? { cls: c, ...(o.name ? { name: o.name } : {}), start: o.start ?? [...START_MARKS[c]], talents: { ...o.talents }, stats: { ...freshStats(), ...(o.stats ?? {}) }, statResets: o.statResets ?? 0, starterGiven: !!o.starterGiven, passives: { [SIG_PASSIVE[c]]: 1, ...(o.passives ?? {}) }, marks: [...new Set([...(o.start ?? START_MARKS[c]), ...(o.marks ?? [])])], gear: { ...freshGear(), ...Object.fromEntries(Object.entries(o.gear ?? {}).map(([k, v]) => [k === "staff" ? "weapon" : k, v])) } } : freshClass(c)];
   }));
+  for (const [id, o] of Object.entries(d.perClass ?? {})) if (!CLASS_IDS.includes(id) && o && CLASSES[o.cls]) p.perClass[id] = { ...freshClass(o.cls), ...o, stats: { ...freshStats(), ...(o.stats ?? {}) }, gear: { ...freshGear(), ...(o.gear ?? {}) } };
+  // the characters: an older save's open classes each one
+  p.chars = (Array.isArray(d.chars) ? d.chars : p.classes).filter((id) => p.perClass[id]);
+  if (!p.chars.length) p.chars = ["mage"];
+  p.current = p.chars.includes(d.current) ? d.current : p.chars.includes(d.lastClass) ? d.lastClass : p.chars[0];
+  p.nextChar = Math.max(d.nextChar ?? 1, 1);
   if (!d.perClass && (d.talents || d.unlocked || d.gear)) {
     const m = p.perClass.mage;
     m.talents = { ...(d.talents ?? {}) };
@@ -82,7 +90,7 @@ export function migrate(data) {
     it.affixes = it.affixes.filter((l) => l.id !== "crystal");   // no crystal lines any more
   };
   // a class that never had its starter weapon: given now, worn if its hands are empty
-  for (const [cl, c] of Object.entries(p.perClass)) if (!c.starterGiven) { c.starterGiven = true; if (!c.gear.weapon) c.gear.weapon = starterWeapon(cl); else if (p.bag.length < BAG_SIZE) p.bag.push(starterWeapon(cl)) }
+  for (const [cl, c] of Object.entries(p.perClass)) if (!c.starterGiven) { c.starterGiven = true; const k = c.cls ?? cl; if (!c.gear.weapon) c.gear.weapon = starterWeapon(k); else if (p.bag.length < BAG_SIZE) p.bag.push(starterWeapon(k)) }
   p.bag.forEach(regrade); for (const c of Object.values(p.perClass)) Object.values(c.gear).forEach(regrade);
   delete p.talents; delete p.unlocked; delete p.gear;
   p.v = VERSION;
@@ -97,7 +105,39 @@ export const exportSave = (p) => JSON.stringify(p, null, 1);
 export const importSave = (text) => migrate(JSON.parse(text));
 
 // ---------- a class's part ----------
-export const pc = (p, cls) => p.perClass[cls] ?? (p.perClass[cls] = freshClass(cls));
+/** A character's part. Given a class: the character playing if it's of that class, else the first of it. */
+export const pc = (p, key) => {
+  if (!CLASS_IDS.includes(key)) return p.perClass[key] ?? null;
+  const cur = p.perClass[p.current];
+  if (cur && (cur.cls ?? p.current) === key) return cur;
+  const first = (p.chars ?? []).find((id) => (p.perClass[id]?.cls ?? id) === key);
+  if (first) return p.perClass[first];
+  return p.perClass[key] ?? (p.perClass[key] = freshClass(key));
+};
+export const clsOf = (p, id) => p.perClass[id]?.cls ?? id;
+export const charName = (p, id) => p.perClass[id]?.name ?? CLASSES[clsOf(p, id)]?.name ?? id;
+export const MAX_CHARS = 8;
+/** A new character of an open class: two marks drawn from its school. Returns its id, or null. */
+export function createChar(p, cls, name = "", seed = Date.now()) {
+  if (!classOpen(p, cls) || p.chars.length >= MAX_CHARS) return null;
+  const id = `c${p.nextChar++}`;
+  p.perClass[id] = { ...freshClass(cls, seed), name: name.trim().slice(0, 16) || `${CLASSES[cls].name} ${p.chars.filter((x) => clsOf(p, x) === cls).length + 1}` };
+  p.chars.push(id); p.current = id; p.lastClass = cls;
+  return id;
+}
+/** Delete a character (not the last): what it wore goes to the bag (as room allows). */
+export function deleteChar(p, id) {
+  if (!p.chars.includes(id) || p.chars.length <= 1) return false;
+  const c = p.perClass[id];
+  for (const it of Object.values(c?.gear ?? {})) if (it && !it.starter && p.bag.length < BAG_SIZE) p.bag.push(it);
+  p.chars = p.chars.filter((x) => x !== id);
+  delete p.perClass[id];
+  if (p.current === id) { p.current = p.chars[0]; p.lastClass = clsOf(p, p.current) }
+  return true;
+}
+export function selectChar(p, id) { if (!p.chars.includes(id)) return false; p.current = id; p.lastClass = clsOf(p, id); return true }
+/** A brand-new player's first character: its two marks drawn too. */
+export function drawFirst(p, seed = Date.now()) { const c = p.perClass[p.current]; if (!c) return; c.marks = drawStart(clsOf(p, p.current), seed); c.start = [...c.marks] }
 export const marksOpen = (p, cls) => pc(p, cls).marks;
 export function profileMods(p, cls = p.lastClass ?? "mage") {
   const m = { ...DEFAULT_MODS(), elem: {}, imbue: {} }, c = pc(p, cls);
@@ -128,12 +168,12 @@ export const endlessOpen = (p) => p.best.chapter >= 5 || (p.mageLevel >= 8 && p.
 export const chapterOpen = (p, n) => n <= p.best.chapter + 1;
 
 /** The options for createWorld: the class picked (one the profile has) with its tree, marks and gear. */
-export function runOptions(p, { chapter = 1, endless = false, cls = p.lastClass ?? "mage" } = {}) {
+export function runOptions(p, { chapter = 1, endless = false, cls = clsOf(p, p.current) ?? p.lastClass ?? "mage" } = {}) {
   if (!classOpen(p, cls)) cls = "mage";
   // how new the player is with this class: 1 with an empty tree, 0 with all of it (the class's "novice" factor
   // fades with it)
   const tree = TALENT_TREES[cls], bought = tree.reduce((s, t) => s + (pc(p, cls).talents[t.id] ?? 0), 0), max = tree.reduce((s, t) => s + t.max, 0);
-  return { cls, chapter, endless, mods: profileMods(p, cls), unlocked: marksOpen(p, cls), chaosUnlocked: chaosUnlocked(p, cls), codex: p.codex, basicLevel: basicLevel(p), novice: 1 - bought / max, look: lookOf(pc(p, cls).gear),
+  return { cls, chapter, endless, mods: profileMods(p, cls), unlocked: [...new Set([...marksOpen(p, cls), ...(SIGNATURE[cls] ?? [])])], chaosUnlocked: chaosUnlocked(p, cls), codex: p.codex, basicLevel: basicLevel(p), novice: 1 - bought / max, look: lookOf(pc(p, cls).gear),
     stats: statTotals(p, cls), acctLevel: p.mageLevel, acctXp: p.mageXp, weapon: weaponOf(pc(p, cls).gear.weapon) };
 }
 
@@ -267,8 +307,19 @@ export function buyTalent(p, cls, id) {
   p.crystals -= cost; c.talents[id] = l + 1;
   return true;
 }
+export const drawCost = (p, cls) => { const c = pc(p, cls); return markCost(cls, null, marksBought(cls, c.marks, c.start)) };
+/** Draw a mark (gacha): one of the class's school it hasn't, for crystals. Returns the mark, or null. */
+export function drawMark(p, cls) {
+  const c = pc(p, cls), pool = markPool(cls).filter((m) => !c.marks.includes(m)), cost = drawCost(p, cls);
+  if (!pool.length || p.crystals < cost) return null;
+  p.crystals -= cost;
+  const r = new Rng((p.markSeed = (p.markSeed ?? 1) + 1) * 2246822519 + 3);
+  const mk = pool[Math.floor(r.next() * pool.length)];
+  c.marks.push(mk);
+  return mk;
+}
 export function unlockMark(p, cls, mark) {
-  const c = pc(p, cls), cost = markCost(cls, mark, marksBought(cls, c.marks));
+  const c = pc(p, cls), cost = markCost(cls, mark, marksBought(cls, c.marks, c.start));
   if (!MARKS.includes(mark) || c.marks.includes(mark) || p.crystals < cost) return false;
   p.crystals -= cost; c.marks.push(mark);
   return true;

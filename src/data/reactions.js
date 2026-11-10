@@ -5,8 +5,8 @@
 //
 // Labels are short English words (the pixel font has no Vietnamese accents); `vi` explains each in the Codex.
 
-import { MARKS, schoolOf } from "./elements.js?v=mwa70dk0";
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwa70dk0";
+import { MARKS, schoolOf } from "./elements.js?v=mwa7i8js";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwa7i8js";
 
 const idx = (e) => MARKS.indexOf(e);
 export const pairKey = (a, b) => (idx(a) < idx(b) ? `${a}+${b}` : `${b}+${a}`);

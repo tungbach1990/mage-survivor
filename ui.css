@@ -297,3 +297,7 @@ h1 { font-size: 28px; }
 #hud-top #speed-btn, #hud-top #auto-btn, #hud-top #char-btn, #hud-top #pause-btn { order: 4; flex: none; margin-left: 0; padding: 1px 6px; font-size: 13px; line-height: 20px; }
 #hud-top #speed-btn { margin-left: auto; }
 #xp { top: calc(var(--top) - 18px); }
+
+.chars, .chars-new { width: 100%; } .chars { display: flex; flex-wrap: wrap; gap: 6px; } .chars h3, .chars-new h3 { width: 100%; margin: 6px 0 2px; }
+.chars-new input { margin: 4px 0; padding: 4px 6px; background: #1c1426; color: #f4ecff; border: 1px solid #4a3a66; border-radius: 6px; }
+.tile.gacha { border-color: #ffb03a; } .tile.gacha button { font-size: 14px; }

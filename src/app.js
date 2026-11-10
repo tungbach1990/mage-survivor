@@ -1,27 +1,27 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mwa70dk0";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mwa70dk0";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mwa70dk0";
-import { createRenderer , PW, PH } from "./view.js?v=mwa70dk0";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mwa70dk0";
-import { ENEMIES } from "./sim/enemies.js?v=mwa70dk0";
-import { SKILLS, stats } from "./data/skills.js?v=mwa70dk0";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mwa70dk0";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mwa70dk0";
-import { CHAPTERS } from "./data/chapters.js?v=mwa70dk0";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mwa70dk0";
-import { PASSIVES, passiveCost } from "./data/passives.js?v=mwa70dk0";
-import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mwa70dk0";
-import { liveRefresh } from "./meta/live.js?v=mwa70dk0";
-import { bestCard } from "./sim/bot.js?v=mwa70dk0";
-import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mwa70dk0";
-import { ATTR, lineText, elemsOfLines, lineNow } from "./data/affix.js?v=mwa70dk0";
-import { GRADE, GRADES } from "./data/loot.js?v=mwa70dk0";
-import { baseOf, elemsFor, ENCHANT, refineCost, refineChance, REFINE_MAX } from "./data/loot.js?v=mwa70dk0";
-import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mwa70dk0";
-import { dressHero } from "./render/dress.js?v=mwa70dk0";
+import { loadAssets, browserLoad } from "./assets.js?v=mwa7i8js";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mwa7i8js";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mwa7i8js";
+import { createRenderer , PW, PH } from "./view.js?v=mwa7i8js";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mwa7i8js";
+import { ENEMIES } from "./sim/enemies.js?v=mwa7i8js";
+import { SKILLS, stats } from "./data/skills.js?v=mwa7i8js";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mwa7i8js";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mwa7i8js";
+import { CHAPTERS } from "./data/chapters.js?v=mwa7i8js";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mwa7i8js";
+import { PASSIVES, passiveCost } from "./data/passives.js?v=mwa7i8js";
+import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mwa7i8js";
+import { liveRefresh } from "./meta/live.js?v=mwa7i8js";
+import { bestCard } from "./sim/bot.js?v=mwa7i8js";
+import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mwa7i8js";
+import { ATTR, lineText, elemsOfLines, lineNow } from "./data/affix.js?v=mwa7i8js";
+import { GRADE, GRADES } from "./data/loot.js?v=mwa7i8js";
+import { baseOf, elemsFor, ENCHANT, refineCost, refineChance, REFINE_MAX } from "./data/loot.js?v=mwa7i8js";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mwa7i8js";
+import { dressHero } from "./render/dress.js?v=mwa7i8js";
 // an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
 const iconCache = new Map();
 function itemIcon(it) {
@@ -34,9 +34,9 @@ function itemIcon(it) {
 }
 // the hero as dressed now, drawn into a canvas (idle frame)
 /** A class's hero as it's dressed and armed now (its idle frame), drawn into pixels. */
-function dressedFrame(cls) {
-  const wt = pc(P, cls).gear.weapon ? pc(P, cls).gear.weapon.wtype : "fist";
-  return dressHero(A.armed?.[cls]?.[wt] ?? A.heroes?.[cls] ?? A.mage, cls, lookOf(pc(P, cls).gear));
+function dressedFrame(key) {
+  const cls = clsOf(P, key), c = pc(P, key) ?? pc(P, cls), wt = c.gear.weapon ? c.gear.weapon.wtype : "fist";
+  return dressHero(A.armed?.[cls]?.[wt] ?? A.heroes?.[cls] ?? A.mage, cls, lookOf(c.gear));
 }
 /** The same as a picture for the hall's tiles (an image URL; the plain sprite if there's no canvas). */
 function dressedUrl(cls) {
@@ -47,7 +47,7 @@ function dressedUrl(cls) {
     g.putImageData(im, 0, 0);
     const url = c.toDataURL?.(); if (url) return url;
   } catch { /* no canvas */ }
-  return `assets/anims/${CLASSES[cls].look}.png`;
+  return `assets/anims/${CLASSES[clsOf(P, cls)].look}.png`;
 }
 function drawPreview(cls) {
   const cv = $("gear-preview"); if (!cv?.getContext) return;
@@ -57,11 +57,12 @@ function drawPreview(cls) {
     g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
   } catch { /* no canvas */ }
 }
-import { ENVS } from "./data/environments.js?v=mwa70dk0";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mwa70dk0";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mwa70dk0";
-import { TALENT_TREES, talentCost, markCost, marksBought, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mwa70dk0";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, weaponOf, profileMods, itemScore, salvageFiltered, addElement, removeElement, rerollMartial, refineItem, addElemCost, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mwa70dk0";
+import { ENVS } from "./data/environments.js?v=mwa7i8js";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mwa7i8js";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mwa7i8js";
+import { markPool } from "./data/meta.js?v=mwa7i8js";
+import { TALENT_TREES, talentCost, markCost, marksBought, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mwa7i8js";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, createChar, deleteChar, selectChar, drawMark, drawCost, drawFirst, clsOf, charName, MAX_CHARS, weaponOf, profileMods, itemScore, salvageFiltered, addElement, removeElement, rerollMartial, refineItem, addElemCost, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mwa7i8js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -81,6 +82,7 @@ telegramInit();
 // in Telegram, each player's save is their own (a shared phone keeps them apart), and mirrored to Telegram's cloud
 const tgUser = telegramUser();
 const store = tgUser ? { getItem: (k) => localStorage.getItem(`${k}.${tgUser.id}`), setItem: (k, v) => localStorage.setItem(`${k}.${tgUser.id}`, v) } : localStorage;
+const firstTime = store.getItem("msd.save.v1") == null;
 let P = load(store), cloudState = inTelegram() ? "loading" : "off";
 try {
   const text = await cloudLoad();
@@ -91,6 +93,7 @@ const mirror = cloudMirror(() => JSON.stringify(P), (s) => { cloudState = s; if 
 /** Save here, and (in Telegram) to the cloud a moment later. */
 function persist() { save(store, P); mirror.schedule() }
 refreshQuests(P);
+if (firstTime && !P.stats.runs) drawFirst(P);
 persist();
 let w = null, r = null, running = false, paused = false, acc = 0, last = 0, showFps = false, fpsN = 0, fpsT = 0, demo = null;
 let pick = { chapter: Math.min(5, P.best.chapter + 1), endless: false, cls: P.lastClass ?? "mage" }, codexSchool = "arcane";
@@ -134,25 +137,46 @@ function drawSetup() {
   // the class: one per run; it starts with its basic attack (no spell to pick)
   const st = $("starts");
   st.innerHTML = "";
-  for (const c of CLASS_IDS) {
-    const open = classOpen(P, c), b = P.best.byClass?.[c], el = document.createElement("div");
-    el.className = `tile cls ${open ? "" : "locked"} ${pick.cls === c ? "sel" : ""}`;
-    el.innerHTML = `${heroImg(c)}<b>${CLASSES[c].name}</b><small>${open ? (b ? `Chương ${b.chapter} · ${b.runs} lượt` : "Chưa chơi") : `🔒 ${CLASSES[c].cost} 💎 ở trang Nghề`}</small>`;
-    if (open) el.onclick = () => { pick.cls = c; drawSetup() };
+  pick.cls = clsOf(P, P.current);
+  for (const id of P.chars) {
+    const c = clsOf(P, id), el = document.createElement("div");
+    el.className = `tile cls ${P.current === id ? "sel" : ""}`;
+    el.innerHTML = `${heroImg(id)}<b>${charName(P, id)}</b><small>${CLASSES[c].name} · ${marksLine(id)}</small>`;
+    el.onclick = () => { selectChar(P, id); persist(); drawSetup() };
     st.appendChild(el);
   }
   $("start-hint").textContent = `${CLASSES[pick.cls].blurb} · Đòn đánh thường: ${basicNow(pick.cls)}`;
 }
 /** The basic attack a class makes with what it holds now (bare hands: a punch). */
 function basicNow(c) { const it = pc(P, c).gear.weapon, t = it ? it.wtype ?? STARTER[c] : null; return `${SKILLS[basicIdOf(c, t)].name} (${t ? WTYPES[t].name : "tay không"})` }
+const marksLine = (id) => pc(P, id).marks.map((m) => ELEM[m].icon).join("");
+let newName = "";
 function drawClasses() {
   const box = $("class-list");
   box.innerHTML = "";
+  const mine = document.createElement("div"); mine.className = "chars";
+  mine.innerHTML = `<h3>Nhân vật của bạn (${P.chars.length}/${MAX_CHARS})</h3>`;
+  for (const id of P.chars) {
+    const c = clsOf(P, id), d = document.createElement("div");
+    d.className = `tile cls-card ${P.current === id ? "on sel" : ""}`;
+    d.innerHTML = `${heroImg(id)}<b>${charName(P, id)}</b><small>${CLASSES[c].name} · dấu: ${pc(P, id).marks.map((m) => `${ELEM[m].icon} ${ELEM[m].name}`).join(", ")}</small>`;
+    if (P.current !== id) { const b = document.createElement("button"); b.textContent = "Chọn"; b.onclick = () => { selectChar(P, id); persist(); go("classes") }; d.appendChild(b) }
+    else d.insertAdjacentHTML?.("beforeend", "<small>▶ đang chơi</small>");
+    if (P.chars.length > 1) { const x = document.createElement("button"); x.className = "danger"; x.textContent = "Xóa"; x.onclick = () => { if (confirm(`Xóa nhân vật ${charName(P, id)}? Nâng cấp, chỉ số, nội tại, dấu của nó mất; đồ đang mặc về túi.`) && deleteChar(P, id)) { persist(); go("classes") } }; d.appendChild(x) }
+    mine.appendChild(d);
+  }
+  box.appendChild(mine);
+  const mk = document.createElement("div"); mk.className = "chars-new";
+  mk.innerHTML = `<h3>Tạo nhân vật mới</h3><small class="hint">Nhân vật mới bắt đầu với 2 dấu ngẫu nhiên trong hệ của nghề (Pháp sư: nguyên tố; nghề võ: dấu võ; Tu sĩ: cả hai).</small>`;
+  const name = document.createElement("input"); name.placeholder = "Tên (không bắt buộc)"; name.maxLength = 16; name.value = newName; name.oninput = () => { newName = name.value };
+  mk.appendChild(name);
+  box.appendChild(mk);
   for (const c of CLASS_IDS) {
     const open = classOpen(P, c), d = document.createElement("div"), sk = Object.values(SKILLS).filter((s) => s.cls.includes(c) && !s.basic && s.elem !== "chaos");
     d.className = `tile cls-card ${open ? "on" : "locked"}`;
-    d.innerHTML = `${heroImg(c)}<b>${CLASSES[c].name}</b><small>${CLASSES[c].blurb}</small><small>Đòn đánh thường: ${basicNow(c)} · vũ khí: ${wtypesOf(c).map((t) => WTYPES[t].name).join(", ")} · ${sk.length} skill · ${{ arcane: "10 nguyên tố", martial: "10 dấu võ thuật", both: "nguyên tố + võ thuật" }[CLASSES[c].school]}</small>`;
+    d.innerHTML = `<img class="hero" src="assets/anims/${CLASSES[c].look}.png" alt=""><b>${CLASSES[c].name}</b><small>${CLASSES[c].blurb}</small><small>Đòn đánh thường: ${basicNow(c)} · vũ khí: ${wtypesOf(c).map((t) => WTYPES[t].name).join(", ")} · ${sk.length} skill · ${{ arcane: "10 nguyên tố", martial: "10 dấu võ thuật", both: "nguyên tố + võ thuật" }[CLASSES[c].school]}</small>`;
     if (!open) { const b = document.createElement("button"); b.textContent = `Mở 💎 ${CLASSES[c].cost}`; b.disabled = P.crystals < CLASSES[c].cost; b.onclick = () => { if (unlockClass(P, c)) { persist(); go("classes") } }; d.appendChild(b) }
+    else { const b = document.createElement("button"); b.textContent = "＋ Tạo"; b.disabled = P.chars.length >= MAX_CHARS; b.onclick = () => { const id = createChar(P, c, newName, Date.now()); if (id) { newName = ""; persist(); toast?.(`Đã tạo ${charName(P, id)}: ${pc(P, id).marks.map((m) => ELEM[m].name).join(", ")}`); go("classes") } }; d.appendChild(b) }
     box.appendChild(d);
   }
 }
@@ -163,11 +187,11 @@ let viewCls = P.lastClass ?? "mage", bagAll = false, bagKind = "all";
 function classBar(page) {
   const bar = $(`${page}-classbar`);
   bar.innerHTML = "";
-  if (!classOpen(P, viewCls)) viewCls = "mage";
-  for (const c of CLASS_IDS.filter((x) => classOpen(P, x))) {
+  viewCls = clsOf(P, P.current);
+  for (const id of P.chars) {
     const b = document.createElement("button");
-    b.textContent = CLASSES[c].name; b.className = viewCls === c ? "on" : "";
-    b.onclick = () => { viewCls = c; go(page) };
+    b.textContent = charName(P, id); b.className = P.current === id ? "on" : "";
+    b.onclick = () => { selectChar(P, id); persist(); go(page) };
     bar.appendChild(b);
   }
 }
@@ -274,21 +298,29 @@ function drawTalents() {
 }
 function drawElements() {
   classBar("elements");
-  const open = marksOpen(P, viewCls);
+  const open = marksOpen(P, viewCls), pool = markPool(viewCls), left = pool.filter((m) => !open.includes(m)), cost = drawCost(P, viewCls);
   for (const [id, list] of [["elem-list", ELEMENTS], ["mark-list", MARTIAL]]) {
     const box = $(id);
     box.innerHTML = "";
+    if (id === "elem-list") {
+      const g = document.createElement("div"); g.className = "tile gacha";
+      g.innerHTML = `<b>🎲 Quay dấu</b><small>Ra ngẫu nhiên 1 trong ${left.length} dấu chưa có của hệ ${CLASSES[viewCls].name}. Mỗi lần quay đắt gấp đôi lần trước.</small>`;
+      const b = document.createElement("button"); b.textContent = left.length ? `Quay 💎 ${cost}` : "Đã có đủ"; b.disabled = !left.length || P.crystals < cost;
+      b.onclick = () => { const mk = drawMark(P, viewCls); if (mk) { persist(); toast?.(`🎲 Nhận ${ELEM[mk].icon} ${ELEM[mk].name}!`); go("elements") } };
+      g.appendChild(b); box.appendChild(g);
+    }
     for (const mk of list) {
-      const has = open.includes(mk), cost = markCost(viewCls, mk, marksBought(viewCls, pc(P, viewCls).marks)), d = document.createElement("div");
+      if (!pool.includes(mk)) continue;
+      const has = open.includes(mk), d = document.createElement("div");
       d.className = `tile mark ${has ? "on" : "locked"}`;
       const skills = Object.values(SKILLS).filter((s) => s.cls.includes(viewCls) && (s.elem === mk || s.also?.includes(mk)) && !s.basic).map((s) => s.name).slice(0, 4).join(", ");
       d.innerHTML = `<b style="color:rgb(${ELEM[mk].color})">${ELEM[mk].icon} ${ELEM[mk].name}</b><small>${skills || (crossSchool(viewCls, mk) ? "Tẩm qua trang bị" : "Thẻ tẩm đòn đánh thường")}</small>`;
-      if (!has) { const b = document.createElement("button"); b.textContent = `Mở 💎 ${cost}`; b.disabled = P.crystals < cost; b.onclick = () => { if (unlockMark(P, viewCls, mk)) { persist(); go("elements") } }; d.appendChild(b) }
+      if (!has) d.insertAdjacentHTML?.("beforeend", "<small>🔒 chưa có</small>");
       box.appendChild(d);
     }
   }
   const ok = chaosUnlocked(P, viewCls), need = { arcane: "đủ 10 nguyên tố", martial: "đủ 10 dấu võ thuật", both: "10 dấu bất kỳ" }[homeSchool(viewCls)];
-  $("chaos-note").innerHTML = `<b style="color:#ff8ac8">✺ CHAOS</b> · ${ok ? `Đã mở cho ${CLASSES[viewCls].name}: thức tỉnh đủ 10 dấu trong lượt để nhận Chaos Seed` : `${CLASSES[viewCls].name} cần mở ${need}`} · Dấu khác trường phái giá ×1,5 và đi vào trận qua trang bị tẩm dấu.`;
+  $("chaos-note").innerHTML = `<b style="color:#ff8ac8">✺ CHAOS</b> · ${ok ? `Đã mở cho ${CLASSES[viewCls].name}: thức tỉnh đủ 10 dấu trong lượt để nhận Chaos Seed` : `${CLASSES[viewCls].name} cần mở ${need}`} · Chỉ quay ra dấu trong hệ của nghề.`;
 }
 function markLines() { return "" }
 /** The loot filter: the lowest grade kept (the rest broken down into crystals when picked up). */

@@ -1,11 +1,11 @@
 // Changing the profile in the middle of a run: stats raised, gear swapped, the account levelled up. The run's
 // numbers move by what changed (so the cards taken in the run keep their effect), the wall's health with them.
-import { runOptions } from "./profile.js?v=mwa70dk0";
-import { DEFAULT_MODS, baseWallMax, snapMods } from "../sim/world.js?v=mwa70dk0";
-import { derive } from "../data/stats.js?v=mwa70dk0";
-import { btbaOf, basicIdOf } from "../data/weapons.js?v=mwa70dk0";
-import { SKILLS } from "../data/skills.js?v=mwa70dk0";
-import { refreshPassives } from "../sim/upgrades.js?v=mwa70dk0";
+import { runOptions } from "./profile.js?v=mwa7i8js";
+import { DEFAULT_MODS, baseWallMax, snapMods } from "../sim/world.js?v=mwa7i8js";
+import { derive } from "../data/stats.js?v=mwa7i8js";
+import { btbaOf, basicIdOf } from "../data/weapons.js?v=mwa7i8js";
+import { SKILLS } from "../data/skills.js?v=mwa7i8js";
+import { refreshPassives } from "../sim/upgrades.js?v=mwa7i8js";
 
 export function liveRefresh(w, p) {
   const o = runOptions(p, { cls: w.cls, chapter: w.chapter, endless: w.endless }), before = w.baseMods, after = o.mods, def = DEFAULT_MODS();
