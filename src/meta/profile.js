@@ -3,21 +3,21 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mwam54fu";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mwam54fu";
-import { SKILLS } from "../data/skills.js?v=mwam54fu";
-import { CODEX } from "../data/reactions.js?v=mwam54fu";
-import { CLASSES, CLASS_IDS, SIGNATURE, PLAYABLE } from "../data/classes.js?v=mwam54fu";
-import { CLASS_PASSIVE, classPassiveCost, passiveWorth } from "../data/meta.js?v=mwam54fu";
-import { TREE, LEGACY_TREES, legacyCost, TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, marksBought, markPool, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mwam54fu";
-import { DEFAULT_MODS } from "../sim/world.js?v=mwam54fu";
-import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mwam54fu";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mwam54fu";
-import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mwam54fu";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mwam54fu";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mwam54fu";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mwam54fu";
-import { GEAR_SCALE } from "../data/meta.js?v=mwam54fu";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mwaq7cef";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mwaq7cef";
+import { SKILLS } from "../data/skills.js?v=mwaq7cef";
+import { CODEX } from "../data/reactions.js?v=mwaq7cef";
+import { CLASSES, CLASS_IDS, SIGNATURE, PLAYABLE } from "../data/classes.js?v=mwaq7cef";
+import { CLASS_PASSIVE, classPassiveCost, passiveWorth } from "../data/meta.js?v=mwaq7cef";
+import { TREE, LEGACY_TREES, legacyCost, TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, marksBought, markPool, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mwaq7cef";
+import { DEFAULT_MODS } from "../sim/world.js?v=mwaq7cef";
+import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mwaq7cef";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mwaq7cef";
+import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mwaq7cef";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mwaq7cef";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mwaq7cef";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mwaq7cef";
+import { GEAR_SCALE } from "../data/meta.js?v=mwaq7cef";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 4;

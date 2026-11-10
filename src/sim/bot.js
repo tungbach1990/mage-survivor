@@ -1,11 +1,11 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mwam54fu";
-import { speedFactor } from "./status.js?v=mwam54fu";
-import { freshProfile, runOptions, settle, buyTalent, drawMark, drawCost, buyClassPassive } from "../meta/profile.js?v=mwam54fu";
-import { TALENT_TREES, talentCost, classPassiveCost } from "../data/meta.js?v=mwam54fu";
-import { CLASS_IDS } from "../data/classes.js?v=mwam54fu";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mwaq7cef";
+import { speedFactor } from "./status.js?v=mwaq7cef";
+import { freshProfile, runOptions, settle, buyTalent, drawMark, drawCost, buyClassPassive } from "../meta/profile.js?v=mwaq7cef";
+import { TALENT_TREES, talentCost, classPassiveCost } from "../data/meta.js?v=mwaq7cef";
+import { CLASS_IDS } from "../data/classes.js?v=mwaq7cef";
 
 /** The card the bot (and the idle toggle) would take. */
 export const bestCard = (w) => w.cards.map((c, j) => [score(w, c), j]).sort((a, b) => b[0] - a[0])[0][1];

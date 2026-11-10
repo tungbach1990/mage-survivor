@@ -58,8 +58,8 @@ export function kindOf(it) {
 export const lookOf = (gear) => Object.fromEntries(Object.entries(gear ?? {}).filter(([, it]) => it).map(([s, it]) => [s, { mat: kindOf(it)[1], rarity: it.rarity, ...(s === "weapon" ? { wtype: it.wtype } : {}) }]));
 
 // ---- icons: 12 x 12; "#" the material's mid tone, "+" its light, "-" its dark, "o" ink, "*" a gem in the rarity's colour
-import { GRADE, gradeOf } from "./loot.js?v=mwam54fu";
-import { STARTER, STARTER_NAME, WEAPON_KINDS, wtypesOf } from "./weapons.js?v=mwam54fu";
+import { GRADE, gradeOf } from "./loot.js?v=mwaq7cef";
+import { STARTER, STARTER_NAME, WEAPON_KINDS, wtypesOf } from "./weapons.js?v=mwaq7cef";
 export const RARITY_GEM = new Proxy({}, { get: (_, k) => GRADE[gradeOf(k)].color });
 const I = (s) => s.trim().split("\n").map((r) => r.trim());
 export const ICONS = {

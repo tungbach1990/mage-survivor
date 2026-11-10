@@ -1,8 +1,8 @@
 // What carries over between runs: per class the talent tree, the marks unlocked and the gear worn; shared, the
 // crystals, the bag, the account level, achievements and daily quests.
 
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwam54fu";
-import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mwam54fu";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwaq7cef";
+import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mwaq7cef";
 const MARTIAL_IDS = new Set([...MARTIAL_PAIRS.map((p) => p[2]), ...MARTIAL_TRIADS.map((t) => t[1])]);
 
 // ---------- talents: one tree per class, 4 branches of 4; cost = base * growth^level ----------
@@ -87,14 +87,15 @@ export const PASSIVE_FADE = 0.8;
 export const passiveWorth = (l) => { let s = 0; for (let k = 0; k < l; k++) s += Math.pow(PASSIVE_FADE, Math.floor(k / 5)); return s };
 export const classPassiveCost = (level) => 500 * 2 ** level;
 export const CLASS_PASSIVE = {
-  swordman: { name: "Giữ cổng", text: (x) => `+${Math.round(50 * x)} máu tường · cứ ${pullEvery(x).toFixed(1)} giây kéo 1 quái đánh xa về sát tường`,
-    apply: (m, x) => { m.wallMax += 50 * x; m.pullEvery = pullEvery(x) } },
+  swordman: { name: "Giữ cổng", text: (x) => `Cứ 5 giây kéo mọi quái về tầm chém; tường miễn nhiễm sát thương ${guardOf(x).toFixed(1)} giây`,
+    apply: (m, x) => { m.pullEvery = 5; m.guard = guardOf(x) } },
   mage: { name: "Lá chắn ma pháp", text: (x) => `Tường nhận ít hơn ${Math.round(wardOf(x) * 100)}% sát thương từ quái`,
     apply: (m, x) => { m.ward = wardOf(x) } },
   archer: { name: "Tên tách", text: (x) => `${Math.round(splitOf(x) * 100)}% mũi tên chạm mục tiêu tách thành 2 (50% sát thương mỗi mũi)`,
     apply: (m, x) => { m.splitChance = splitOf(x) } },
 };
-const pullEvery = (x) => Math.max(2.5, 5 * Math.pow(0.95, Math.max(0, x - 1)));
+/** The wall's immunity after a haul: 0.5 s, +0.25 s a level (fading), to 2.5 s. */
+const guardOf = (x) => (x <= 0 ? 0 : Math.min(2.5, 0.5 + 0.25 * (x - 1)));
 const wardOf = (x) => Math.min(0.6, 1 - Math.pow(0.85, x));
 const splitOf = (x) => (x <= 0 ? 0 : Math.min(0.75, 0.15 + 0.05 * (x - 1)));
 export const TALENTS = TREE;
@@ -127,7 +128,7 @@ export const mageXpNext = (level) => Math.round(100 * Math.pow(1.35, level - 1))
 export const MAGE_PERKS = { 3: "Đòn đánh thường bắt đầu ở cấp 2", 5: "Mở ô Bùa hộ mệnh", 8: "Mở Vô tận sớm (khi đã qua chương 3)" };
 
 // ---------- gear: three slots per class; the weapon named for the class ----------
-import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mwam54fu";
+import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mwaq7cef";
 export const SLOTS = Object.fromEntries(SLOT_IDS.map((s) => [s, SLOT_NAMES[s]]));
 export const WEAPON_NAME = { mage: "Gậy phép", swordman: "Kiếm", archer: "Cung", thief: "Dao găm", acolyte: "Chùy", merchant: "Xe đẩy" };
 export const slotName = (slot, cls) => (slot === "weapon" ? WEAPON_NAME[cls] ?? "Vũ khí" : SLOTS[slot] ?? slot);
