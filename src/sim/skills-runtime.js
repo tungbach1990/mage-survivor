@@ -1,14 +1,14 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mwaq7cef";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mwaq7cef";
-import { T, skillT } from "../data/tuning.js?v=mwaq7cef";
-import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mwaq7cef";
-import { schoolOf } from "../data/elements.js?v=mwaq7cef";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mwaq7cef";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mwaq7cef";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mwaq7cef";
+import { ENEMIES } from "./enemies.js?v=mwarehht";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mwarehht";
+import { T, skillT } from "../data/tuning.js?v=mwarehht";
+import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mwarehht";
+import { schoolOf } from "../data/elements.js?v=mwarehht";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mwarehht";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mwarehht";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mwarehht";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;

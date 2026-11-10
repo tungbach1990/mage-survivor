@@ -3,12 +3,12 @@
 // monsters that reach one stop to beat on it instead of the wall (world.js). A fusion alternates its two
 // elements hit by hit, so its own blows set off their reaction.
 
-import { ENEMIES } from "./enemies.js?v=mwaq7cef";
-import { SKILLS } from "../data/skills.js?v=mwaq7cef";
-import { CHAPTERS } from "../data/chapters.js?v=mwaq7cef";
-import { damage, stun, steamAt, healWall } from "./combat.js?v=mwaq7cef";
-import { applySlow } from "./status.js?v=mwaq7cef";
-import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mwaq7cef";
+import { ENEMIES } from "./enemies.js?v=mwarehht";
+import { SKILLS } from "../data/skills.js?v=mwarehht";
+import { CHAPTERS } from "../data/chapters.js?v=mwarehht";
+import { damage, stun, steamAt, healWall } from "./combat.js?v=mwarehht";
+import { applySlow } from "./status.js?v=mwarehht";
+import { W, WALL_X, LANE, center, alive, inView, around, nearest, addGround, addWell, densest, movable } from "./field.js?v=mwarehht";
 
 const BLOCK = 8;   // how far in front of a golem a monster stops
 

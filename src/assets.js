@@ -8,7 +8,7 @@ export const FRAMES = {
   mage: ["idle0", "idle1", "focus", "cast", "throw", "hurt"],
   monster: ["walk0", "walk1", "walk2", "walk3", "atk0", "atk1", "hurt"],
 };
-import { ENEMIES } from "./sim/enemies.js?v=mwaq7cef";
+import { ENEMIES } from "./sim/enemies.js?v=mwarehht";
 export const MONSTERS = ["slime", "goblin", "wolf", "skeleton", "orc", "golem", "bat", "shaman"];
 export const ICONS = ["fireball", "firebolt", "iceball", "icebolt", "lightball", "lightbolt", "nova", "meteor"];
 
