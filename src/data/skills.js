@@ -7,8 +7,8 @@
 //   passive works on its own (Frost Nova, Chaos Seed)
 // Element effects carried by a hit: burn (dps), poison (dps), stun (s), freezeAt3, push (px).
 
-import { SUMMONS } from "./summons.js?v=mwach6ez";
-import { CLASS_SKILLS, SHARED, CLASS_IDS } from "./classes.js?v=mwach6ez";
+import { SUMMONS } from "./summons.js?v=mwaciyfp";
+import { CLASS_SKILLS, SHARED, CLASS_IDS } from "./classes.js?v=mwaciyfp";
 
 const L = (a, b) => (l) => a + ((b - a) * (l - 1)) / 4;
 const lv = (spec) => (l) => Object.fromEntries(Object.entries(spec).map(([k, v]) => [k, typeof v === "function" ? v(l) : v]));
