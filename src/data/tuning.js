@@ -7,8 +7,10 @@ export const DEFAULT_TUNING = () => ({
   monster: { hp: 1, dmg: 1, speed: 1, elite: 1, kin: 1, extra: 1 },
   // crowd control on bosses and elites: durations x ccMul; `poise` seconds of it in a row and they turn
   // UNSTOPPABLE for `unstop` s (no stun, freeze, root, fear, knockback or pull)
-  boss: { hp: 1, dmg: 1, ccMul: 0.4, poise: 1.6, unstop: 6, slowFloor: 0.7, enrage: 0.25, charge: 1 },
-  elite: { ccMul: 0.7, poise: 3, unstop: 3, slowFloor: 0.5 },
+  boss: { hp: 1, dmg: 1, ccMul: 0.3, poise: 1.2, unstop: 8, slowFloor: 0.8, enrage: 0.25, charge: 1 },
+  elite: { ccMul: 0.6, poise: 2.4, unstop: 4, slowFloor: 0.55 },
+  // the common monsters: crowd control a little shorter each chapter (x mul - per * (chapter - 1)), shaken off after poise s
+  common: { ccMul: 0.8, per: 0.07, poise: 3, unstop: 3, slowFloor: 0.35 },
   summon: { hp: 1, dmg: 1 },
   // every pair combo, every tier (on top of each one's own), and by how many marks set it off: three marks are
   // a small burst, six a storm

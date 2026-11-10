@@ -6,25 +6,25 @@
 //   - 7 to 9 auras: UNSTABLE (it takes more); 10: CHAOS, a black hole.
 // Damage dealt by a reaction sets nothing further off (no loops), but the auras reactions spread do, later.
 
-import { ENEMIES } from "./enemies.js?v=mwaciyfp";
-import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mwaciyfp";
-import { PAIRS, TIERS, TRIADS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mwaciyfp";
-import { WEATHER, GROUND, stats } from "../data/skills.js?v=mwaciyfp";
-import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot } from "./status.js?v=mwaciyfp";
-import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mwaciyfp";
-import { ENVS } from "../data/environments.js?v=mwaciyfp";
-import { T, reactT } from "../data/tuning.js?v=mwaciyfp";
+import { ENEMIES } from "./enemies.js?v=mwad0nah";
+import { ELEMENTS, MARKS, AURA, schoolOf } from "../data/elements.js?v=mwad0nah";
+import { PAIRS, TIERS, TRIADS, UNSTABLE, CHAOS, pairKey, triadOf } from "../data/reactions.js?v=mwad0nah";
+import { WEATHER, GROUND, stats } from "../data/skills.js?v=mwad0nah";
+import { applyBurn, applySlow, applyFreeze, applyStun, applyPoison, applyRoot, applyFear, applyMud, applyDot, cc } from "./status.js?v=mwad0nah";
+import { WALL_X, center, alive, around, nearest, inBlast, inGround, groundsAt, waterBody, addGround, addWell, reaches, movable } from "./field.js?v=mwad0nah";
+import { ENVS } from "../data/environments.js?v=mwad0nah";
+import { T, reactT } from "../data/tuning.js?v=mwad0nah";
 export const kin = (e, el) => e.element === el || e.element2 === el;
-import { startBlackHole } from "./chaos.js?v=mwaciyfp";
+import { startBlackHole } from "./chaos.js?v=mwad0nah";
 
 const IS_ELEM = new Set(MARKS);   // every mark: the ten elements and the ten martial ones
 /** A physical blow: a martial mark, or "phys" (a martial combo's damage). */
 export const isPhys = (elem) => elem === "phys" || schoolOf(elem) === "martial";
 /** The marks this run's class works with (Chaos Seed sows them, the black hole leaves them). */
 export const schoolMarks = (w) => w.schoolMarks ?? ELEMENTS;
-import { rollGrade, crystalPerKill, CRYSTAL, GEAR_RATE, GEAR_BOSS_BONUS, GEAR_PER_RUN } from "../data/loot.js?v=mwaciyfp";
-import { acctGain } from "./world.js?v=mwaciyfp";
-import { SKILLS } from "../data/skills.js?v=mwaciyfp";
+import { rollGrade, crystalPerKill, CRYSTAL, GEAR_RATE, GEAR_BOSS_BONUS, GEAR_PER_RUN } from "../data/loot.js?v=mwad0nah";
+import { acctGain } from "./world.js?v=mwad0nah";
+import { SKILLS } from "../data/skills.js?v=mwad0nah";
 export const OVERTIME = 120;
 export const WALL_HEAL_PER_SEC = 0.04;
 /** Mend the wall by n, within this second's budget (returns what it mended). */
@@ -49,6 +49,8 @@ const LIGHT = { slime: 1.6, wolf: 1.3, goblin: 1.1 };   // who flies further on 
 export const elemMul = (w, elem) => (WEATHER[w.weather?.kind]?.mul?.[elem] ?? 1) * (ENVS[w.env]?.mul?.[elem] ?? 1) * (T.elements[elem] ?? 1);
 const env = (w) => ENVS[w.env] ?? {};
 /** Stun, longer under the Lightning Rain. */
+/** A shove's share for a monster's resistance (and its poise worn: 20 px of shoving a second of hold). */
+function shove(e, px) { const t = e.tenacity; if (!t) return 1; if (t.unstop > 0) return 0; return cc(e, px / 20) > 0 ? t.mul : 0 }
 export function stun(w, e, dur) { return applyStun(e, ENEMIES[e.type], dur * (w.weather?.kind === "thunder" ? WEATHER.thunder.stunMul : 1)) }
 
 // ---------- auras ----------
@@ -372,8 +374,8 @@ export function api(w) {
     gold: (n) => { w.gold += n * (w.pm?.gold ?? 1); w.events.push({ type: "gold", n: Math.round(n) }) },
     xp: (n) => { w.xp = (w.xp ?? 0) + n },
     isBoss: (o) => !!ENEMIES[o.type].boss,
-    push: (o, dx) => { if (o.hp > 0 && movable(o)) o.x += dx * (ENEMIES[o.type].boss ? 0.2 : 1) },
-    pull: (x, y, r, px) => { for (const o of around(w, x, y, r).filter(movable)) { const d = Math.hypot(x - o.x, y - o.y) || 1, k = Math.min(px, d) * (ENEMIES[o.type].boss ? 0.3 : 1); o.x += ((x - o.x) / d) * k; o.y += ((y - o.y) / d) * k } },
+    push: (o, dx) => { if (o.hp > 0 && movable(o)) { const k = shove(o, Math.abs(dx)); o.x += dx * (ENEMIES[o.type].boss ? 0.2 : 1) * k } },
+    pull: (x, y, r, px) => { for (const o of around(w, x, y, r).filter(movable)) { const d = Math.hypot(x - o.x, y - o.y) || 1, k = Math.min(px, d) * (ENEMIES[o.type].boss ? 0.3 : 1) * shove(o, Math.min(px, d)); o.x += ((x - o.x) / d) * k; o.y += ((y - o.y) / d) * k } },
     ground: (kind, x, y, r, life) => { if (kind === "lava" && w.grounds.some((g) => g.kind === "water" && reaches(g, x, y, r))) return steamAt(w, x, y, r); addGround(w, kind, x, y, r, life) },
     well: (x, y, r, k, t) => { addWell(w, x, y, r, k, t); w.events.push({ type: "fx", fx: "well", x, y, r, t, elem: "arcane" }) },
     heal: (n) => healWall(w, n),

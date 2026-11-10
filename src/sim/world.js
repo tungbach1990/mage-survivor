@@ -5,28 +5,28 @@
 // A run: one chapter of ten waves (or Endless). The mage levels up from kills (a card each level) and picks a
 // card after each wave. Elements awaken as their reactions add up; with all ten awake, Chaos does.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mwaciyfp";
-import { ENEMIES, SPAWN_X } from "./enemies.js?v=mwaciyfp";
-import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mwaciyfp";
-import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mwaciyfp";
-import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mwaciyfp";
-import { ENVS, ENV_POOL } from "../data/environments.js?v=mwaciyfp";
-import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mwaciyfp";
-import { T, typeT } from "../data/tuning.js?v=mwaciyfp";
-import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mwaciyfp";
-import { derive, castOf } from "../data/stats.js?v=mwaciyfp";
-import { defShare } from "../data/loot.js?v=mwaciyfp";
-import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mwaciyfp";
-import { mageXpNext } from "../data/meta.js?v=mwaciyfp";
-import { schoolOf } from "../data/elements.js?v=mwaciyfp";
-import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mwaciyfp";
-import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mwaciyfp";
-import { CLASSES, marksOf } from "../data/classes.js?v=mwaciyfp";
-import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mwaciyfp";
-import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mwaciyfp";
-import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mwaciyfp";
-import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mwaciyfp";
-import { updateBlackHoles } from "./chaos.js?v=mwaciyfp";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mwad0nah";
+import { ENEMIES, SPAWN_X } from "./enemies.js?v=mwad0nah";
+import { SKILLS, WEATHER, GROUND, stats, SKILLS_OF } from "../data/skills.js?v=mwad0nah";
+import { ELEMENTS, MARKS, AURA } from "../data/elements.js?v=mwad0nah";
+import { CHAPTERS, ENDLESS, ELITE_KINDS } from "../data/chapters.js?v=mwad0nah";
+import { ENVS, ENV_POOL } from "../data/environments.js?v=mwad0nah";
+import { ELEMENTAL, RESIST, WEAK, kinElems, kinWeak } from "../data/bestiary.js?v=mwad0nah";
+import { T, typeT } from "../data/tuning.js?v=mwad0nah";
+import { freshStatus, applyBurn, applyPoison, applyMud, speedFactor, slowFactor, isHeld, tickStatus } from "./status.js?v=mwad0nah";
+import { derive, castOf } from "../data/stats.js?v=mwad0nah";
+import { defShare } from "../data/loot.js?v=mwad0nah";
+import { STARTER, btbaOf, basicIdOf } from "../data/weapons.js?v=mwad0nah";
+import { mageXpNext } from "../data/meta.js?v=mwad0nah";
+import { schoolOf } from "../data/elements.js?v=mwad0nah";
+import { WAVES, HP_GROWTH, DMG_GROWTH, spawnList, endlessList } from "./waves.js?v=mwad0nah";
+import { drawCards, applyCard, refreshPassives } from "./upgrades.js?v=mwad0nah";
+import { CLASSES, marksOf } from "../data/classes.js?v=mwad0nah";
+import { W, H, WALL_X, GEM, MAGE_FEET, LANE, center, alive, inView, inBlast, around, addGround, inGround, GROUNDS, movable } from "./field.js?v=mwad0nah";
+import { damage, applyAura, tickAuras, steamAt, obsidianAt, conduct, stun, elemMul, kin, canRegen, fury, healWall } from "./combat.js?v=mwad0nah";
+import { cast, updateShots, updateZones, nova, skillStats } from "./skills-runtime.js?v=mwad0nah";
+import { summon, updateMinions, blockerFor, hitMinion } from "./summons.js?v=mwad0nah";
+import { updateBlackHoles } from "./chaos.js?v=mwad0nah";
 
 export { W, H, WALL_X, GEM, MAGE_FEET, damage, addGround, steamAt, obsidianAt, applyAura };
 export const addPuddle = (w, x, y, rx, src, life) => addGround(w, "water", x, y, rx, life, src);
@@ -106,7 +106,8 @@ export function spawn(w, type, x, y, opts = {}) {
     id: w.nextId++, type, x, y, hp, max: hp, state: "walk", atkT: 0, walkT: w.rng.next(), status: freshStatus(), flash: 0,
     small: opts.scale === "small", auras: new Map(), tiers: new Set(), resist, speedMul: T.monster.speed * (tt.speed ?? 1), dmgMul: ch.dmg * (w.endless ? 1 : Math.pow(DMG_GROWTH, w.wave)) * T.monster.dmg * (tt.dmg ?? 1) * (def.boss ? T.boss.dmg * (ch.boss?.dmgMul ?? 1) : 1),
     immune: def.fly ? new Set(["root", "mud"]) : null, phys: tt.phys ?? def.phys ?? 1,
-    tenacity: def.boss ? { mul: T.boss.ccMul, max: T.boss.poise, time: T.boss.unstop, slowFloor: T.boss.slowFloor, poise: 0, unstop: 0 } : null,
+    tenacity: def.boss ? { mul: T.boss.ccMul, max: T.boss.poise, time: T.boss.unstop, slowFloor: T.boss.slowFloor, poise: 0, unstop: 0 }
+      : { mul: Math.max(0.5, T.common.ccMul - T.common.per * ((w.endless ? 5 : w.chapter) - 1)), max: T.common.poise, time: T.common.unstop, slowFloor: T.common.slowFloor, poise: 0, unstop: 0 },
     lavaT: 0, groundT: 0, boss: opts.boss ?? null, bossPhase: 1, shield: 0, elite: null, swap: ch.swap ?? null,
   };
   // some come as elemental kin: tougher, resisting their element, weak to its foe
