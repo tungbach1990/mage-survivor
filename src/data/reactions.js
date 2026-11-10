@@ -5,8 +5,8 @@
 //
 // Labels are short English words (the pixel font has no Vietnamese accents); `vi` explains each in the Codex.
 
-import { MARKS, schoolOf } from "./elements.js?v=mwa7i8js";
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwa7i8js";
+import { MARKS, schoolOf } from "./elements.js?v=mwach6ez";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwach6ez";
 
 const idx = (e) => MARKS.indexOf(e);
 export const pairKey = (a, b) => (idx(a) < idx(b) ? `${a}+${b}` : `${b}+${a}`);
@@ -15,7 +15,7 @@ export const pairKey = (a, b) => (idx(a) < idx(b) ? `${a}+${b}` : `${b}+${a}`);
 // [a, b, id, label, vi, fx(ctx)] ; ctx = { api: A, e, x, y, H, w } ; `mul` multiplies the hit itself
 const P = [
   ["fire", "ice", "melt", "MELT", "Lửa gặp băng: x2 sát thương, phá băng", (c) => { c.e.status.freeze = 0; c.e.status.freezeImmune = 1; c.A.fx("burst", c.x, c.y, "ice") }, { mul: 2 }],
-  ["fire", "volt", "overload", "OVERLOAD", "Nổ lửa 60% quanh đó, dập lửa", (c) => {
+  ["fire", "volt", "overload", "OVERLOAD", "Nổ lửa 60% quanh đó, dập lửa, đẩy lùi", (c) => {
     const b = c.e.status.burn; b.stacks = 0; b.t = 0; b.dps = 0;
     for (const o of c.A.area(c.x, c.y, 16)) { c.A.dmg(o, c.H * 0.6, "fire"); c.A.push(o, 4) }
     c.A.fx("blast", c.x, c.y, "fire", 16);
@@ -40,25 +40,25 @@ const P = [
     c.A.fx("ring", c.x, c.y, "fire", 22);
   }],
   ["ice", "volt", "superconduct", "SUPERCONDUCT", "Siêu dẫn: nhận thêm 40% sát thương trong 4 giây", (c) => { c.e.status.brittle = 4; c.A.fx("burst", c.x, c.y, "volt") }],
-  ["ice", "water", "freeze", "FREEZE", "Băng gặp nước: sát thương băng lan quanh đó", (c) => { c.A.freeze(c.e, 1.2); c.e.status.wet = 0 }],
+  ["ice", "water", "freeze", "FREEZE", "Băng gặp nước: đóng băng ngay", (c) => { c.A.freeze(c.e, 1.2); c.e.status.wet = 0 }],
   ["ice", "earth", "shatter", "SHATTER", "Vỡ vụn: +50% sát thương, mảnh băng bắn quanh", (c) => { for (const o of c.A.area(c.x, c.y, 14)) c.A.dmg(o, c.H * 0.5, "ice"); c.A.fx("shards", c.x, c.y, "ice", 14) }, { mul: 1.5 }],
   ["ice", "wind", "blizzard", "BLIZZARD", "Bão tuyết: làm lạnh mọi quái quanh đó", (c) => { for (const o of c.A.area(c.x, c.y, 28)) c.A.chill(o); c.A.fx("ring", c.x, c.y, "ice", 28) }],
   ["ice", "poison", "frostbite", "FROSTBITE", "Độc tick x2 khi đang lạnh", (c) => { c.e.status.poison.frost = 5; c.A.chill(c.e) }],
   ["ice", "light", "prism", "PRISM", "Khúc xạ trúng thêm 3 con, mỗi con 50%", (c) => { for (const o of c.A.nearest(c.x, c.y, 3, c.e)) { c.A.dmg(o, c.H * 0.5, "light"); c.A.beam(c.x, c.y, o, "light") } }],
-  ["ice", "dark", "deepfreeze", "DEEP FREEZE", "Băng vỡ: sát thương xuyên miễn nhiễm", (c) => c.A.freeze(c.e, 2.4, true)],
+  ["ice", "dark", "deepfreeze", "DEEP FREEZE", "Đóng băng x2 thời gian, xuyên miễn nhiễm", (c) => c.A.freeze(c.e, 2.4, true)],
   ["ice", "arcane", "crystal", "CRYSTAL", "Bọc pha lê rồi vỡ, gây 100% quanh đó", (c) => {
     c.A.freeze(c.e, 1.5, true);
     c.A.later(1.5, () => { for (const o of c.A.area(c.e.x, c.e.y, 16)) c.A.dmg(o, c.H, "ice"); c.A.fx("shards", c.e.x, c.e.y, "arcane", 16) });
   }],
   ["volt", "water", "shock", "SHOCK", "Sét lan qua vũng nước và mọi quái Ướt quanh đó", (c) => c.A.shock(c.e, c.H)],
-  ["volt", "earth", "magnetize", "MAGNETIZE", "Từ hóa: sát thương sét quanh đó", (c) => { c.A.pull(c.x, c.y, 30, 12); c.A.fx("ring", c.x, c.y, "volt", 30) }],
+  ["volt", "earth", "magnetize", "MAGNETIZE", "Từ hóa: hút quái quanh đó về một điểm", (c) => { c.A.pull(c.x, c.y, 30, 12); c.A.fx("ring", c.x, c.y, "volt", 30) }],
   ["volt", "wind", "stormarc", "STORM ARC", "Sét nảy thêm 4 lần", (c) => c.A.chain(c.e, 4, 60, c.H * 0.6, "volt")],
-  ["volt", "poison", "neurotox", "NEUROTOX", "+2 lớp độc", (c) => { c.A.stun(c.e, 0.6); c.A.poison(c.e, 2) }],
+  ["volt", "poison", "neurotox", "NEUROTOX", "Tê liệt và +2 lớp độc", (c) => { c.A.stun(c.e, 0.6); c.A.poison(c.e, 2) }],
   ["volt", "light", "judgment", "JUDGMENT", "Sét trời giáng 120%", (c) => { for (const o of c.A.area(c.x, c.y, 14)) c.A.dmg(o, c.H * 1.2, "light"); c.A.fx("skybolt", c.x, c.y, "light") }],
-  ["volt", "dark", "blackout", "BLACKOUT", "Nguyền lan theo chuỗi", (c) => { c.A.stun(c.e, 1.2); for (const o of c.A.nearest(c.x, c.y, 3, c.e)) { c.A.aura(o, "dark"); c.A.beam(c.x, c.y, o, "dark") } }],
+  ["volt", "dark", "blackout", "BLACKOUT", "Tê liệt x2, nguyền lan theo chuỗi", (c) => { c.A.stun(c.e, 1.2); for (const o of c.A.nearest(c.x, c.y, 3, c.e)) { c.A.aura(o, "dark"); c.A.beam(c.x, c.y, o, "dark") } }],
   ["volt", "arcane", "arcflux", "ARC FLUX", "Tích điện cho mọi quái quanh đó", (c) => { for (const o of c.A.area(c.x, c.y, 24)) c.A.aura(o, "arcane"); c.A.fx("ring", c.x, c.y, "arcane", 24) }],
   ["water", "earth", "mud", "MUD", "Vùng bùn làm chậm 50%", (c) => c.A.ground("mud", c.x, c.y, 14, 4)],
-  ["water", "wind", "typhoon", "TYPHOON", "Bão nước làm Ướt quanh đó", (c) => { for (const o of c.A.area(c.x, c.y, 30)) { c.A.push(o, 20); c.A.aura(o, "water") } c.A.fx("ring", c.x, c.y, "water", 30) }],
+  ["water", "wind", "typhoon", "TYPHOON", "Bão nước đẩy lùi và làm Ướt", (c) => { for (const o of c.A.area(c.x, c.y, 30)) { c.A.push(o, 20); c.A.aura(o, "water") } c.A.fx("ring", c.x, c.y, "water", 30) }],
   ["water", "poison", "contaminate", "CONTAMINATE", "Lan độc sang mọi quái Ướt", (c) => { for (const o of c.A.area(c.x, c.y, 40)) if (o.auras.has("water")) c.A.poison(o, 2) }],
   ["water", "light", "rainbow", "RAINBOW", "Cầu vồng: hồi 3 máu tường, quái Ướt bị phán xét", (c) => { c.A.heal(3); for (const o of c.A.area(c.x, c.y, 40)) if (o.auras.has("water")) o.status.judged = true; c.A.fx("ring", c.x, c.y, "light", 40) }],
   ["water", "dark", "drown", "DROWN", "Chết đuối: chậm 60% trong 3 giây", (c) => c.A.mud(c.e, 0.4, 3)],
@@ -66,12 +66,12 @@ const P = [
   ["earth", "wind", "sandstorm", "SANDSTORM", "Bão cát: quái bên trong đánh tường chậm 50%", (c) => c.A.ground("sand", c.x, c.y, 16, 4)],
   ["earth", "poison", "tar", "TAR", "Hắc ín độc làm chậm", (c) => c.A.ground("tar", c.x, c.y, 14, 4)],
   ["earth", "light", "hallowed", "HALLOWED", "Đất thánh: gây sát thương, hồi tường", (c) => c.A.ground("hallowed", c.x, c.y, 16, 4)],
-  ["earth", "dark", "grave", "GRAVE", "Tay xương cào sát thương", (c) => { c.A.root(c.e, 1.5); for (const o of c.A.area(c.x, c.y, 16, c.e)) c.A.root(o, 0.8) }],
+  ["earth", "dark", "grave", "GRAVE", "Tay xương giữ chân", (c) => { c.A.root(c.e, 1.5); for (const o of c.A.area(c.x, c.y, 16, c.e)) c.A.root(o, 0.8) }],
   ["earth", "arcane", "runestone", "RUNESTONE", "Trụ đá rune tự bắn trong 4 giây", (c) => c.A.ground("runestone", c.x, c.y, 6, 4)],
   ["wind", "poison", "miasma", "MIASMA", "Khí độc lan rộng", (c) => c.A.ground("miasma", c.x, c.y, 22, 3)],
   ["wind", "light", "radiantgale", "RADIANT GALE", "3 đốm sáng tự tìm mục tiêu, phán xét", (c) => { for (const o of c.A.nearest(c.x, c.y, 3, c.e)) { c.A.dmg(o, c.H * 0.6, "light"); o.status.judged = true; c.A.beam(c.x, c.y, o, "light") } }],
-  ["wind", "dark", "phantom", "PHANTOM", "Bóng ma: sát thương bóng tối quanh đó", (c) => { for (const o of c.A.area(c.x, c.y, 24)) c.A.fear(o, 1.2); c.A.fx("ring", c.x, c.y, "dark", 24) }],
-  ["wind", "arcane", "vortex", "VORTEX", "Trọng lực nén: sát thương quanh đó", (c) => c.A.well(c.x, c.y, 36, 30, 1.5)],
+  ["wind", "dark", "phantom", "PHANTOM", "Bóng ma: quái quanh đó sợ hãi, đi lùi", (c) => { for (const o of c.A.area(c.x, c.y, 24)) c.A.fear(o, 1.2); c.A.fx("ring", c.x, c.y, "dark", 24) }],
+  ["wind", "arcane", "vortex", "VORTEX", "Giếng trọng lực nhỏ hút về một điểm", (c) => c.A.well(c.x, c.y, 36, 30, 1.5)],
   ["poison", "light", "purge", "PURGE", "Thanh tẩy: nổ hết độc ngay, hồi tường", (c) => {
     const p = c.e.status.poison, n = p.stacks;
     c.A.dmg(c.e, Math.max(c.H * 0.5, n * p.dps * p.t * 0.75), "light"); c.A.heal(n); p.stacks = 0;
@@ -90,7 +90,7 @@ const P = [
       c.A.later(0.25 + i * 0.15, () => { for (const o of c.A.area(sx, sy, 10)) c.A.dmg(o, c.H * 0.5, "light"); c.A.fx("star", sx, sy, "light") });
     }
   }],
-  ["dark", "arcane", "void", "VOID", "Khe hư không: sát thương", (c) => c.A.ground("void", c.x, c.y, 16, 3)],
+  ["dark", "arcane", "void", "VOID", "Khe hư không: sát thương và hút nhẹ", (c) => c.A.ground("void", c.x, c.y, 16, 3)],
 ];
 
 export const PAIRS = {};
@@ -103,8 +103,8 @@ const spreadAuras = (c, n, r) => {
 };
 export const TIERS = {
   3: { id: "triad", label: "TRIAD", vi: "3 dấu: nổ nhẹ 50% và lan 1 dấu", cd: 0.8, fx: (c) => { for (const o of c.A.area(c.x, c.y, 18)) c.A.dmg(o, c.H * 1.5, "tier"); spreadAuras(c, 1, 18); c.A.fx("tier3", c.x, c.y, "tier", 18) } },
-  4: { id: "quadra", label: "QUADRA", vi: "4 dấu: nổ 200%, lan 2 dấu", cd: 2, fx: (c) => { for (const o of c.A.area(c.x, c.y, 24)) { c.A.dmg(o, c.H * 2.5, "tier"); c.A.stun(o, 0.5) } spreadAuras(c, 2, 24); c.A.fx("tier4", c.x, c.y, "tier", 24) } },
-  5: { id: "penta", label: "PENTA", vi: "5 dấu: ngũ giác rune nổ 560%, lan 3 dấu", cd: 4, fx: (c) => {
+  4: { id: "quadra", label: "QUADRA", vi: "4 dấu: nổ 200%, tê liệt, lan 2 dấu", cd: 2, fx: (c) => { for (const o of c.A.area(c.x, c.y, 24)) { c.A.dmg(o, c.H * 2.5, "tier"); c.A.stun(o, 0.5) } spreadAuras(c, 2, 24); c.A.fx("tier4", c.x, c.y, "tier", 24) } },
+  5: { id: "penta", label: "PENTA", vi: "5 dấu: ngũ giác rune hút rồi nổ 560%, lan 3 dấu", cd: 4, fx: (c) => {
     c.A.well(c.x, c.y, 34, 16, 1.5); c.A.fx("tier5", c.x, c.y, "tier", 30);
     c.A.later(1.5, () => { for (const o of c.A.area(c.x, c.y, 30)) c.A.dmg(o, c.H * 4, "tier"); spreadAuras(c, 3, 30); c.A.fx("blast", c.x, c.y, "arcane", 30) });
   } },
@@ -123,10 +123,10 @@ const T = [
   [["fire", "ice", "volt"], "trinity", "TRINITY", "Lửa + Băng + Sét: 3 tia bắn 3 con mạnh nhất", (c) => {
     c.A.strongest(3, c.e).forEach((o, i) => { const el = ["fire", "ice", "volt"][i]; c.A.dmg(o, c.H * 3, el); c.A.aura(o, el); c.A.beam(c.x, c.y, o, el) });
   }],
-  [["water", "earth", "wind"], "natureswrath", "NATURE'S WRATH", "Nước + Đất + Gió: dây leo cứa mọi quái quanh đó", (c) => { for (const o of c.A.area(c.x, c.y, 30)) c.A.root(o, 2); c.A.fx("ring", c.x, c.y, "wind", 30) }],
+  [["water", "earth", "wind"], "natureswrath", "NATURE'S WRATH", "Nước + Đất + Gió: dây leo giữ chân mọi quái quanh đó", (c) => { for (const o of c.A.area(c.x, c.y, 30)) c.A.root(o, 2); c.A.fx("ring", c.x, c.y, "wind", 30) }],
   [["light", "dark", "arcane"], "twilight", "TWILIGHT", "Sáng + Tối + Huyền bí: khe sáng-tối 300%, hồi 5 tường", (c) => { for (const o of c.A.area(c.x, c.y, 20)) c.A.dmg(o, c.H * 3, "arcane"); c.A.heal(5); c.A.fx("eclipse", c.x, c.y, "arcane", 20) }],
   [["fire", "poison", "dark"], "infernoplague", "INFERNO PLAGUE", "Lửa + Độc + Tối: lửa đen và độc lan 5 con", (c) => { for (const o of c.A.nearest(c.x, c.y, 5, c.e)) { c.A.burn(o, 4); o.status.burn.black = 5; c.A.poison(o, 2); c.A.beam(c.x, c.y, o, "poison") } }],
-  [["ice", "water", "wind"], "absolutezero", "ABSOLUTE ZERO", "Băng + Nước + Gió: bão tuyết sát thương mọi quái quanh đó", (c) => { for (const o of c.A.area(c.x, c.y, 30)) c.A.freeze(o, 1.5); c.A.fx("ring", c.x, c.y, "ice", 30) }],
+  [["ice", "water", "wind"], "absolutezero", "ABSOLUTE ZERO", "Băng + Nước + Gió: đóng băng mọi quái quanh đó", (c) => { for (const o of c.A.area(c.x, c.y, 30)) c.A.freeze(o, 1.5); c.A.fx("ring", c.x, c.y, "ice", 30) }],
   [["volt", "water", "light"], "holystorm", "HOLY STORM", "Sét + Nước + Sáng: 5 tia sét phán xét", (c) => {
     for (let i = 0; i < 5; i++) {
       const sx = c.x + c.A.rand(-30, 30), sy = c.y + c.A.rand(-14, 14);
@@ -135,7 +135,7 @@ const T = [
   }],
   [["earth", "fire", "volt"], "eruption", "ERUPTION", "Đất + Lửa + Sét: núi lửa nhỏ, đá văng", (c) => { c.A.ground("lava", c.x, c.y, 16, 4); for (const o of c.A.area(c.x, c.y, 22)) { c.A.dmg(o, c.H * 2, "earth"); c.A.push(o, 8) } c.A.fx("blast", c.x, c.y, "fire", 22) }],
   [["poison", "water", "earth"], "swamp", "SWAMP", "Độc + Nước + Đất: đầm lầy lớn", (c) => c.A.ground("swamp", c.x, c.y, 26, 5)],
-  [["wind", "volt", "arcane"], "tempest", "TEMPEST", "Gió + Sét + Huyền bí: xoáy sét", (c) => { c.A.well(c.x, c.y, 40, 30, 1.5); c.A.chain(c.e, 5, 70, c.H, "volt") }],
+  [["wind", "volt", "arcane"], "tempest", "TEMPEST", "Gió + Sét + Huyền bí: xoáy hút kèm tia sét", (c) => { c.A.well(c.x, c.y, 40, 30, 1.5); c.A.chain(c.e, 5, 70, c.H, "volt") }],
   [["dark", "ice", "poison"], "necrosis", "NECROSIS", "Tối + Băng + Độc: nguyền và độc x3, chết thì nổ", (c) => { for (const o of c.A.area(c.x, c.y, 20)) { c.A.aura(o, "dark"); c.A.poison(o, 3); o.plague = true } }],
 ];
 const triKey = (els) => [...els].sort((a, b) => idx(a) - idx(b)).join("+");
@@ -144,7 +144,7 @@ for (const [els, id, label, vi, fx] of [...T, ...MARTIAL_TRIADS]) TRIADS[triKey(
 export const triadOf = (auras) => (auras.length === 3 ? TRIADS[triKey(auras)] : null);
 
 export const UNSTABLE = { id: "unstable", label: "UNSTABLE", vi: "7-9 nguyên tố: không ổn định, +10% sát thương nhận mỗi aura" };
-export const CHAOS = { id: "chaos", label: "CHAOS", vi: "Đủ 10 nguyên tố: Hố Đen vũ trụ nổ tung mọi thứ quanh nó" };
+export const CHAOS = { id: "chaos", label: "CHAOS", vi: "Đủ 10 nguyên tố: Hố Đen vũ trụ hút mọi thứ rồi nổ" };
 
 /** Every entry of the Codex, in order: 45 pairs, 4 tiers, 10 triads, unstable, chaos (61). */
 // the percentages in the descriptions follow the combo factors (a named three: as a TRIAD; a pair: as pairs)

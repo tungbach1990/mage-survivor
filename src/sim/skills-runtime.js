@@ -1,14 +1,14 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mwa7i8js";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mwa7i8js";
-import { T, skillT } from "../data/tuning.js?v=mwa7i8js";
-import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mwa7i8js";
-import { schoolOf } from "../data/elements.js?v=mwa7i8js";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mwa7i8js";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mwa7i8js";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mwa7i8js";
+import { ENEMIES } from "./enemies.js?v=mwach6ez";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mwach6ez";
+import { T, skillT } from "../data/tuning.js?v=mwach6ez";
+import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mwach6ez";
+import { schoolOf } from "../data/elements.js?v=mwach6ez";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mwach6ez";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mwach6ez";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mwach6ez";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -55,7 +55,7 @@ export function skillStats(w, id) {
   // the marks it leaves besides its own: the skill's (if the class has them open), those a basic attack was
   // imbued with by a card (a quarter of the blows), and those the gear imbues every blow with now and then
   const open = (mk) => !w.unlocked || w.unlocked.has(mk);
-  const imbued = [];
+  const imbued = SKILLS[id].basic && w.imbue?.size ? [...w.imbue].filter(() => w.rng.chance(IMBUE_CHANCE)) : [];
   const gear = [];
   const also = [...(SKILLS[id].also ?? []).filter(open), ...imbued, ...gear];
   // a skill whose mark the class hasn't unlocked still hits, but leaves no mark (a basic attack always does)

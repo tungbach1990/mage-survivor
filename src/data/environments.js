@@ -13,8 +13,8 @@ export const ENVS = {
     mul: { water: 1.15, volt: 1.15, fire: 0.85, sunder: 1.15, cripple: 1.15, venom: 0.85 }, soak: true, puddles: 2.2,
   },
   snow: {
-    name: "Tuyết rơi", icon: "❄", vi: "Băng +20% · Lửa −10% · quái chậm 15% · vũng nước đóng thành băng trơn (chậm 40%). Võ thuật: Ghim, Choáng váng +20% sát thương.",
-    mul: { ice: 1.2, fire: 0.9, pin: 1.2, daze: 1.2 }, slow: 0.15, freezeWater: true,
+    name: "Tuyết rơi", icon: "❄", vi: "Băng +20% · Lửa −10% · quái chậm 15% · vũng nước đóng thành băng trơn (chậm 40%). Võ thuật: Ghim, Choáng +20% · Ghim giữ chân lâu gấp rưỡi (chân lún tuyết).",
+    mul: { ice: 1.2, fire: 0.9, pin: 1.2, daze: 1.2 }, slow: 0.15, freezeWater: true, pinMul: 1.5,
   },
   fog: {
     name: "Sương mù", icon: "🌫", vi: "Ánh sáng, Bóng tối +25% · phép chỉ thấy quái khi chúng đến gần (tầm nhìn 220). Võ thuật: Đánh dấu, Mù +25% · đánh lén trong sương: đòn Đánh dấu chí mạng ×2.",

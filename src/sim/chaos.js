@@ -2,11 +2,11 @@
 // tightening spiral (2.2 s), collapses (0.3 s) and blows (0.4 s): half a monster's life and more, a tenth of a
 // boss's, and every survivor is left carrying all ten auras.
 
-import { ENEMIES } from "./enemies.js?v=mwa7i8js";
-import { ELEMENTS } from "../data/elements.js?v=mwa7i8js";
-import { alive, inBlast } from "./field.js?v=mwa7i8js";
-import { damage, applyAura } from "./combat.js?v=mwa7i8js";
-import { reactT } from "../data/tuning.js?v=mwa7i8js";
+import { ENEMIES } from "./enemies.js?v=mwach6ez";
+import { ELEMENTS } from "../data/elements.js?v=mwach6ez";
+import { alive, inBlast } from "./field.js?v=mwach6ez";
+import { damage, applyAura } from "./combat.js?v=mwach6ez";
+import { reactT } from "../data/tuning.js?v=mwach6ez";
 
 export const BLACK_HOLE = { rift: 0.6, pull: 2.2, collapse: 0.3, blast: 0.4, radius: 60, reach: 110, pullSpeed: [20, 140], bossPull: 0.3, dmgFrac: 0.5, dmgFlat: 200, bossFrac: 0.1 };
 const PHASES = ["rift", "pull", "collapse", "blast"];
@@ -32,7 +32,7 @@ export function updateBlackHoles(w, dt) {
         const dx = bh.x - e.x, dy = bh.y - e.y, d = Math.hypot(dx, dy * 1.5);
         if (d > BLACK_HOLE.reach || d < 1) continue;
         const k = (ENEMIES[e.type].boss ? BLACK_HOLE.bossPull : 1) * speed * dt * (1 - d / (BLACK_HOLE.reach * 1.2)), sw = 0.6;
-        void k; void sw;   // it holds nothing: the monsters walk on through its pull
+        e.x += (dx / d) * k - (dy / d) * k * sw; e.y += (dy / d) * k + (dx / d) * k * sw * 0.5;
         if (Math.hypot(bh.x - e.x, bh.y - e.y) < 3) { e.x = bh.x + (e.id % 5) - 2; e.y = bh.y + (e.id % 3) - 1 }
       }
     }

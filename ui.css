@@ -301,3 +301,11 @@ h1 { font-size: 28px; }
 .chars, .chars-new { width: 100%; } .chars { display: flex; flex-wrap: wrap; gap: 6px; } .chars h3, .chars-new h3 { width: 100%; margin: 6px 0 2px; }
 .chars-new input { margin: 4px 0; padding: 4px 6px; background: #1c1426; color: #f4ecff; border: 1px solid #4a3a66; border-radius: 6px; }
 .tile.gacha { border-color: #ffb03a; } .tile.gacha button { font-size: 14px; }
+
+/* the combo chain and the score */
+#chain { position: absolute; left: 0; right: 0; top: calc(var(--top, 60px) + 26%); text-align: center; font: 900 22px/1 system-ui, sans-serif; color: #ffe286; text-shadow: 0 2px 0 #000, 0 0 10px #ff9a2a; pointer-events: none; animation: chainpop .25s ease-out; }
+#chain.c1 { color: #ffd060; } #chain.c2 { color: #ff8a4a; font-size: 26px; } #chain.c3 { color: #ff5aa0; font-size: 30px; } #chain.c4 { color: #c08cff; font-size: 34px; text-shadow: 0 2px 0 #000, 0 0 14px #c08cff; }
+@keyframes chainpop { from { transform: scale(1.5); } }
+#score { position: absolute; right: 6px; top: calc(var(--top, 60px) + 4px); font: 800 12px monospace; color: #ffe286; text-shadow: 0 1px 0 #000; pointer-events: none; }
+.score-line { font-size: 16px; } .score-line b { color: #ffe286; }
+#daily-btn { background: #3a2a10; border-color: #ffb03a; }

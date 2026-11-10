@@ -3,11 +3,11 @@
 // a reaction card (from chapter 2), an imbue (martial classes: the basic attack carries a mark the class's book
 // lacks, so every class can gather all ten), the wall, and once the class's ten marks have awakened, Chaos Seed.
 
-import { SKILLS, maxLevel, reqOf, milestoneText, stats } from "../data/skills.js?v=mwa7i8js";
+import { SKILLS, maxLevel, reqOf, milestoneText, stats } from "../data/skills.js?v=mwach6ez";
 const levelText = (id, next) => { const m = milestoneText(id, next); return m ? `★ Cấp ${next}: ${m}` : "Mạnh hơn, hồi chiêu nhanh hơn." };
-import { ELEM, MARTIAL, schoolOf } from "../data/elements.js?v=mwa7i8js";
-import { CLASSES } from "../data/classes.js?v=mwa7i8js";
-import { T, skillT } from "../data/tuning.js?v=mwa7i8js";
+import { ELEM, MARTIAL, schoolOf } from "../data/elements.js?v=mwach6ez";
+import { CLASSES } from "../data/classes.js?v=mwach6ez";
+import { T, skillT } from "../data/tuning.js?v=mwach6ez";
 
 export const BASE_SLOTS = 12;
 const STATS = [
@@ -59,7 +59,7 @@ export function cardPool(w) {
     const wanted = have.size >= 6 && fresh ? 6 : fresh ? 3 : 2;
     cards.push({ kind: "learn", id, elem: sk.elem, title: `Học ${sk.name}`, text: sk.desc, weight: wanted });
   }
-  if (false) for (const m of imbuesFor(cls(w))) if (!w.imbue.has(m) && w.unlocked.has(m)) cards.push({ kind: "imbue", elem: m, title: `Tẩm ${ELEM[m].name}`, text: `Đòn đánh thường để lại thêm dấu ${ELEM[m].name}.`, weight: 3 });
+  for (const m of imbuesFor(cls(w))) if (!w.imbue.has(m) && w.unlocked.has(m)) cards.push({ kind: "imbue", elem: m, title: `Tẩm ${ELEM[m].name}`, text: `Đòn đánh thường để lại thêm dấu ${ELEM[m].name}.`, weight: 3 });
   for (const s of STATS) cards.push({ kind: "stat", id: s.id, title: s.title, text: s.text, weight: 1 });
   if (w.chapter >= 2) for (const r of REACTS) cards.push({ kind: "react", id: r.id, title: r.title, text: r.text, weight: 1 });
   for (const el of w.awakened) if (!w.mastery.has(el)) cards.push({ kind: "mastery", elem: el, title: `Tinh thông ${ELEM[el].name}`, text: `+25% sát thương các đòn mang dấu ${ELEM[el].name}.`, weight: 2 });

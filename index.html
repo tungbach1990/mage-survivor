@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>Mage Survivor Defense</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <link rel="stylesheet" href="ui.css?v=mwa7i8js">
+  <link rel="stylesheet" href="ui.css?v=mwach6ez">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>(function(){var B="mwa7i8js";try{fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(v){if(v&&v.build&&v.build!==B){var u=location.pathname+"?v="+v.build+location.hash;if(sessionStorage.getItem("reloadTo")!==v.build){sessionStorage.setItem("reloadTo",v.build);location.replace(u)}}}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B="mwach6ez";try{fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(v){if(v&&v.build&&v.build!==B){var u=location.pathname+"?v="+v.build+location.hash;if(sessionStorage.getItem("reloadTo")!==v.build){sessionStorage.setItem("reloadTo",v.build);location.replace(u)}}}).catch(function(){})}catch(e){}})();</script>
 </head>
 <body>
   <div id="stage">
@@ -22,7 +22,7 @@
         <div id="fps" hidden></div>
         <button id="speed-btn" title="Tốc độ trận (x1 / x2 / x4 / x8)">⏩ x1</button>
         <button id="auto-btn" title="Tự chọn thẻ (idle)">🤖</button>
-        <button id="char-btn" title="Nhân vật: chỉ số và trang bị (C)">🧍<i id="char-dot" class="dot" hidden></i></button>
+        <button id="char-btn" hidden title="Nhân vật: chỉ số và trang bị (C)">🧍<i id="char-dot" class="dot" hidden></i></button>
         <button id="pause-btn" title="Tạm dừng (P)">⏸</button>
       </div>
       <div id="xp"><span id="lvl">Lv 1</span><div class="track"><div id="xp-fill" class="fill"></div></div></div>
@@ -33,6 +33,7 @@
       </div>
       <div id="toasts"></div>
       <div id="banner" hidden></div>
+      <div id="chain" hidden></div><div id="score"></div>
     </div>
 
     <div id="cards" class="overlay" hidden>
@@ -47,7 +48,7 @@
     <div id="summary" class="overlay" hidden>
       <h1 id="sum-title"></h1>
       <div id="sum-body"></div>
-      <button data-go="menu">Về sảnh</button>
+      <div class="row"><button id="share-btn">📣 Chia sẻ</button><button data-go="menu">Về sảnh</button></div>
     </div>
 
     <!-- ===== the hall ===== -->
@@ -56,12 +57,13 @@
       <div id="profile-line"></div>
       <div class="menu-grid">
         <button data-go="setup" class="big">▶ Chơi</button>
-        <button data-go="stats">Chỉ số<i id="stats-dot" class="dot" hidden></i></button>
-        <button data-go="passives">Nội tại</button>
+        <button id="daily-btn" class="big">🎯 Thử thách hôm nay</button>
+        <button data-go="stats" hidden>Chỉ số<i id="stats-dot" class="dot" hidden></i></button>
+        <button data-go="passives" hidden>Nội tại</button>
         <button data-go="talents">Nâng cấp</button>
         <button data-go="classes">Nhân vật</button>
         <button data-go="elements">Nguyên tố & dấu</button>
-        <button data-go="gear">Trang bị</button>
+        <button data-go="gear" hidden>Trang bị</button>
         <button data-go="codex">Codex</button>
         <button data-go="achievements">Thành tích & Nhiệm vụ</button>
         <button data-go="settings">Cài đặt</button>
@@ -98,6 +100,6 @@
     <div id="loading" class="overlay"><p>Đang tải…</p></div>
   </div>
   <p id="rotate">↻ Xoay ngang điện thoại để chơi rộng hơn</p>
-  <script type="module" src="src/app.js?v=mwa7i8js"></script>
+  <script type="module" src="src/app.js?v=mwach6ez"></script>
 </body>
 </html>

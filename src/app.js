@@ -1,27 +1,27 @@
 // The browser side: the hall (talents, elements, gear, codex, achievements, settings), the run setup, the
 // fixed-step loop, the HUD, the cards, and settling a run back into the saved profile.
 
-import { loadAssets, browserLoad } from "./assets.js?v=mwa7i8js";
-import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mwa7i8js";
-import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mwa7i8js";
-import { createRenderer , PW, PH } from "./view.js?v=mwa7i8js";
-import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mwa7i8js";
-import { ENEMIES } from "./sim/enemies.js?v=mwa7i8js";
-import { SKILLS, stats } from "./data/skills.js?v=mwa7i8js";
-import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mwa7i8js";
-import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mwa7i8js";
-import { CHAPTERS } from "./data/chapters.js?v=mwa7i8js";
-import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mwa7i8js";
-import { PASSIVES, passiveCost } from "./data/passives.js?v=mwa7i8js";
-import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mwa7i8js";
-import { liveRefresh } from "./meta/live.js?v=mwa7i8js";
-import { bestCard } from "./sim/bot.js?v=mwa7i8js";
-import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mwa7i8js";
-import { ATTR, lineText, elemsOfLines, lineNow } from "./data/affix.js?v=mwa7i8js";
-import { GRADE, GRADES } from "./data/loot.js?v=mwa7i8js";
-import { baseOf, elemsFor, ENCHANT, refineCost, refineChance, REFINE_MAX } from "./data/loot.js?v=mwa7i8js";
-import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mwa7i8js";
-import { dressHero } from "./render/dress.js?v=mwa7i8js";
+import { loadAssets, browserLoad } from "./assets.js?v=mwach6ez";
+import { loadTuning, mountAdmin, tuned } from "./admin.js?v=mwach6ez";
+import { inTelegram, telegramUser, telegramInit, cloudLoad, cloudMirror } from "./meta/cloud.js?v=mwach6ez";
+import { createRenderer , PW, PH } from "./view.js?v=mwach6ez";
+import { createWorld, step, drain, chooseCard, reroll, summary, xpNext } from "./sim/world.js?v=mwach6ez";
+import { ENEMIES } from "./sim/enemies.js?v=mwach6ez";
+import { SKILLS, stats } from "./data/skills.js?v=mwach6ez";
+import { ELEM, ELEMENTS, MARTIAL } from "./data/elements.js?v=mwach6ez";
+import { CODEX, REACTION_BY_ID } from "./data/reactions.js?v=mwach6ez";
+import { CHAPTERS } from "./data/chapters.js?v=mwach6ez";
+import { CLASSES, CLASS_IDS } from "./data/classes.js?v=mwach6ez";
+import { PASSIVES, passiveCost } from "./data/passives.js?v=mwach6ez";
+import { STAT_IDS, STAT_NAMES, STAT_TEXT, statCost, derive, aspdOf, hitsPerSec } from "./data/stats.js?v=mwach6ez";
+import { liveRefresh } from "./meta/live.js?v=mwach6ez";
+import { bestCard } from "./sim/bot.js?v=mwach6ez";
+import { WTYPES, STARTER, btbaOf, wtypesOf, basicIdOf } from "./data/weapons.js?v=mwach6ez";
+import { ATTR, lineText, elemsOfLines, lineNow } from "./data/affix.js?v=mwach6ez";
+import { GRADE, GRADES } from "./data/loot.js?v=mwach6ez";
+import { baseOf, elemsFor, ENCHANT, refineCost, refineChance, REFINE_MAX } from "./data/loot.js?v=mwach6ez";
+import { iconPixels, kindOf, lookOf, SLOT_NAMES, MATERIALS } from "./data/gear.js?v=mwach6ez";
+import { dressHero } from "./render/dress.js?v=mwach6ez";
 // an item's 12 x 12 icon as a picture (drawn once per kind and rarity)
 const iconCache = new Map();
 function itemIcon(it) {
@@ -57,12 +57,12 @@ function drawPreview(cls) {
     g.clearRect?.(0, 0, cv.width, cv.height); g.putImageData(im, 0, 0);
   } catch { /* no canvas */ }
 }
-import { ENVS } from "./data/environments.js?v=mwa7i8js";
-import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mwa7i8js";
-import { ENEMIES as KINDS } from "./sim/enemies.js?v=mwa7i8js";
-import { markPool } from "./data/meta.js?v=mwa7i8js";
-import { TALENT_TREES, talentCost, markCost, marksBought, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mwa7i8js";
-import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, createChar, deleteChar, selectChar, drawMark, drawCost, drawFirst, clsOf, charName, MAX_CHARS, weaponOf, profileMods, itemScore, salvageFiltered, addElement, removeElement, rerollMartial, refineItem, addElemCost, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mwa7i8js";
+import { ENVS } from "./data/environments.js?v=mwach6ez";
+import { ELEMENTAL, RESIST, WEAK, DUALS, kinElems, kinWeak } from "./data/bestiary.js?v=mwach6ez";
+import { ENEMIES as KINDS } from "./sim/enemies.js?v=mwach6ez";
+import { markPool } from "./data/meta.js?v=mwach6ez";
+import { TALENT_TREES, talentCost, markCost, marksBought, homeSchool, crossSchool, slotName, mageXpNext, SLOTS, RARITY, ACHIEVEMENTS, MAGE_PERKS } from "./data/meta.js?v=mwach6ez";
+import { load, save, exportSave, importSave, freshProfile, runOptions, buyTalent, buyPassive, unlockMark, dailyOf, dailyOptions, noteDaily, runCrystals, createChar, deleteChar, selectChar, drawMark, drawCost, drawFirst, clsOf, charName, MAX_CHARS, weaponOf, profileMods, itemScore, salvageFiltered, addElement, removeElement, rerollMartial, refineItem, addElemCost, raiseStat, resetStats, resetCost, statPointsLeft, statTotals, claimGear, pc, marksOpen, itemName, equip, unequip, salvage, salvageValue, settle, refreshQuests, claimQuest, questText, classOpen, unlockClass, endlessOpen, chapterOpen, affixText, chaosUnlocked } from "./meta/profile.js?v=mwach6ez";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("screen"), g = canvas.getContext("2d"), img = g.createImageData(PW, PH);
@@ -95,6 +95,7 @@ function persist() { save(store, P); mirror.schedule() }
 refreshQuests(P);
 if (firstTime && !P.stats.runs) drawFirst(P);
 persist();
+let slowmo = 0;
 let w = null, r = null, running = false, paused = false, acc = 0, last = 0, showFps = false, fpsN = 0, fpsT = 0, demo = null;
 let pick = { chapter: Math.min(5, P.best.chapter + 1), endless: false, cls: P.lastClass ?? "mage" }, codexSchool = "arcane";
 
@@ -236,6 +237,7 @@ function drawSpeed() { const b = $("speed-btn"); b.textContent = `⏩ x${gameSpe
 $("speed-btn").onclick = () => { gameSpeed = { 1: 2, 2: 4, 4: 8, 8: 1 }[gameSpeed] ?? 1; localStorage.setItem("msd-speed", String(gameSpeed)); drawSpeed() };
 drawSpeed();
 function openChar() {
+  return;   // (no stats or gear to change any more)
   if (!running || demo || !w || w.phase === "lost" || w.phase === "won") return;
   $("charpanel").hidden = false; drawChar();
 }
@@ -287,7 +289,7 @@ function drawTalents() {
   for (const t of TALENT_TREES[viewCls]) {
     const l = mine[t.id] ?? 0, max = l >= t.max, cost = talentCost(t, l), el = document.createElement("div");
     el.className = `tile ${l ? "on" : ""} ${t.branch === "Đặc trưng" ? "sig" : ""}`;
-    el.innerHTML = `<b>${t.name}</b> <small>${t.branch} · cấp ${l}/${t.max}</small><small>${t.text}</small>`;
+    el.innerHTML = `<b>${t.name}</b> <small>cấp ${l}</small><small>${t.text} mỗi cấp${l >= 10 ? " (càng lên cao, mỗi cấp càng ít)" : ""}</small>`;
     const b = document.createElement("button");
     b.textContent = max ? "Tối đa" : `💎 ${cost}`;
     b.disabled = max || P.crystals < cost;
@@ -425,7 +427,7 @@ function drawGear() {
   }
 }
 function drawCodex() {
-  const note = $("codex-note"); if (note) note.textContent = "Hiệu ứng Codex (combo, bộ ba, tầng, Hố Đen) không gây khống chế: không choáng, đóng băng, giữ chân, đẩy hay hút quái.";
+  const note = $("codex-note"); if (note) note.textContent = "Kết hợp dấu để tạo phản ứng: chuỗi phản ứng liên tiếp tăng điểm và sát thương.";
   const bz = $("bestiary");
   bz.innerHTML = "";
   for (const [el, k] of Object.entries(ELEMENTAL)) {
@@ -499,26 +501,40 @@ $("import").onchange = async (e) => { try { P = importSave(await e.target.files[
 $("reset").onclick = () => { if (confirm("Xóa toàn bộ tiến độ?")) { P = freshProfile(); refreshQuests(P); persist(); go("menu") } };
 
 // ======================= a run =======================
-function startRun() {
-  const opts = runOptions(P, { chapter: pick.chapter, endless: pick.endless, cls: pick.cls });
-  w = createWorld((Math.random() * 1e9) | 0, opts);
+function startRun(daily = null) {
+  const opts = daily ? dailyOptions(P, daily) : runOptions(P, { chapter: pick.chapter, endless: pick.endless, cls: pick.cls });
+  w = createWorld(daily ? daily.seed : (Math.random() * 1e9) | 0, opts);
+  w.daily = daily;
   r = createRenderer(A);
   demo = null; acc = 0; paused = false; running = true;
   for (const p of PAGES) $(p).hidden = true;
   $("hud").hidden = false;
   buildSlots(); buildSigils();
 }
+$("daily-btn").onclick = () => startRun(dailyOf());
+let lastShare = "";
+$("share-btn").onclick = () => {
+  const link = "https://t.me/bachntrobot", text = lastShare;
+  const tg = globalThis.Telegram?.WebApp;
+  if (tg?.openTelegramLink) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+  else { navigator.clipboard?.writeText(`${text}\n${link}`); toast("Đã sao chép kết quả để chia sẻ") }
+};
 function finishRun(won) {
   if (!w || demo) return;
   running = false; paused = false;
   $("pause").hidden = true; $("cards").hidden = true;
-  const sum = summary(w), out = settle(P, sum, { seed: w.seed });
+  const daily = w.daily, sum = summary(w);
+  // a daily run counts its score only (no tree, no crystals but the day's first)
+  const out = daily ? { crystals: noteDaily(P, daily.day, sum.score), mageLevels: 0, items: [], achievements: [], quests: [], discovered: [] } : settle(P, sum, { seed: w.seed });
   persist();
+  const best = daily ? P.daily.best[daily.day] : null, top = Object.entries(sum.counts).sort((a, b) => b[1] - a[1])[0];
+  lastShare = `🔥 Mage Survivor${daily ? ` — Thử thách ${daily.day.slice(8)}/${daily.day.slice(5, 7)}` : ` — Chương ${sum.chapter}`}: ${sum.score.toLocaleString("vi")} điểm, chuỗi ×${sum.bestChain}${sum.chaos ? `, CHAOS ${sum.chaos} lần` : ""}${won ? " · THẮNG" : ` · tới đợt ${sum.waves}`}`;
   $("sum-title").textContent = won ? "CHIẾN THẮNG!" : w.wall.hp <= 0 ? "TƯỜNG ĐÃ SỤP" : "KẾT THÚC LƯỢT";
   const items = out.items.map((it) => `<span class="rar-${it.rarity}">${itemName(it)}</span>`).join(", ");
   $("sum-body").innerHTML = `
     <p>${sum.endless ? "Vô tận" : `Chương ${sum.chapter}`} · qua <b>${sum.waves}</b> đợt · hạ <b>${sum.kills}</b> quái · cấp <b>${sum.level}</b> · thức tỉnh <b>${sum.awakened.length}</b>/10 nguyên tố${sum.chaos ? ` · <b style="color:#ff8ac8">${sum.chaos} lần CHAOS</b>` : ""}</p>
-    <p>Nhặt được <b>${(sum.gear ?? []).length}</b> trang bị · 💎 hiện có <b>${P.crystals}</b> (chỉ có từ phân rã)${out.mageLevels ? ` · Tài khoản lên <b>${out.mageLevels}</b> cấp` : ""}</p>
+    <p class="score-line">⭐ Điểm <b>${sum.score.toLocaleString("vi")}</b> · chuỗi dài nhất <b>×${sum.bestChain}</b>${top ? ` · nhiều nhất: <b>${REACTION_BY_ID[top[0]]?.label ?? top[0]}</b> ×${top[1]}` : ""}${daily ? ` · kỷ lục hôm nay <b>${best.toLocaleString("vi")}</b>` : ""}</p>
+    <p>💎 ${daily ? (out.crystals ? `+${out.crystals} (lần đầu hôm nay)` : "thử thách chỉ tính điểm") : [...runCrystals(sum), ...(out.firstClear ? [["Lần đầu qua chương", out.firstClear]] : [])].map(([k, v]) => `${k} +${v}`).join(" · ") || "+0"} · hiện có <b>${P.crystals}</b>${out.mageLevels ? ` · Tài khoản lên <b>${out.mageLevels}</b> cấp` : ""}</p>
     ${out.discovered.length ? `<p>Khám phá mới: ${out.discovered.map((k) => `<b>${REACTION_BY_ID[k]?.label ?? k}</b>`).join(", ")}</p>` : ""}
     ${items ? `<p>Đồ rơi: ${items}</p>` : ""}
     ${out.achievements.length ? `<p>Thành tích: ${out.achievements.map((a) => `★ ${a.name} (+${a.reward}💎)`).join(", ")}</p>` : ""}
@@ -539,7 +555,9 @@ function frame(now) {
   last = now;
   let stepped = false;
   if (running && !paused) {
-    acc = Math.min(acc + dt * (demo ? 1 : gameSpeed), DT * 16);
+    // a big moment: a quarter of a second at a quarter of the speed
+    const slow = slowmo > 0 ? 0.25 : 1; slowmo = Math.max(0, slowmo - dt);
+    acc = Math.min(acc + dt * (demo ? 1 : gameSpeed) * slow, DT * 16);
     while (acc >= DT) {
       stepped = true;
       acc -= DT;
@@ -576,7 +594,9 @@ function handle(events) {
     else if (ev.type === "discover") toast(`✦ KHÁM PHÁ: ${REACTION_BY_ID[ev.kind]?.label ?? ev.kind}`);
     else if (ev.type === "awaken") { toast(`${ELEM[ev.elem].icon} ${ELEM[ev.elem].name} thức tỉnh!`); buildSigils() }
     else if (ev.type === "chaosAwake") banner("CHAOS AWAKENS");
-    else if (ev.type === "reaction" && ev.kind === "chaos") banner("✺ CHAOS ✺");
+    else if (ev.type === "reaction" && ev.kind === "chaos") { banner("✺ CHAOS ✺"); slowmo = 0.25 }
+    else if (ev.type === "reaction" && (ev.kind === "penta" || ev.kind === "hexa")) slowmo = 0.25;
+    else if (ev.type === "combo") toast(`🔥 CHUỖI ×${ev.n}!`, 1500);
     else if (ev.type === "boss") banner(ev.name);
     else if (ev.type === "env" && ev.kind !== "clear") toast(`${ENVS[ev.kind].icon} ${ENVS[ev.kind].name}: ${ENVS[ev.kind].vi}`, 6000);
     else if (ev.type === "bossPhase") toast(ev.shieldBy === "tier" ? "Khiên boss: chỉ phản ứng TẦNG (3+ nguyên tố) phá được" : "Khiên boss: phá bằng phản ứng");
@@ -614,7 +634,8 @@ function set(el, prop, v) {
 function hud() {
   set($("wall-fill"), "width", `${((100 * w.wall.hp) / w.wall.max).toFixed(1)}%`);
   set($("wall-text"), "text", `${Math.ceil(w.wall.hp)}/${w.wall.max}`);
-  set($("wave"), "text", w.endless ? `Vô tận · đợt ${w.wave + 1}` : `Chương ${w.chapter} · đợt ${Math.min(w.wave + 1, 10)}/10`);
+  drawChain();
+  set($("wave"), "text", w.daily ? `🎯 Thử thách · đợt ${Math.min(w.wave + 1, 10)}/10` : w.endless ? `Vô tận · đợt ${w.wave + 1}` : `Chương ${w.chapter} · đợt ${Math.min(w.wave + 1, 10)}/10`);
   set($("lvl"), "text", `Lv ${w.level}`);
   set($("xp-fill"), "width", `${Math.min(100, (100 * w.xp) / xpNext(w.level)).toFixed(1)}%`);
   for (const s of $("skills").children) {
@@ -670,6 +691,14 @@ function dmgTable(src) {
   return `<div class="dmg-box"><h3>Thống kê sát thương <small>tổng ${fmt(total)}</small></h3>${lines}</div>`;
 }
 
+let chainShown = 0;
+function drawChain() {
+  const el = $("chain"), n = w && !demo ? (w.chain && w.t - w.chain.t <= 3 ? w.chain.n : 0) : 0;
+  $("score").textContent = w && !demo ? `⭐ ${Math.round(w.score ?? 0).toLocaleString("vi")}` : "";
+  if (n < 2) { el.hidden = true; chainShown = 0; return }
+  el.hidden = false;
+  if (n !== chainShown) { chainShown = n; el.textContent = `COMBO ×${n}`; el.className = n >= 100 ? "c4" : n >= 50 ? "c3" : n >= 25 ? "c2" : n >= 10 ? "c1" : ""; el.style.animation = "none"; void el.offsetWidth; el.style.animation = "" }
+}
 function banner(text) {
   const b = $("banner");
   b.hidden = false; b.textContent = text;

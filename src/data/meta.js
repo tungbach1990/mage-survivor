@@ -1,8 +1,8 @@
 // What carries over between runs: per class the talent tree, the marks unlocked and the gear worn; shared, the
 // crystals, the bag, the account level, achievements and daily quests.
 
-import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwa7i8js";
-import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mwa7i8js";
+import { MARTIAL_PAIRS, MARTIAL_TRIADS } from "./martial.js?v=mwach6ez";
+import { ELEMENTS, MARTIAL, MARKS, ELEM, schoolOf } from "./elements.js?v=mwach6ez";
 const MARTIAL_IDS = new Set([...MARTIAL_PAIRS.map((p) => p[2]), ...MARTIAL_TRIADS.map((t) => t[1])]);
 
 // ---------- talents: one tree per class, 4 branches of 4; cost = base * growth^level ----------
@@ -60,9 +60,28 @@ const SIGNATURE = {
     T("hirelings", SIG, "Thuê bền", 5, 35, "+15% máu golem/quầy hàng mỗi cấp", (m, l) => (m.summonHp *= 1 + 0.15 * l)),
   ],
 };
-export const TALENT_TREES = Object.fromEntries(Object.entries(SIGNATURE).map(([c, sig]) => [c, [...COMMON, ...sig]]));
-export const TALENTS = TALENT_TREES.mage;
-export const TALENT_GROWTH = 1.7;
+/** The old 16-node trees (an older save's levels are moved over, or paid back, from these). */
+export const LEGACY_TREES = Object.fromEntries(Object.entries(SIGNATURE).map(([c, sig]) => [c, [...COMMON, ...sig]]));
+export const LEGACY_GROWTH = 1.7;
+export const legacyCost = (t, level) => Math.round(t.base * Math.pow(LEGACY_GROWTH, level));
+// ---------- the tree: eight nodes, no cap; each costs 35% more a level, and each ten levels are worth 80% of
+// the ten before (so it always grows, ever more slowly)
+export const TALENT_GROWTH = 1.3, TALENT_FADE = 0.85;
+/** What l levels are worth, in first levels: 10 + 8 + 6.4 + ... */
+export const worth = (l) => { let s = 0; for (let k = 0; k < l; k++) s += Math.pow(TALENT_FADE, Math.floor(k / 10)); return s };
+const N = (id, name, base, text, mod) => ({ id, branch: "Nâng cấp", name, max: Infinity, base, text, mod: (m, l) => mod(m, worth(l), l) });
+export const TREE = [
+  N("dmg", "Sức mạnh", 25, "+6% sát thương", (m, x) => (m.dmg *= 1 + 0.06 * x)),
+  N("react", "Cộng hưởng", 30, "+7% sát thương phản ứng và combo", (m, x) => (m.reactDmg *= 1 + 0.07 * x)),
+  N("auraDur", "Dấu lâu", 25, "+6% thời gian dấu", (m, x) => (m.auraDur *= 1 + 0.06 * x)),
+  N("wallHp", "Tường dày", 20, "+20 máu tường", (m, x) => (m.wallMax += 20 * x)),
+  N("wallRegen", "Tự vá", 30, "+0,1 hồi tường mỗi giây", (m, x) => (m.regen += 0.1 * x)),
+  N("crit", "Chí mạng", 30, "+1% tỉ lệ chí mạng", (m, x) => (m.crit += 0.01 * x)),
+  N("cd", "Nhanh tay", 35, "−2% hồi chiêu", (m, x) => (m.cd *= Math.pow(0.98, x))),
+  N("rerolls", "Đổi thẻ", 60, "+1 lần đổi thẻ mỗi 5 cấp", (m, x, l) => (m.rerolls = Math.floor((l + 4) / 5))),
+];
+export const TALENT_TREES = Object.fromEntries(Object.keys(SIGNATURE).map((c) => [c, TREE]));
+export const TALENTS = TREE;
 export const talentCost = (t, level) => Math.round(t.base * Math.pow(TALENT_GROWTH, level));
 
 // ---------- marks: every class can unlock all twenty; three to start ----------
@@ -92,7 +111,7 @@ export const mageXpNext = (level) => Math.round(100 * Math.pow(1.35, level - 1))
 export const MAGE_PERKS = { 3: "Đòn đánh thường bắt đầu ở cấp 2", 5: "Mở ô Bùa hộ mệnh", 8: "Mở Vô tận sớm (khi đã qua chương 3)" };
 
 // ---------- gear: three slots per class; the weapon named for the class ----------
-import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mwa7i8js";
+import { SLOT_IDS, SLOT_NAMES } from "./gear.js?v=mwach6ez";
 export const SLOTS = Object.fromEntries(SLOT_IDS.map((s) => [s, SLOT_NAMES[s]]));
 export const WEAPON_NAME = { mage: "Gậy phép", swordman: "Kiếm", archer: "Cung", thief: "Dao găm", acolyte: "Chùy", merchant: "Xe đẩy" };
 export const slotName = (slot, cls) => (slot === "weapon" ? WEAPON_NAME[cls] ?? "Vũ khí" : SLOTS[slot] ?? slot);
