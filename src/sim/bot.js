@@ -1,16 +1,16 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mw9emti8";
-import { speedFactor } from "./status.js?v=mw9emti8";
-import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mw9emti8";
-import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mw9emti8";
-import { PASSIVES, passiveCost } from "../data/passives.js?v=mw9emti8";
-import { autoStats, claimGear, itemScore, equip } from "../meta/profile.js?v=mw9emti8";
-import { liveRefresh } from "../meta/live.js?v=mw9emti8";
-import { talentCost } from "../data/meta.js?v=mw9emti8";
-import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mw9emti8";
-import { CLASS_IDS } from "../data/classes.js?v=mw9emti8";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mwa70dk0";
+import { speedFactor } from "./status.js?v=mwa70dk0";
+import { freshProfile, runOptions, rollItem } from "../meta/profile.js?v=mwa70dk0";
+import { TALENT_TREES, START_MARKS, homeSchool } from "../data/meta.js?v=mwa70dk0";
+import { PASSIVES, passiveCost } from "../data/passives.js?v=mwa70dk0";
+import { autoStats, claimGear, itemScore, equip } from "../meta/profile.js?v=mwa70dk0";
+import { liveRefresh } from "../meta/live.js?v=mwa70dk0";
+import { talentCost } from "../data/meta.js?v=mwa70dk0";
+import { ELEMENTS, MARTIAL, MARKS } from "../data/elements.js?v=mwa70dk0";
+import { CLASS_IDS } from "../data/classes.js?v=mwa70dk0";
 
 /** The card the bot (and the idle toggle) would take. */
 export const bestCard = (w) => w.cards.map((c, j) => [score(w, c), j]).sort((a, b) => b[0] - a[0])[0][1];
