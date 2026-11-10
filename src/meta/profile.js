@@ -3,20 +3,21 @@
 // (p.perClass[cls]): the talent tree, the marks unlocked, the three gear slots.
 // Pure functions over a plain object, so Node tests drive it with an in-memory store.
 
-import { Rng } from "../../lib/pixelfx/core/math.js?v=mwadl24d";
-import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mwadl24d";
-import { SKILLS } from "../data/skills.js?v=mwadl24d";
-import { CODEX } from "../data/reactions.js?v=mwadl24d";
-import { CLASSES, CLASS_IDS, SIGNATURE, PLAYABLE } from "../data/classes.js?v=mwadl24d";
-import { TREE, LEGACY_TREES, legacyCost, TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, marksBought, markPool, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mwadl24d";
-import { DEFAULT_MODS } from "../sim/world.js?v=mwadl24d";
-import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mwadl24d";
-import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mwadl24d";
-import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mwadl24d";
-import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mwadl24d";
-import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mwadl24d";
-import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mwadl24d";
-import { GEAR_SCALE } from "../data/meta.js?v=mwadl24d";
+import { Rng } from "../../lib/pixelfx/core/math.js?v=mwall5v2";
+import { ELEMENTS, MARTIAL, MARKS, schoolOf, ELEM } from "../data/elements.js?v=mwall5v2";
+import { SKILLS } from "../data/skills.js?v=mwall5v2";
+import { CODEX } from "../data/reactions.js?v=mwall5v2";
+import { CLASSES, CLASS_IDS, SIGNATURE, PLAYABLE } from "../data/classes.js?v=mwall5v2";
+import { CLASS_PASSIVE, classPassiveCost, passiveWorth } from "../data/meta.js?v=mwall5v2";
+import { TREE, LEGACY_TREES, legacyCost, TALENT_TREES, TALENTS, talentCost, START_MARKS, markCost, marksBought, markPool, homeSchool, crossSchool, ELEMENT_COST, mageXpNext, SLOTS, WEAPON_NAME, slotName, RARITY, AFFIXES, LEGENDARY, BAG_SIZE, ACHIEVEMENTS, QUESTS } from "../data/meta.js?v=mwall5v2";
+import { DEFAULT_MODS } from "../sim/world.js?v=mwall5v2";
+import { GRADE, GRADES, gradeOf, rollGrade, itemPower, baseOf, baseMul, elemsFor, ELEM_COUNT, maxElems, imbueChance, ENCHANT, refineCost, refineChance, REFINE_MAX } from "../data/loot.js?v=mwall5v2";
+import { STARTER, WTYPES, wtypesOf } from "../data/weapons.js?v=mwall5v2";
+import { ATTR, lineValue, lineText, applyLine, rollLines, elemsOfLines, martialOfLines, gearScore } from "../data/affix.js?v=mwall5v2";
+import { STAT_IDS, STAT_MAX, statCost, pointsAt, spentOn, freshStats, totalsOf } from "../data/stats.js?v=mwall5v2";
+import { PASSIVES, SIG_PASSIVE, passiveCost, applyPassives } from "../data/passives.js?v=mwall5v2";
+import { SLOT_IDS, kindOf, kindsOf, lookOf } from "../data/gear.js?v=mwall5v2";
+import { GEAR_SCALE } from "../data/meta.js?v=mwall5v2";
 
 export const SAVE_KEY = "msd.save.v1";
 export const VERSION = 4;
@@ -29,7 +30,7 @@ export const starterWeapon = (cls) => ({ id: `start_${cls}`, cls, slot: "weapon"
 const opensSkill = (cls, m) => Object.values(SKILLS).some((s) => s.cls.includes(cls) && !s.basic && !s.fuse && s.elem === m && (s.req ?? [s.elem]).every((x) => x === m));
 /** Two marks drawn from a class's school. */
 export function drawStart(cls, seed) { const r = new Rng(seed * 7919 + 17), pool = markPool(cls).filter((m) => opensSkill(cls, m)), out = []; while (out.length < 2 && pool.length) out.push(pool.splice(Math.floor(r.next() * pool.length), 1)[0]); return out }
-const freshClass = (cls, seed = null) => { const marks = seed == null ? [...START_MARKS[cls]] : drawStart(cls, seed); return { cls, talents: {}, stats: freshStats(), statResets: 0, passives: { [SIG_PASSIVE[cls]]: 1 }, marks, start: [...marks], gear: { ...freshGear(), weapon: starterWeapon(cls) }, starterGiven: true } };
+const freshClass = (cls, seed = null) => { const marks = seed == null ? [...START_MARKS[cls]] : drawStart(cls, seed); return { cls, talents: {}, passive: 0, stats: freshStats(), statResets: 0, passives: { [SIG_PASSIVE[cls]]: 1 }, marks, start: [...marks], gear: { ...freshGear(), weapon: starterWeapon(cls) }, starterGiven: true } };
 export function freshProfile() {
   return {
     v: VERSION, crystals: START_CRYSTALS, mageXp: 0, mageLevel: 1,
@@ -53,7 +54,7 @@ export function migrate(data) {
   p.classes = [...new Set(["mage", "swordman", ...(d.classes ?? [])])].filter((c) => CLASSES[c]);
   p.perClass = Object.fromEntries(CLASS_IDS.map((c) => {
     const o = d.perClass?.[c];
-    return [c, o ? { cls: c, ...(o.name ? { name: o.name } : {}), start: o.start ?? [...START_MARKS[c]], talents: { ...o.talents }, stats: { ...freshStats(), ...(o.stats ?? {}) }, statResets: o.statResets ?? 0, starterGiven: !!o.starterGiven, passives: { [SIG_PASSIVE[c]]: 1, ...(o.passives ?? {}) }, marks: [...new Set([...(o.start ?? START_MARKS[c]), ...(o.marks ?? [])])], gear: { ...freshGear(), ...Object.fromEntries(Object.entries(o.gear ?? {}).map(([k, v]) => [k === "staff" ? "weapon" : k, v])) } } : freshClass(c)];
+    return [c, o ? { cls: c, ...(o.name ? { name: o.name } : {}), start: o.start ?? [...START_MARKS[c]], talents: { ...o.talents }, passive: o.passive ?? 0, stats: { ...freshStats(), ...(o.stats ?? {}) }, statResets: o.statResets ?? 0, starterGiven: !!o.starterGiven, passives: { [SIG_PASSIVE[c]]: 1, ...(o.passives ?? {}) }, marks: [...new Set([...(o.start ?? START_MARKS[c]), ...(o.marks ?? [])])], gear: { ...freshGear(), ...Object.fromEntries(Object.entries(o.gear ?? {}).map(([k, v]) => [k === "staff" ? "weapon" : k, v])) } } : freshClass(c)];
   }));
   for (const [id, o] of Object.entries(d.perClass ?? {})) if (!CLASS_IDS.includes(id) && o && CLASSES[o.cls]) p.perClass[id] = { ...freshClass(o.cls), ...o, stats: { ...freshStats(), ...(o.stats ?? {}) }, gear: { ...freshGear(), ...(o.gear ?? {}) } };
   // the characters: an older save's open classes each one
@@ -168,7 +169,8 @@ export const marksOpen = (p, cls) => pc(p, cls).marks;
 export function profileMods(p, cls = p.lastClass ?? "mage") {
   const m = { ...DEFAULT_MODS(), elem: {}, imbue: {} }, c = pc(p, cls);
   for (const t of TALENT_TREES[cls]) { const l = c.talents[t.id] ?? 0; if (l) t.mod(m, l) }
-  // (no passives, no gear: the tree is the only thing carried into a run)
+  // the class's own passive (no gear: the tree and this are what's carried into a run)
+  { const P0 = CLASS_PASSIVE[cls], l = c.passive ?? 0; if (P0 && l > 0) P0.apply(m, passiveWorth(l)) }
   m.cd = Math.max(0.4, m.cd);
   return m;
 }
@@ -321,6 +323,12 @@ export function refineItem(p, id) {
   const to = (it.refine ?? 0) + 1;
   if (enchantRoll(p) < refineChance(to)) { it.refine = to; return "ok" }
   it.refine = Math.max(0, (it.refine ?? 0) - 1); return "fail";
+}
+/** Raise the class's own passive a level (500, 1000, 2000, ... crystals). */
+export function buyClassPassive(p, cls) {
+  const c = pc(p, cls), l = c.passive ?? 0, cost = classPassiveCost(l);
+  if (!CLASS_PASSIVE[cls] || p.crystals < cost) return false;
+  p.crystals -= cost; c.passive = l + 1; return true;
 }
 export function buyTalent(p, cls, id) {
   const t = TALENT_TREES[cls]?.find((x) => x.id === id), c = pc(p, cls), l = c.talents[id] ?? 0;

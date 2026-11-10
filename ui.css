@@ -309,3 +309,5 @@ h1 { font-size: 28px; }
 #score { position: absolute; right: 6px; top: calc(var(--top, 60px) + 4px); font: 800 12px monospace; color: #ffe286; text-shadow: 0 1px 0 #000; pointer-events: none; }
 .score-line { font-size: 16px; } .score-line b { color: #ffe286; }
 #daily-btn { background: #3a2a10; border-color: #ffb03a; }
+
+.tile.passive-own { border-color: #ffb03a; box-shadow: 0 0 8px #ff9a2a66; width: 100%; } .tile.passive-own .next { display: block; color: #9ae8c0; }

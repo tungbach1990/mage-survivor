@@ -1,11 +1,11 @@
 // A sensible bot: learns new elements first, then levels what it has, fuses, mends a low wall. Used by the
 // balance script and by the admin page to try the current tuning.
 
-import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mwadl24d";
-import { speedFactor } from "./status.js?v=mwadl24d";
-import { freshProfile, runOptions, settle, buyTalent, drawMark, drawCost } from "../meta/profile.js?v=mwadl24d";
-import { TALENT_TREES, talentCost } from "../data/meta.js?v=mwadl24d";
-import { CLASS_IDS } from "../data/classes.js?v=mwadl24d";
+import { createWorld, step, drain, chooseCard, summary } from "./world.js?v=mwall5v2";
+import { speedFactor } from "./status.js?v=mwall5v2";
+import { freshProfile, runOptions, settle, buyTalent, drawMark, drawCost, buyClassPassive } from "../meta/profile.js?v=mwall5v2";
+import { TALENT_TREES, talentCost, classPassiveCost } from "../data/meta.js?v=mwall5v2";
+import { CLASS_IDS } from "../data/classes.js?v=mwall5v2";
 
 /** The card the bot (and the idle toggle) would take. */
 export const bestCard = (w) => w.cards.map((c, j) => [score(w, c), j]).sort((a, b) => b[0] - a[0])[0][1];
@@ -17,6 +17,8 @@ export function spend(p, cls, reserve = 0) {
     const left = p.crystals - reserve, c = p.perClass[cls], mark = drawCost(p, cls);
     if (mark <= left * 0.6 && drawMark(p, cls)) continue;
     const opts = TALENT_TREES[cls].map((t) => [t.id, talentCost(t, c.talents[t.id] ?? 0)]).sort((a, b) => a[1] - b[1]);
+    const pas = classPassiveCost(c.passive ?? 0);
+    if (pas <= left && pas <= (opts[0]?.[1] ?? Infinity) * 3 && buyClassPassive(p, cls)) continue;
     if (!opts.length || opts[0][1] > left || !buyTalent(p, cls, opts[0][0])) break;
   }
 }

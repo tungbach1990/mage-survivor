@@ -1,14 +1,14 @@
 // The skill archetypes, run from the data in data/skills.js: bolt, ball, chain, orb, zone, passive (weather
 // lives in world.js). Each hit goes through damage(), which leaves the element's aura and sets off reactions.
 
-import { ENEMIES } from "./enemies.js?v=mwadl24d";
-import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mwadl24d";
-import { T, skillT } from "../data/tuning.js?v=mwadl24d";
-import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mwadl24d";
-import { schoolOf } from "../data/elements.js?v=mwadl24d";
-import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mwadl24d";
-import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mwadl24d";
-import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mwadl24d";
+import { ENEMIES } from "./enemies.js?v=mwall5v2";
+import { SKILLS, WEATHER, stats } from "../data/skills.js?v=mwall5v2";
+import { T, skillT } from "../data/tuning.js?v=mwall5v2";
+import { statDmg, aspdOf, hitsPerSec } from "../data/stats.js?v=mwall5v2";
+import { schoolOf } from "../data/elements.js?v=mwall5v2";
+import { damage, applyAura, steamAt, obsidianAt, stun, healWall } from "./combat.js?v=mwall5v2";
+import { applyFreeze, applyRoot, applyPoison, speedFactor } from "./status.js?v=mwall5v2";
+import { W, H, GEM, WALL_X, LANE, center, alive, inView, around, pickTarget, densest, addGround, addWell, movable } from "./field.js?v=mwall5v2";
 
 export const IMBUE_CHANCE = 0.25;
 export const LOCKED_DMG = 2.2;
@@ -286,6 +286,12 @@ export function updateShots(w, dt) {
         perks(w, s.st);
         if (s.st.push && s.elem !== "wind" && e.hp > 0 && movable(e)) e.x += s.st.push * (ENEMIES[e.type].boss ? 0.2 : 1);
         w.events.push({ type: "impact", skill: s.skill, elem: s.elem, x: s.x, y: s.y, lvl: s.lvl, mark: s.mark, basic: !!SKILLS[s.skill]?.basic, plain: s.plain });
+        // the archer's passive: an arrow that hits may split in two, up and down from where it struck
+        if (!s.split && w.mods.splitChance && s.kind === "bolt" && SKILLS[s.skill]?.cls?.includes("archer") && w.rng.chance(w.mods.splitChance)) {
+          const sp = Math.hypot(s.vx, s.vy) || 200, a = Math.atan2(s.vy, s.vx);
+          for (const da of [-0.5, 0.5]) w.shots.push({ ...s, id: w.nextId++, x: s.x, y: s.y, vx: Math.cos(a + da) * sp, vy: Math.sin(a + da) * sp, left: 140, st: { ...s.st, dmg: s.st.dmg * 0.5, pierce: 1 }, hit: new Set([e.id]), pierced: 0, split: true, target: null, dead: false, gone: false });
+          w.events.push({ type: "split", x: s.x, y: s.y });
+        }
         if (++s.pierced >= (s.st.pierce ?? 1)) { s.dead = true; break }
       }
       if (s.target && !s.dead && s.left < -60) s.dead = true;
